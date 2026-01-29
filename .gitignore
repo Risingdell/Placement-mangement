@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+PROGRESS_SUMMARY.md
+SETUP_GUIDE.md

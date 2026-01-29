@@ -1,15 +1,15 @@
-function DrivesPage() {
+function EventsPage() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>Placement Drives</h2>
-        <p style={styles.subtitle}>View and apply for placement opportunities</p>
+        <h2 style={styles.title}>Events & Workshops</h2>
+        <p style={styles.subtitle}>Upcoming placement events and activities</p>
       </div>
 
       <div style={styles.comingSoon}>
-        <span style={styles.icon}>🏢</span>
+        <span style={styles.icon}>📅</span>
         <h3>Coming Soon</h3>
-        <p>Browse placement drives, check eligibility, and apply</p>
+        <p>View and register for placement events</p>
       </div>
     </div>
   );
@@ -48,4 +48,4 @@ const styles = {
   },
 };
 
-export default DrivesPage;
+export default EventsPage;

@@ -1,10 +1,10 @@
-function Achievements() {
+function Internships() {
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h3>Achievements Component</h3>
+      <h3>Internships Component</h3>
       <p>Coming soon...</p>
     </div>
   );
 }
 
-export default Achievements;
+export default Internships;
