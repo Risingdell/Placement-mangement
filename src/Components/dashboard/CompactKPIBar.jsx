@@ -33,9 +33,9 @@ function CompactKPIBar() {
           <span style={styles.label}>CGPA</span>
           <span style={{
             ...styles.value,
-            color: eligibility.cgpa >= 6.0 ? '#4CAF50' : '#f44336'
+            color: parseFloat(eligibility.cgpa) >= 6.0 ? '#4CAF50' : '#f44336'
           }}>
-            {eligibility.cgpa ? eligibility.cgpa.toFixed(2) : 'N/A'}
+            {eligibility.cgpa ? parseFloat(eligibility.cgpa).toFixed(2) : 'N/A'}
           </span>
         </div>
 
@@ -45,7 +45,7 @@ function CompactKPIBar() {
         <div style={styles.kpiItem}>
           <span style={styles.label}>SGPA</span>
           <span style={styles.value}>
-            {profile.sgpa ? profile.sgpa.toFixed(2) : 'N/A'}
+            {profile.sgpa ? parseFloat(profile.sgpa).toFixed(2) : 'N/A'}
           </span>
         </div>
 
