@@ -1,5 +1,9 @@
-import { useState } from 'react';
-import AcademicInfo from '../Components/profile/AcademicInfo';
+import { useState, useEffect } from 'react';
+import { useStudent } from '../context/StudentContext';
+import ProfileHeader from '../Components/profile/ProfileHeader';
+import StatsCards from '../Components/profile/StatsCards';
+import AcademicGrid from '../Components/profile/AcademicGrid';
+import ProfileRightSidebar from '../Components/profile/ProfileRightSidebar';
 import Skills from '../Components/profile/Skills';
 import Projects from '../Components/profile/Projects';
 import Internships from '../Components/profile/Internships';
@@ -7,100 +11,91 @@ import Achievements from '../Components/profile/Achievements';
 import ProfessionalProfile from '../Components/profile/ProfessionalProfile';
 
 function ProfilePage() {
+  const { profile, eligibility, fetchProfile, fetchEligibility } = useStudent();
   const [activeTab, setActiveTab] = useState('academic');
 
+  useEffect(() => {
+    fetchProfile();
+    fetchEligibility();
+  }, []);
+
+  // Calculate generic profile completion (mock logic or reuse from dashboard)
+  const calculateCompletion = () => {
+    if (!profile) return 0;
+    const fields = ['cgpa', 'sgpa', 'resume_url', 'photo_url', 'usn'];
+    const filled = fields.filter(k => profile[k]).length;
+    return Math.round((filled / fields.length) * 100);
+  };
+  const completion = calculateCompletion();
+
   const tabs = [
-    { id: 'academic', label: 'Academic Details', component: AcademicInfo },
+    { id: 'academic', label: 'Academic', component: AcademicGrid },
     { id: 'skills', label: 'Skills', component: Skills },
     { id: 'projects', label: 'Projects', component: Projects },
     { id: 'internships', label: 'Internships', component: Internships },
     { id: 'achievements', label: 'Achievements', component: Achievements },
-    { id: 'professional', label: 'Professional Profile', component: ProfessionalProfile },
+    { id: 'resume', label: 'Resume', component: () => <div className="p-4">Resume Component Placeholder</div> },
   ];
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
 
+  // Prepare stats data
+  const stats = {
+    drives: 12, // Mock data or from context
+    applications: profile?.applications_count || 5,
+    backlogs: profile?.active_backlogs || 0,
+    eligible: eligibility?.eligible || false
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h2 style={styles.title}>My Profile</h2>
-        <p style={styles.subtitle}>Manage your academic and professional information</p>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
+      {/* 1. Profile Summary Strip */}
+      <ProfileHeader profile={profile} completion={completion} />
 
-      {/* Tab Navigation */}
-      <div style={styles.tabContainer}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              ...styles.tab,
-              ...(activeTab === tab.id ? styles.tabActive : {}),
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* 2. Quick Stats Cards */}
+      <StatsCards stats={stats} />
 
-      {/* Tab Content */}
-      <div style={styles.content}>
-        {ActiveComponent && <ActiveComponent />}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column (Content) */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* 3. Profile Tabs */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-20 z-10 overflow-x-auto">
+            <div className="flex px-2 border-b border-gray-100">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                >
+                  {tab.label}
+                  {/* Optional Counter Badges could go here */}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content Area */}
+          <div className="bg-transparent min-h-[400px]">
+            {/* Pass generic props OR specific ones. AcademicGrid needs 'academic' (profile) */}
+            {ActiveComponent && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <ActiveComponent academic={profile} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 5. Right Side Panel */}
+        <div className="lg:col-span-1">
+          <ProfileRightSidebar profile={profile} readiness={{ skills_count: 5, projects_count: 2 }} />
+        </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '20px',
-  },
-  header: {
-    marginBottom: '30px',
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#333',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '1rem',
-    color: '#666',
-    margin: 0,
-  },
-  tabContainer: {
-    display: 'flex',
-    gap: '8px',
-    borderBottom: '2px solid #e0e0e0',
-    marginBottom: '30px',
-    flexWrap: 'wrap',
-  },
-  tab: {
-    padding: '12px 24px',
-    backgroundColor: 'transparent',
-    border: 'none',
-    borderBottom: '3px solid transparent',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-    color: '#666',
-    transition: 'all 0.3s ease',
-    outline: 'none',
-  },
-  tabActive: {
-    color: '#2196F3',
-    borderBottomColor: '#2196F3',
-  },
-  content: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '30px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    minHeight: '400px',
-  },
-};
 
 export default ProfilePage;

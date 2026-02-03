@@ -5,12 +5,15 @@ import CompactKPIBar from "./CompactKPIBar";
 
 function DashboardLayout() {
   return (
-    <div style={styles.container}>
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div style={styles.mainArea}>
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Placeholder for 3D Background */}
+        <div id="canvas-container" className="absolute inset-0 z-0 pointer-events-none"></div>
+
         {/* Top Navbar */}
         <TopNavbar />
 
@@ -18,32 +21,12 @@ function DashboardLayout() {
         <CompactKPIBar />
 
         {/* Page Content */}
-        <main style={styles.content}>
+        <main className="flex-1 overflow-auto p-6 relative z-10">
           <Outlet />
         </main>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    height: '100vh',
-    overflow: 'hidden',
-    backgroundColor: '#f5f7fa',
-  },
-  mainArea: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  content: {
-    flex: 1,
-    overflow: 'auto',
-    padding: '24px',
-  },
-};
 
 export default DashboardLayout;

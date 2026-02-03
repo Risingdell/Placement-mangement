@@ -56,6 +56,14 @@ app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/inbox', require('./routes/inboxRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 
+// Admin API routes
+app.use('/api/admin/companies', require('./routes/adminCompanyRoutes'));
+app.use('/api/admin/students', require('./routes/adminStudentRoutes'));
+app.use('/api/admin/applications', require('./routes/adminApplicationRoutes'));
+app.use('/api/admin/messages', require('./routes/adminMessageRoutes'));
+app.use('/api/admin/notifications', require('./routes/adminNotificationRoutes'));
+app.use('/api/admin/stats', require('./routes/adminStatsRoutes'));
+
 // =============================================
 // ERROR HANDLING
 // =============================================

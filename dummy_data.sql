@@ -2,7 +2,14 @@
 -- PLACEMENT MANAGEMENT SYSTEM - DUMMY DATA
 -- =====================================================
 -- This SQL file creates test data for the student dashboard
--- Login Credentials: student@test.com / password123 (USN: 1MS21CS001)
+--
+-- ALL TEST USERS PASSWORD: password123
+--
+-- Login Credentials:
+--   Student 1: student@test.com / password123 (USN: 1MS21CS001)
+--   Student 2: priya.sharma@college.edu / password123 (USN: 1MS21CS002)
+--   Student 3: amit.patel@college.edu / password123 (USN: 1MS21CS003)
+--   TPO Admin: tpo@college.edu / password123 (USN: TPO001)
 -- =====================================================
 
 -- Clear existing data (in reverse order of dependencies)
@@ -27,10 +34,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- You may need to regenerate this hash based on your backend's bcrypt salt rounds
 
 INSERT INTO users (id, usn, email, full_name, phone, password_hash, role, is_active, is_placed, created_at, updated_at) VALUES
-(101, '1MS21CS001', 'student@test.com', 'Rajesh Kumar', '9876543210', '$2a$10$YourHashedPasswordHere123456789012345678901234567890123456', 'student', 1, 0, NOW(), NOW()),
-(102, '1MS21CS002', 'priya.sharma@college.edu', 'Priya Sharma', '9876543211', '$2a$10$YourHashedPasswordHere123456789012345678901234567890123456', 'student', 1, 1, NOW(), NOW()),
-(103, '1MS21CS003', 'amit.patel@college.edu', 'Amit Patel', '9876543212', '$2a$10$YourHashedPasswordHere123456789012345678901234567890123456', 'student', 1, 0, NOW(), NOW()),
-(201, 'TPO001', 'tpo@college.edu', 'Dr. Anjali Rao', '9999999999', '$2a$10$YourHashedPasswordHere123456789012345678901234567890123456', 'tpo', 1, 0, NOW(), NOW());
+(101, '1MS21CS001', 'student@test.com', 'Rajesh Kumar', '9876543210', '$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi', 'student', 1, 0, NOW(), NOW()),
+(102, '1MS21CS002', 'priya.sharma@college.edu', 'Priya Sharma', '9876543211', '$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi', 'student', 1, 1, NOW(), NOW()),
+(103, '1MS21CS003', 'amit.patel@college.edu', 'Amit Patel', '9876543212', '$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi', 'student', 1, 0, NOW(), NOW()),
+(201, 'TPO001', 'tpo@college.edu', 'Dr. Anjali Rao', '9999999999', '$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi', 'tpo', 1, 0, NOW(), NOW());
 
 -- =====================================================
 -- 2. STUDENT ACADEMICS TABLE
@@ -457,11 +464,13 @@ INSERT INTO inbox_messages (
 -- Inbox Messages (Rajesh): 10 messages (3 unread, 7 read)
 -- =====================================================
 
--- NOTE: Password hash shown above is a placeholder
--- Generate actual hash using your backend's bcrypt implementation:
--- const bcrypt = require('bcryptjs');
--- const hash = await bcrypt.hash('password123', 10);
+-- NOTE: Password hash has been generated using bcryptjs with 10 salt rounds
+-- Hash: $2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi
+-- Plaintext Password: password123
 --
--- Or use this quick script:
--- node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('password123', 10).then(h => console.log(h));"
+-- To regenerate or create new password hashes, use:
+-- node backend/scripts/generatePasswordHash.js
+--
+-- Or use this quick command:
+-- node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('YOUR_PASSWORD', 10).then(h => console.log(h));"
 -- =====================================================

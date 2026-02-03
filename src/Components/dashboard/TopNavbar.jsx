@@ -17,69 +17,74 @@ function TopNavbar() {
   };
 
   return (
-    <header style={styles.navbar}>
-      <div style={styles.navbarContent}>
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+      <div className="flex justify-between items-center px-6 py-4">
         {/* Left section */}
-        <div style={styles.leftSection}>
-          <h3 style={styles.pageTitle}>Student Dashboard</h3>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-gray-800">Student Dashboard</h3>
         </div>
 
         {/* Right section */}
-        <div style={styles.rightSection}>
+        <div className="flex items-center gap-5">
           {/* Inbox Icon */}
-          <div
-            style={styles.iconButton}
+          <button
+            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent"
             onClick={() => navigate('/dashboard/inbox')}
             title="Inbox"
           >
-            <span style={styles.icon}>📬</span>
+            <span className="text-2xl leading-none">📬</span>
             {unreadCount > 0 && (
-              <span style={styles.badge}>{unreadCount}</span>
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                {unreadCount}
+              </span>
             )}
-          </div>
+          </button>
 
           {/* Officer Availability */}
-          <div style={styles.availabilityIndicator} title={isOfficerAvailable ? 'Officer Available' : 'Officer Busy'}>
-            <span style={{
-              ...styles.dot,
-              backgroundColor: isOfficerAvailable ? '#4CAF50' : '#f44336',
-            }} />
-            <span style={styles.availabilityText}>
+          <div
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full text-sm border border-gray-200"
+            title={isOfficerAvailable ? 'Officer Available' : 'Officer Busy'}
+          >
+            <span
+              className={`w-2 h-2 rounded-full animate-pulse ${isOfficerAvailable ? 'bg-green-500' : 'bg-red-500'
+                }`}
+            />
+            <span className="text-gray-600 font-medium text-xs">
               {isOfficerAvailable ? 'Officer Available' : 'Officer Busy'}
             </span>
           </div>
 
           {/* User Menu */}
-          <div style={styles.userMenuContainer}>
+          <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              style={styles.userButton}
+              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all bg-transparent cursor-pointer"
             >
-              <div style={styles.avatar}>
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm shadow-sm">
                 <span>👤</span>
               </div>
-              <span style={styles.userName}>Student</span>
-              <span style={styles.dropdownIcon}>▼</span>
+              <span className="text-sm font-medium text-gray-700">Student</span>
+              <span className="text-xs text-gray-400">▼</span>
             </button>
 
             {showUserMenu && (
-              <div style={styles.dropdown}>
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
                     navigate('/dashboard/profile');
                   }}
-                  style={styles.dropdownItem}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors border-none bg-transparent cursor-pointer"
                 >
                   My Profile
                 </button>
-                <div style={styles.divider} />
+                <div className="h-px bg-gray-100" />
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
                     handleLogout();
                   }}
-                  style={{...styles.dropdownItem, color: '#f44336'}}
+                  className="w-full text-left px-4 py-3 hover:bg-red-50 text-sm text-red-600 transition-colors border-none bg-transparent cursor-pointer"
                 >
                   Logout
                 </button>
@@ -91,142 +96,5 @@ function TopNavbar() {
     </header>
   );
 }
-
-const styles = {
-  navbar: {
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #e0e0e0',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  navbarContent: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 24px',
-    maxWidth: '100%',
-  },
-  leftSection: {
-    flex: 1,
-  },
-  pageTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#333',
-    margin: 0,
-  },
-  rightSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '20px',
-  },
-  iconButton: {
-    position: 'relative',
-    padding: '8px 12px',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'background-color 0.3s',
-    backgroundColor: 'transparent',
-  },
-  icon: {
-    fontSize: '1.5rem',
-  },
-  badge: {
-    position: 'absolute',
-    top: '4px',
-    right: '4px',
-    backgroundColor: '#f44336',
-    color: '#fff',
-    fontSize: '0.7rem',
-    fontWeight: 'bold',
-    padding: '2px 6px',
-    borderRadius: '10px',
-    minWidth: '18px',
-    textAlign: 'center',
-  },
-  availabilityIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 12px',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '20px',
-    fontSize: '0.85rem',
-  },
-  dot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    animation: 'pulse 2s infinite',
-  },
-  availabilityText: {
-    color: '#666',
-    fontWeight: '500',
-  },
-  userMenuContainer: {
-    position: 'relative',
-  },
-  userButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '8px 12px',
-    backgroundColor: 'transparent',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-  },
-  avatar: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    backgroundColor: '#2196F3',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1rem',
-  },
-  userName: {
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    color: '#333',
-  },
-  dropdownIcon: {
-    fontSize: '0.7rem',
-    color: '#666',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    marginTop: '8px',
-    backgroundColor: '#fff',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    minWidth: '180px',
-    overflow: 'hidden',
-    zIndex: 1000,
-  },
-  dropdownItem: {
-    width: '100%',
-    padding: '12px 16px',
-    backgroundColor: 'transparent',
-    border: 'none',
-    textAlign: 'left',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    color: '#333',
-    transition: 'background-color 0.2s',
-  },
-  divider: {
-    height: '1px',
-    backgroundColor: '#e0e0e0',
-    margin: '4px 0',
-  },
-};
 
 export default TopNavbar;
