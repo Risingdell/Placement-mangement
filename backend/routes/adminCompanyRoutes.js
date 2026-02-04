@@ -8,7 +8,8 @@ const {
   getCompanyShortlists,
   createShortlist,
   updateShortlistStatus,
-  deleteShortlist
+  deleteShortlist,
+  getEligibleStudents
 } = require('../controllers/adminCompanyController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
@@ -17,6 +18,9 @@ const router = express.Router();
 // All routes require authentication and admin role
 router.use(protect);
 router.use(restrictTo('admin', 'tpo'));
+
+// Get eligible students - MUST be before /:id route
+router.get('/eligible-students', getEligibleStudents);
 
 // Company CRUD operations
 router.get('/', getAllCompanies);

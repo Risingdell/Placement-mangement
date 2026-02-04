@@ -1,39 +1,99 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import * as companyService from '../../services/companyService';
 
 function CompaniesPage() {
-  const [companies, setCompanies] = useState([
-    { id: 1, name: 'Google', type: 'Product', ctc: '25 LPA', status: 'Active', students: 15 },
-    { id: 2, name: 'Microsoft', type: 'Product', ctc: '22 LPA', status: 'Active', students: 12 },
-    { id: 3, name: 'Amazon', type: 'Product', ctc: '18 LPA', status: 'Completed', students: 20 },
-    { id: 4, name: 'TCS', type: 'Service', ctc: '3.5 LPA', status: 'Active', students: 45 },
-  ]);
-
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [modalMode, setModalMode] = useState('add');
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showShortlistModal, setShowShortlistModal] = useState(false);
+  const [shortlistedStudents, setShortlistedStudents] = useState([]);
+  const [loadingShortlist, setLoadingShortlist] = useState(false);
+  const [eligibleStudents, setEligibleStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
-    type: 'Product',
+    company_type: 'Product',
     location: '',
-    ctc: '',
     description: '',
-    eligibility: '',
-    deadline: ''
+    minCgpa: '',
+    allowedBranches: [],
+    maxBacklogs: '',
+    allowedBatchYears: []
   });
+
+  const branchOptions = ['CSE', 'ISE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'AI&ML', 'DS'];
+  const batchYearOptions = ['2024', '2025', '2026', '2027'];
+
+  // Fetch companies on mount
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      const response = await companyService.getAllCompanies();
+      setCompanies(response.data || []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      alert('Failed to load companies');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch eligible students when criteria changes
+  const fetchEligibleStudents = useCallback(async () => {
+    // Only fetch if at least one criterion is set
+    if (!formData.minCgpa && formData.allowedBranches.length === 0 &&
+      !formData.maxBacklogs && formData.allowedBatchYears.length === 0) {
+      setEligibleStudents([]);
+      return;
+    }
+
+    try {
+      setLoadingStudents(true);
+      const criteria = {
+        minCgpa: formData.minCgpa,
+        branches: formData.allowedBranches,
+        maxBacklogs: formData.maxBacklogs,
+        batchYears: formData.allowedBatchYears
+      };
+      const response = await companyService.getEligibleStudents(criteria);
+      setEligibleStudents(response.data || []);
+    } catch (error) {
+      console.error('Error fetching eligible students:', error);
+    } finally {
+      setLoadingStudents(false);
+    }
+  }, [formData.minCgpa, formData.allowedBranches, formData.maxBacklogs, formData.allowedBatchYears]);
+
+  // Debounce eligible students fetch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (showModal) {
+        fetchEligibleStudents();
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [fetchEligibleStudents, showModal]);
 
   const handleAddCompany = () => {
     setModalMode('add');
     setFormData({
       name: '',
-      type: 'Product',
+      company_type: 'Product',
       location: '',
-      ctc: '',
       description: '',
-      eligibility: '',
-      deadline: ''
+      minCgpa: '',
+      allowedBranches: [],
+      maxBacklogs: '',
+      allowedBatchYears: []
     });
+    setEligibleStudents([]);
     setShowModal(true);
   };
 
@@ -42,44 +102,119 @@ function CompaniesPage() {
     setSelectedCompany(company);
     setFormData({
       name: company.name,
-      type: company.type,
+      company_type: company.company_type || 'Product',
       location: company.location || '',
-      ctc: company.ctc,
       description: company.description || '',
-      eligibility: company.eligibility || '',
-      deadline: company.deadline || ''
+      minCgpa: company.min_cgpa || '',
+      allowedBranches: company.allowed_branches ? company.allowed_branches.split(',') : [],
+      maxBacklogs: company.max_backlogs || '',
+      allowedBatchYears: company.allowed_batch_years ? company.allowed_batch_years.split(',') : []
     });
     setShowModal(true);
   };
 
-  const handleDeleteCompany = (id) => {
-    if (window.confirm('Are you sure you want to delete this company?')) {
-      setCompanies(companies.filter(c => c.id !== id));
+  const handleDeleteCompany = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this company?')) return;
+
+    try {
+      await companyService.deleteCompany(id);
+      fetchCompanies(); // Refresh list
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      alert('Failed to delete company');
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (modalMode === 'add') {
-      const newCompany = {
-        id: companies.length + 1,
-        ...formData,
-        status: 'Active',
-        students: 0
-      };
-      setCompanies([...companies, newCompany]);
-    } else {
-      setCompanies(companies.map(c =>
-        c.id === selectedCompany.id ? { ...c, ...formData } : c
-      ));
+
+    const companyData = {
+      name: formData.name,
+      company_type: formData.company_type,
+      location: formData.location,
+      description: formData.description,
+      industry: 'Technology',
+      is_active: 1
+    };
+
+    try {
+      if (modalMode === 'add') {
+        const response = await companyService.createCompany(companyData);
+        const companyId = response.data.id;
+
+        // Automatically shortlist eligible students
+        if (eligibleStudents.length > 0) {
+          try {
+            // Shortlist each eligible student
+            for (const student of eligibleStudents) {
+              await companyService.createShortlist(companyId, {
+                student_id: student.id,
+                status: 'Shortlisted',
+                remarks: 'Automatically shortlisted based on eligibility criteria'
+              });
+            }
+            alert(`Company created successfully! ${eligibleStudents.length} students were automatically shortlisted.`);
+          } catch (shortlistError) {
+            console.error('Error shortlisting students:', shortlistError);
+            alert(`Company created, but there was an error shortlisting students: ${shortlistError.message}`);
+          }
+        } else {
+          alert('Company created successfully!');
+        }
+      } else {
+        await companyService.updateCompany(selectedCompany.id, companyData);
+        alert('Company updated successfully!');
+      }
+      setShowModal(false);
+      fetchCompanies(); // Refresh list
+    } catch (error) {
+      console.error('Error saving company:', error);
+      alert('Failed to save company');
     }
-    setShowModal(false);
   };
 
-  const handleManageShortlist = (company) => {
+  const handleManageShortlist = async (company) => {
     setSelectedCompany(company);
     setShowShortlistModal(true);
+
+    // Fetch shortlisted students for this company
+    try {
+      setLoadingShortlist(true);
+      const response = await companyService.getCompanyShortlists(company.id);
+      setShortlistedStudents(response.data || []);
+    } catch (error) {
+      console.error('Error fetching shortlists:', error);
+      setShortlistedStudents([]);
+    } finally {
+      setLoadingShortlist(false);
+    }
   };
+
+  const toggleBranch = (branch) => {
+    setFormData(prev => ({
+      ...prev,
+      allowedBranches: prev.allowedBranches.includes(branch)
+        ? prev.allowedBranches.filter(b => b !== branch)
+        : [...prev.allowedBranches, branch]
+    }));
+  };
+
+  const toggleBatchYear = (year) => {
+    setFormData(prev => ({
+      ...prev,
+      allowedBatchYears: prev.allowedBatchYears.includes(year)
+        ? prev.allowedBatchYears.filter(y => y !== year)
+        : [...prev.allowedBatchYears, year]
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-600">Loading companies...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -119,9 +254,9 @@ function CompaniesPage() {
         <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Drives</p>
+              <p className="text-sm text-gray-600">Active Companies</p>
               <p className="text-2xl font-bold text-green-600">
-                {companies.filter(c => c.status === 'Active').length}
+                {companies.filter(c => c.is_active).length}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -137,7 +272,7 @@ function CompaniesPage() {
             <div>
               <p className="text-sm text-gray-600">Product Based</p>
               <p className="text-2xl font-bold text-blue-600">
-                {companies.filter(c => c.type === 'Product').length}
+                {companies.filter(c => c.company_type === 'Product').length}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -153,7 +288,7 @@ function CompaniesPage() {
             <div>
               <p className="text-sm text-gray-600">Service Based</p>
               <p className="text-2xl font-bold text-orange-600">
-                {companies.filter(c => c.type === 'Service').length}
+                {companies.filter(c => c.company_type === 'Service').length}
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -178,7 +313,7 @@ function CompaniesPage() {
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  CTC
+                  Location
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -201,29 +336,27 @@ function CompaniesPage() {
                       </div>
                       <div>
                         <div className="text-sm font-medium text-gray-900">{company.name}</div>
-                        <div className="text-sm text-gray-500">Technology</div>
+                        <div className="text-sm text-gray-500">{company.industry || 'Technology'}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      company.type === 'Product'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-orange-100 text-orange-800'
-                    }`}>
-                      {company.type}
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${company.company_type === 'Product'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-orange-100 text-orange-800'
+                      }`}>
+                      {company.company_type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                    {company.ctc}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {company.location || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      company.status === 'Active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {company.status}
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${company.is_active
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
+                      }`}>
+                      {company.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -231,7 +364,7 @@ function CompaniesPage() {
                       onClick={() => handleManageShortlist(company)}
                       className="text-purple-600 hover:text-purple-800 font-medium"
                     >
-                      {company.students} Students
+                      {company.total_shortlisted || 0} Students
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -256,6 +389,13 @@ function CompaniesPage() {
                   </td>
                 </tr>
               ))}
+              {companies.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                    No companies found. Click "Add Company" to create one.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -267,7 +407,7 @@ function CompaniesPage() {
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
             <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowModal(false)}></div>
 
-            <div className="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+            <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900">
                   {modalMode === 'add' ? 'Add New Company' : 'Edit Company'}
@@ -292,7 +432,7 @@ function CompaniesPage() {
                       type="text"
                       required
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="e.g., Google"
                     />
@@ -304,8 +444,8 @@ function CompaniesPage() {
                     </label>
                     <select
                       required
-                      value={formData.type}
-                      onChange={(e) => setFormData({...formData, type: e.target.value})}
+                      value={formData.company_type}
+                      onChange={(e) => setFormData({ ...formData, company_type: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="Product">Product Based</option>
@@ -315,33 +455,17 @@ function CompaniesPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CTC/Package *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.ctc}
-                      onChange={(e) => setFormData({...formData, ctc: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="e.g., 25 LPA"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="e.g., Bangalore"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="e.g., Bangalore"
+                  />
                 </div>
 
                 <div>
@@ -350,36 +474,138 @@ function CompaniesPage() {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="Brief description about the role and company"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Eligibility Criteria
-                  </label>
-                  <textarea
-                    value={formData.eligibility}
-                    onChange={(e) => setFormData({...formData, eligibility: e.target.value})}
-                    rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="e.g., CGPA > 7.5, No backlogs"
-                  />
-                </div>
+                {/* Eligibility Requirements Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Requirements</h4>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Application Deadline
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.deadline}
-                    onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Minimum CGPA
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="10"
+                        value={formData.minCgpa}
+                        onChange={(e) => setFormData({ ...formData, minCgpa: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g., 7.0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Max Active Backlogs
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.maxBacklogs}
+                        onChange={(e) => setFormData({ ...formData, maxBacklogs: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g., 0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Allowed Branches
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {branchOptions.map(branch => (
+                        <button
+                          key={branch}
+                          type="button"
+                          onClick={() => toggleBranch(branch)}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${formData.allowedBranches.includes(branch)
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                          {branch}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Allowed Batch Years
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {batchYearOptions.map(year => (
+                        <button
+                          key={year}
+                          type="button"
+                          onClick={() => toggleBatchYear(year)}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${formData.allowedBatchYears.includes(year)
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Eligible Students Display */}
+                  <div className="mt-6 border-t border-gray-200 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="text-md font-semibold text-gray-900">Eligible Students</h5>
+                      <span className="text-sm text-gray-600">
+                        {loadingStudents ? 'Loading...' : `${eligibleStudents.length} students`}
+                      </span>
+                    </div>
+
+                    {!formData.minCgpa && formData.allowedBranches.length === 0 &&
+                      !formData.maxBacklogs && formData.allowedBatchYears.length === 0 ? (
+                      <div className="bg-gray-50 rounded-lg p-4 text-center">
+                        <p className="text-gray-600 text-sm">
+                          Set requirements above to see eligible students
+                        </p>
+                      </div>
+                    ) : loadingStudents ? (
+                      <div className="bg-gray-50 rounded-lg p-4 text-center">
+                        <p className="text-gray-600 text-sm">Loading eligible students...</p>
+                      </div>
+                    ) : eligibleStudents.length === 0 ? (
+                      <div className="bg-gray-50 rounded-lg p-4 text-center">
+                        <p className="text-gray-600 text-sm">No students match these criteria</p>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                        <div className="space-y-2">
+                          {eligibleStudents.map(student => (
+                            <div key={student.id} className="bg-white p-3 rounded-lg shadow-sm">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-gray-900">{student.name}</p>
+                                  <p className="text-sm text-gray-600">{student.usn} • {student.branch}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold text-purple-600">{student.cgpa} CGPA</p>
+                                  <p className="text-xs text-gray-500">
+                                    Backlogs: {student.active_backlogs}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4">
@@ -415,7 +641,9 @@ function CompaniesPage() {
                   <h3 className="text-2xl font-bold text-gray-900">
                     Student Shortlist - {selectedCompany?.name}
                   </h3>
-                  <p className="text-gray-600 mt-1">Manage students for this company drive</p>
+                  <p className="text-gray-600 mt-1">
+                    {loadingShortlist ? 'Loading...' : `${shortlistedStudents.length} students shortlisted`}
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowShortlistModal(false)}
@@ -436,21 +664,101 @@ function CompaniesPage() {
                 </button>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <p className="text-gray-600">Shortlist management interface coming soon...</p>
-                <p className="text-sm text-gray-500 mt-2">You'll be able to add students, remove them, and send notifications</p>
-              </div>
+              {loadingShortlist ? (
+                <div className="bg-gray-50 rounded-lg p-8 text-center">
+                  <p className="text-gray-600">Loading shortlisted students...</p>
+                </div>
+              ) : shortlistedStudents.length === 0 ? (
+                <div className="bg-gray-50 rounded-lg p-8 text-center">
+                  <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <p className="text-gray-600 font-medium">No students shortlisted yet</p>
+                  <p className="text-sm text-gray-500 mt-2">Click "Add Students" to shortlist students for this company</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg overflow-hidden">
+                  <div className="max-h-96 overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Student
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            USN
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            CGPA
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {shortlistedStudents.map((student) => (
+                          <tr key={student.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                  {student.student_name ? student.student_name.charAt(0) : 'S'}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">{student.student_name || 'N/A'}</div>
+                                  <div className="text-sm text-gray-500">{student.email || ''}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {student.usn || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-semibold text-purple-600">
+                                {student.cgpa ? student.cgpa.toFixed(2) : 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${student.status === 'Shortlisted'
+                                ? 'bg-green-100 text-green-800'
+                                : student.status === 'Notified'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                {student.status || 'Shortlisted'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <button className="text-red-600 hover:text-red-900">
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
-              <div className="flex justify-end space-x-3 pt-6">
+              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
                 <button
                   onClick={() => setShowShortlistModal(false)}
                   className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Close
                 </button>
-                <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                  Send Notifications
-                </button>
+                {shortlistedStudents.length > 0 && (
+                  <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    Send Notifications
+                  </button>
+                )}
               </div>
             </div>
           </div>

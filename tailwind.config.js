@@ -9,6 +9,17 @@ export default {
       animation: {
         'blob': 'blob 7s infinite',
       },
+      fontFamily: {
+        'oswald': ['Oswald', 'sans-serif'],
+        'serif-jp': ['"Noto Serif JP"', 'serif'],
+        'permanent': ['"Permanent Marker"', 'cursive'],
+        'bitcount': ['"Bitcount Single"', 'sans-serif'],
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-radial-at-t': 'radial-gradient(ellipse at top, var(--tw-gradient-stops))',
+        'gradient-radial-at-b': 'radial-gradient(ellipse at bottom, var(--tw-gradient-stops))',
+      },
       keyframes: {
         blob: {
           '0%': {

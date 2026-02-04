@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const { promisePool } = require('../config/database');
 
 // Get all companies with stats
 exports.getAllCompanies = async (req, res) => {
@@ -7,13 +7,8 @@ exports.getAllCompanies = async (req, res) => {
 
     let query = `
       SELECT c.*,
-        COUNT(DISTINCT pd.id) as total_drives,
-        COUNT(DISTINCT cs.student_id) as total_shortlisted,
-        COUNT(DISTINCT CASE WHEN a.status = 'Selected' THEN a.user_id END) as total_selected
+        (SELECT COUNT(*) FROM company_shortlists cs WHERE cs.company_id = c.id) as total_shortlisted
       FROM companies c
-      LEFT JOIN placement_drives pd ON c.id = pd.company_id
-      LEFT JOIN company_shortlists cs ON c.id = cs.company_id
-      LEFT JOIN applications a ON pd.id = a.drive_id
       WHERE 1=1
     `;
 
@@ -34,9 +29,9 @@ exports.getAllCompanies = async (req, res) => {
       params.push(status === 'active' ? 1 : 0);
     }
 
-    query += ` GROUP BY c.id ORDER BY c.${sortBy} ${order}`;
+    query += ` ORDER BY c.${sortBy} ${order}`;
 
-    const [companies] = await db.query(query, params);
+    const [companies] = await promisePool.query(query, params);
 
     res.json({
       success: true,
@@ -58,7 +53,7 @@ exports.getCompanyById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [companies] = await db.query(
+    const [companies] = await promisePool.query(
       'SELECT * FROM companies WHERE id = ?',
       [id]
     );
@@ -70,19 +65,8 @@ exports.getCompanyById = async (req, res) => {
       });
     }
 
-    // Get associated drives
-    const [drives] = await db.query(
-      `SELECT pd.*, COUNT(a.id) as application_count
-       FROM placement_drives pd
-       LEFT JOIN applications a ON pd.id = a.drive_id
-       WHERE pd.company_id = ?
-       GROUP BY pd.id
-       ORDER BY pd.drive_date DESC`,
-      [id]
-    );
-
     // Get shortlists
-    const [shortlists] = await db.query(
+    const [shortlists] = await promisePool.query(
       `SELECT cs.*, u.name as student_name, u.email, sa.cgpa
        FROM company_shortlists cs
        JOIN users u ON cs.student_id = u.id
@@ -96,7 +80,6 @@ exports.getCompanyById = async (req, res) => {
       success: true,
       data: {
         ...companies[0],
-        drives,
         shortlists
       }
     });
@@ -115,25 +98,25 @@ exports.createCompany = async (req, res) => {
   try {
     const {
       name, company_type, industry, location, website, description,
-      contact_email, contact_phone, hr_name, hr_email, hr_phone,
-      employee_count, is_active
+      contact_email, contact_phone, hr_name,
+      company_size, is_active
     } = req.body;
 
-    const [result] = await db.query(
+    const [result] = await promisePool.query(
       `INSERT INTO companies (
         name, company_type, industry, location, website, description,
-        contact_email, contact_phone, hr_name, hr_email, hr_phone,
-        employee_count, is_active, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        contact_email, contact_phone, hr_name,
+        company_size, is_active, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         name, company_type, industry, location, website, description,
-        contact_email, contact_phone, hr_name, hr_email, hr_phone,
-        employee_count, is_active !== undefined ? is_active : 1
+        contact_email, contact_phone, hr_name,
+        company_size, is_active !== undefined ? is_active : 1
       ]
     );
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Create', 'Company', ?, ?, NOW())`,
@@ -167,13 +150,13 @@ exports.updateCompany = async (req, res) => {
 
     const values = [...Object.values(updateFields), id];
 
-    await db.query(
+    await promisePool.query(
       `UPDATE companies SET ${setClause}, updated_at = NOW() WHERE id = ?`,
       values
     );
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Update', 'Company', ?, ?, NOW())`,
@@ -200,7 +183,7 @@ exports.deleteCompany = async (req, res) => {
     const { id } = req.params;
 
     // Check if company has associated drives
-    const [drives] = await db.query(
+    const [drives] = await promisePool.query(
       'SELECT COUNT(*) as count FROM placement_drives WHERE company_id = ?',
       [id]
     );
@@ -212,10 +195,10 @@ exports.deleteCompany = async (req, res) => {
       });
     }
 
-    await db.query('DELETE FROM companies WHERE id = ?', [id]);
+    await promisePool.query('DELETE FROM companies WHERE id = ?', [id]);
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Delete', 'Company', ?, ?, NOW())`,
@@ -241,12 +224,12 @@ exports.getCompanyShortlists = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [shortlists] = await db.query(
+    const [shortlists] = await promisePool.query(
       `SELECT cs.*,
-        u.name as student_name, u.email, u.usn,
+        u.full_name as student_name, u.email, u.usn,
         sa.cgpa, sa.branch,
-        pd.role as drive_role, pd.ctc,
-        admin.name as shortlisted_by_name
+        pd.job_title as drive_role, pd.package_offered as ctc,
+        admin.full_name as shortlisted_by_name
        FROM company_shortlists cs
        JOIN users u ON cs.student_id = u.id
        LEFT JOIN student_academics sa ON u.id = sa.user_id
@@ -277,7 +260,7 @@ exports.createShortlist = async (req, res) => {
     const { id: company_id } = req.params;
     const { drive_id, student_id, remarks } = req.body;
 
-    const [result] = await db.query(
+    const [result] = await promisePool.query(
       `INSERT INTO company_shortlists (
         company_id, drive_id, student_id, shortlisted_by,
         status, remarks, created_at
@@ -286,7 +269,7 @@ exports.createShortlist = async (req, res) => {
     );
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Create', 'Shortlist', ?, ?, NOW())`,
@@ -314,7 +297,7 @@ exports.updateShortlistStatus = async (req, res) => {
     const { shortlistId } = req.params;
     const { status, remarks } = req.body;
 
-    await db.query(
+    await promisePool.query(
       `UPDATE company_shortlists
        SET status = ?, remarks = ?, notified_at = NOW()
        WHERE id = ?`,
@@ -340,7 +323,7 @@ exports.deleteShortlist = async (req, res) => {
   try {
     const { shortlistId } = req.params;
 
-    await db.query('DELETE FROM company_shortlists WHERE id = ?', [shortlistId]);
+    await promisePool.query('DELETE FROM company_shortlists WHERE id = ?', [shortlistId]);
 
     res.json({
       success: true,
@@ -351,6 +334,66 @@ exports.deleteShortlist = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error removing shortlist',
+      error: error.message
+    });
+  }
+};
+
+// Get eligible students based on criteria
+exports.getEligibleStudents = async (req, res) => {
+  try {
+    const { minCgpa, branches, maxBacklogs, batchYears } = req.query;
+
+    let query = `
+      SELECT u.id, u.full_name as name, u.usn, u.email,
+        sa.cgpa, sa.branch, sa.batch_year, sa.active_backlogs, sa.total_backlogs
+      FROM users u
+      JOIN student_academics sa ON u.id = sa.user_id
+      WHERE u.role = 'student' AND u.is_active = 1 AND u.is_placed = 0
+    `;
+
+    const params = [];
+
+    if (minCgpa && minCgpa !== '' && !isNaN(parseFloat(minCgpa))) {
+      query += ` AND sa.cgpa >= ?`;
+      params.push(parseFloat(minCgpa));
+    }
+
+    if (branches && branches !== '') {
+      const branchList = branches.split(',').map(b => b.trim()).filter(b => b);
+      if (branchList.length > 0) {
+        query += ` AND sa.branch IN (${branchList.map(() => '?').join(',')})`;
+        params.push(...branchList);
+      }
+    }
+
+    if (maxBacklogs !== undefined && maxBacklogs !== '' && !isNaN(parseInt(maxBacklogs))) {
+      query += ` AND sa.active_backlogs <= ?`;
+      params.push(parseInt(maxBacklogs));
+    }
+
+    if (batchYears && batchYears !== '') {
+      const yearList = batchYears.split(',').map(y => y.trim()).filter(y => y);
+      if (yearList.length > 0) {
+        query += ` AND sa.batch_year IN (${yearList.map(() => '?').join(',')})`;
+        params.push(...yearList);
+      }
+    }
+
+    query += ` ORDER BY sa.cgpa DESC, u.full_name ASC`;
+
+    const [students] = await promisePool.query(query, params);
+
+    res.json({
+      success: true,
+      data: students,
+      count: students.length
+    });
+  } catch (error) {
+    console.error('Error fetching eligible students:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching eligible students',
       error: error.message
     });
   }
