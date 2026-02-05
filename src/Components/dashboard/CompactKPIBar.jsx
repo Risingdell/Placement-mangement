@@ -26,123 +26,59 @@ function CompactKPIBar() {
   const isEligible = eligibility.eligible;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.content}>
+    <div className="bg-white border-b-2 border-[#323232] sticky top-[73px] z-20 shadow-[0_4px_0_#e8e8e8]">
+      <div className="max-w-[1400px] mx-auto px-6 py-3 flex flex-wrap items-center justify-center gap-6">
         {/* CGPA */}
-        <div style={styles.kpiItem}>
-          <span style={styles.label}>CGPA</span>
-          <span style={{
-            ...styles.value,
-            color: parseFloat(eligibility.cgpa) >= 6.0 ? '#4CAF50' : '#f44336'
-          }}>
+        <div className="flex flex-col items-center">
+          <span className="neo-subtitle !text-[10px] font-bold">CGPA</span>
+          <span className={`neo-title !text-lg !mb-0 ${parseFloat(eligibility.cgpa) >= 6.0 ? 'text-green-600' : 'text-red-500'}`}>
             {eligibility.cgpa ? parseFloat(eligibility.cgpa).toFixed(2) : 'N/A'}
           </span>
         </div>
 
-        <div style={styles.divider} />
+        <div className="w-0.5 h-8 bg-[#323232] opacity-10" />
 
         {/* SGPA */}
-        <div style={styles.kpiItem}>
-          <span style={styles.label}>SGPA</span>
-          <span style={styles.value}>
+        <div className="flex flex-col items-center">
+          <span className="neo-subtitle !text-[10px] font-bold">SGPA</span>
+          <span className="neo-title !text-lg !mb-0">
             {profile.sgpa ? parseFloat(profile.sgpa).toFixed(2) : 'N/A'}
           </span>
         </div>
 
-        <div style={styles.divider} />
+        <div className="w-0.5 h-8 bg-[#323232] opacity-10" />
 
         {/* Ongoing Projects */}
         <div
-          style={{...styles.kpiItem, cursor: 'pointer'}}
+          className="flex flex-col items-center cursor-pointer hover:bg-gray-50 px-2 rounded"
           onClick={() => navigate('/dashboard/profile')}
-          title="Click to view profile"
         >
-          <span style={styles.label}>Projects</span>
-          <span style={styles.value}>
-            {ongoingProjectsCount} Ongoing
+          <span className="neo-subtitle !text-[10px] font-bold">PROJECTS</span>
+          <span className="neo-title !text-lg !mb-0">
+            {ongoingProjectsCount} ONGOING
           </span>
         </div>
 
-        <div style={styles.divider} />
+        <div className="w-0.5 h-8 bg-[#323232] opacity-10" />
 
         {/* Eligibility Badge */}
-        <div style={styles.kpiItem}>
-          <div style={{
-            ...styles.badge,
-            backgroundColor: isEligible ? '#4CAF50' : '#f44336',
-          }}>
-            {isEligible ? '✓ Eligible' : '✗ Not Eligible'}
-          </div>
+        <div
+          className={`px-4 py-1 border-2 border-[#323232] rounded text-[11px] font-bold shadow-[2px_2px_0px_#323232] ${isEligible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+        >
+          {isEligible ? '✓ ELIGIBLE' : '✗ INELIGIBLE'}
         </div>
 
-        <div style={styles.divider} />
+        <div className="w-0.5 h-8 bg-[#323232] opacity-10" />
 
         {/* Placement Status */}
-        <div style={styles.kpiItem}>
-          <div style={{
-            ...styles.badge,
-            backgroundColor: eligibility.isPlaced ? '#2196F3' : '#FF9800',
-          }}>
-            {eligibility.isPlaced ? 'Placed' : 'Active'}
-          </div>
+        <div
+          className={`px-4 py-1 border-2 border-[#323232] rounded text-[11px] font-bold shadow-[2px_2px_0px_#323232] ${eligibility.isPlaced ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}
+        >
+          {eligibility.isPlaced ? 'PLACED' : 'ACTIVE'}
         </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(10px)',
-    borderBottom: '1px solid #e0e0e0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    position: 'sticky',
-    top: '73px', // Below the navbar
-    zIndex: 99,
-  },
-  content: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '12px 24px',
-    gap: '20px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-    flexWrap: 'wrap',
-  },
-  kpiItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    minWidth: '100px',
-  },
-  label: {
-    fontSize: '0.75rem',
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  value: {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  divider: {
-    width: '1px',
-    height: '40px',
-    backgroundColor: '#e0e0e0',
-  },
-  badge: {
-    padding: '6px 16px',
-    borderRadius: '16px',
-    fontSize: '0.85rem',
-    fontWeight: '600',
-    color: '#fff',
-    whiteSpace: 'nowrap',
-  },
-};
 
 export default CompactKPIBar;

@@ -18,13 +18,13 @@ function StudentsPage() {
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.usn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
+      student.usn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBranch = filterBranch === '' || student.branch === filterBranch;
     const matchesYear = filterYear === '' || student.year.toString() === filterYear;
     const matchesPlaced = filterPlaced === '' ||
-                         (filterPlaced === 'placed' && student.placed) ||
-                         (filterPlaced === 'unplaced' && !student.placed);
+      (filterPlaced === 'placed' && student.placed) ||
+      (filterPlaced === 'unplaced' && !student.placed);
 
     return matchesSearch && matchesBranch && matchesYear && matchesPlaced;
   });
@@ -40,247 +40,189 @@ function StudentsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Student Management</h2>
-        <p className="text-gray-600 mt-1">View and manage student profiles</p>
+      <div className="flex justify-between items-center mb-10">
+        <div>
+          <h2 className="neo-title !text-3xl mb-1 uppercase tracking-tight">RECRUIT DIRECTORY</h2>
+          <p className="neo-subtitle !text-[11px] font-bold opacity-60 uppercase">Student Talent Database</p>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-md">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-blue-500 shadow-[4px_4px_0px_#3b82f6]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Total Recruits</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Students</p>
-              <p className="text-2xl font-bold text-gray-900">{students.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{students.length}</h3>
+            <span className="text-2xl">👨‍🎓</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-green-500 shadow-[4px_4px_0px_#22c55e]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Placed Students</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Placed</p>
-              <p className="text-2xl font-bold text-green-600">
-                {students.filter(s => s.placed).length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{students.filter(s => s.placed).length}</h3>
+            <span className="text-2xl">💼</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-orange-500 shadow-[4px_4px_0px_#f97316]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Unplaced Students</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Unplaced</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {students.filter(s => !s.placed).length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{students.filter(s => !s.placed).length}</h3>
+            <span className="text-2xl">🔍</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-purple-500 shadow-[4px_4px_0px_#a855f7]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Average CGPA</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Avg. CGPA</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {(students.reduce((sum, s) => sum + s.cgpa, 0) / students.length).toFixed(2)}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">
+              {(students.reduce((acc, s) => acc + s.cgpa, 0) / students.length).toFixed(2)}
+            </h3>
+            <span className="text-2xl">📊</span>
           </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Search */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Students
+      {/* Filters */}
+      <div className="neo-card !bg-white !p-6 mb-8 shadow-[6px_6px_0px_#d3d3d3]">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="col-span-1 md:col-span-1">
+            <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+              INTEL SCAN (NAME/USN)
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search by name, USN, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="SEARCH RECRUITS..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="neo-input uppercase !py-2"
+            />
           </div>
 
-          {/* Branch Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Branch
+            <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+              DIVISION
             </label>
             <select
               value={filterBranch}
               onChange={(e) => setFilterBranch(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="neo-input uppercase !py-2"
             >
-              <option value="">All Branches</option>
+              <option value="">ALL DIVISIONS</option>
               <option value="CSE">CSE</option>
               <option value="ISE">ISE</option>
               <option value="ECE">ECE</option>
-              <option value="EEE">EEE</option>
-              <option value="ME">ME</option>
             </select>
           </div>
 
-          {/* Year Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Year
+            <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+              OPERATIONAL YEAR
             </label>
             <select
               value={filterYear}
               onChange={(e) => setFilterYear(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="neo-input uppercase !py-2"
             >
-              <option value="">All Years</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
+              <option value="">ALL YEARS</option>
+              <option value="3">3RD YEAR</option>
+              <option value="4">4TH YEAR</option>
             </select>
           </div>
 
-          {/* Placement Status Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
+            <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+              DEPLOYMENT STATUS
             </label>
             <select
               value={filterPlaced}
               onChange={(e) => setFilterPlaced(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="neo-input uppercase !py-2"
             >
-              <option value="">All Students</option>
-              <option value="placed">Placed</option>
-              <option value="unplaced">Unplaced</option>
+              <option value="">ALL STATUS</option>
+              <option value="placed">PLACED</option>
+              <option value="unplaced">UNPLACED</option>
             </select>
           </div>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-          <p>Showing <span className="font-semibold text-gray-900">{filteredStudents.length}</span> of <span className="font-semibold text-gray-900">{students.length}</span> students</p>
-          <button className="text-purple-600 hover:text-purple-700 font-medium">
-            Export to Excel
-          </button>
         </div>
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="neo-card !bg-white !p-0 overflow-hidden mb-10 shadow-[8px_8px_0px_#d3d3d3]">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Student
+            <thead>
+              <tr className="bg-[#f8f8f8] border-b-2 border-[#323232]">
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Recruit Info
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  USN
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Division
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Branch/Year
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Rank (CGPA)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  CGPA
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Year
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Deployment
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th className="px-6 py-4 text-right neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Operations
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y-2 divide-[#323232] divide-dashed">
               {filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-5 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                      <div className="w-10 h-10 bg-indigo-500 border-2 border-[#323232] rounded flex items-center justify-center text-white font-bold mr-3 shadow-[2px_2px_0px_#323232]">
                         {student.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{student.name}</div>
-                        <div className="text-sm text-gray-500">{student.email}</div>
+                        <div className="neo-subtitle !text-[13px] font-bold text-[#323232]">{student.name.toUpperCase()}</div>
+                        <div className="neo-subtitle !text-[10px] font-bold opacity-50 uppercase">{student.usn}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {student.usn}
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className="px-3 py-1 border-2 border-[#323232] rounded text-[10px] font-bold bg-white shadow-[2px_2px_0px_#323232] text-[#323232]">
+                      {student.branch.toUpperCase()}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {student.branch} - Year {student.year}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`text-sm font-semibold ${
-                      student.cgpa >= 8.5 ? 'text-green-600' :
-                      student.cgpa >= 7.0 ? 'text-blue-600' :
-                      'text-orange-600'
-                    }`}>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className="neo-subtitle !text-[13px] font-extrabold text-indigo-700">
                       {student.cgpa.toFixed(2)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      student.placed
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {student.placed ? 'Placed' : 'Unplaced'}
+                  <td className="px-6 py-5 whitespace-nowrap neo-subtitle !text-[12px] font-bold text-[#323232]">
+                    YEAR {student.year}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className={`px-3 py-1 border-2 border-[#323232] rounded text-[10px] font-bold shadow-[2px_2px_0px_#323232] ${student.placed
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-orange-100 text-orange-800'
+                      }`}>
+                      {student.placed ? 'PLACED' : 'UNPLACED'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <td className="px-6 py-5 whitespace-nowrap text-right space-x-3">
                     <button
                       onClick={() => handleViewProfile(student)}
-                      className="text-indigo-600 hover:text-indigo-900 inline-flex items-center"
+                      className="neo-button !py-1 !px-3 !bg-indigo-50 !text-indigo-800 !text-[11px] !min-h-0 !border-[#4f46e5]"
                     >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      View
+                      DOSSIER
                     </button>
                     <button
                       onClick={() => handleSendMessage(student)}
-                      className="text-green-600 hover:text-green-900 inline-flex items-center ml-3"
+                      className="neo-button !py-1 !px-3 !bg-purple-50 !text-purple-800 !text-[11px] !min-h-0 !border-purple-600"
                     >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                      </svg>
-                      Message
+                      MSG
                     </button>
                   </td>
                 </tr>
@@ -290,60 +232,59 @@ function StudentsPage() {
         </div>
       </div>
 
-      {/* Profile Modal */}
+      {/* Profile Modal (Dossier) */}
       {showProfileModal && selectedStudent && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowProfileModal(false)}></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="neo-card !bg-white !max-w-md w-full !p-8 shadow-[12px_12px_0px_#000]">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="neo-title !text-2xl mb-1 uppercase tracking-tight">RECRUIT DOSSIER</h3>
+                <p className="neo-subtitle !text-[11px] font-bold opacity-60 uppercase">Personnel File: {selectedStudent.usn}</p>
+              </div>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="w-8 h-8 border-2 border-[#323232] flex items-center justify-center font-bold hover:bg-red-500 hover:text-white transition-colors"
+              >
+                X
+              </button>
+            </div>
 
-            <div className="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">Student Profile</h3>
-                <button
-                  onClick={() => setShowProfileModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <div className="space-y-6">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-20 h-20 bg-indigo-500 border-4 border-[#323232] flex items-center justify-center text-white text-3xl font-black shadow-[4px_4px_0px_#323232]">
+                  {selectedStudent.name.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="neo-title !text-xl !mb-0">{selectedStudent.name.toUpperCase()}</h4>
+                  <p className="neo-subtitle !text-[12px] font-bold text-indigo-600">{selectedStudent.email.toUpperCase()}</p>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                    {selectedStudent.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900">{selectedStudent.name}</h4>
-                    <p className="text-gray-600">{selectedStudent.usn}</p>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="neo-card !p-3 !bg-gray-50 !gap-0 border-[#323232]">
+                  <p className="neo-subtitle !text-[9px] font-bold opacity-50 uppercase mb-1">Division</p>
+                  <p className="neo-subtitle !text-[13px] font-bold uppercase">{selectedStudent.branch}</p>
                 </div>
+                <div className="neo-card !p-3 !bg-gray-50 !gap-0 border-[#323232]">
+                  <p className="neo-subtitle !text-[9px] font-bold opacity-50 uppercase mb-1">Rank (CGPA)</p>
+                  <p className="neo-subtitle !text-[13px] font-bold uppercase">{selectedStudent.cgpa.toFixed(2)}</p>
+                </div>
+                <div className="neo-card !p-3 !bg-gray-50 !gap-0 border-[#323232]">
+                  <p className="neo-subtitle !text-[9px] font-bold opacity-50 uppercase mb-1">Operational Year</p>
+                  <p className="neo-subtitle !text-[13px] font-bold uppercase">{selectedStudent.year}</p>
+                </div>
+                <div className="neo-card !p-3 !bg-gray-50 !gap-0 border-[#323232]">
+                  <p className="neo-subtitle !text-[9px] font-bold opacity-50 uppercase mb-1">Deployment</p>
+                  <p className={`neo-subtitle !text-[13px] font-bold uppercase ${selectedStudent.placed ? 'text-green-600' : 'text-orange-600'}`}>
+                    {selectedStudent.placed ? 'PLACED' : 'UNPLACED'}
+                  </p>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium text-gray-900">{selectedStudent.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">CGPA</p>
-                    <p className="font-medium text-gray-900">{selectedStudent.cgpa.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Branch</p>
-                    <p className="font-medium text-gray-900">{selectedStudent.branch}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Year</p>
-                    <p className="font-medium text-gray-900">{selectedStudent.year}</p>
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <button className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                    View Full Profile
-                  </button>
-                </div>
+              <div className="pt-4">
+                <button className="neo-button w-full !bg-[#323232] !text-white !text-[14px] uppercase tracking-wider">
+                  VIEW FULL PROFILE DATA
+                </button>
               </div>
             </div>
           </div>
@@ -352,63 +293,60 @@ function StudentsPage() {
 
       {/* Message Modal */}
       {showMessageModal && selectedStudent && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowMessageModal(false)}></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="neo-card !bg-white !max-w-2xl w-full !p-8 shadow-[12px_12px_0px_#a855f7]">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h3 className="neo-title !text-2xl mb-1 uppercase tracking-tight">TRANSMIT COMMS</h3>
+                <p className="neo-subtitle !text-[11px] font-bold opacity-60 uppercase">To Recruit: {selectedStudent.name.toUpperCase()}</p>
+              </div>
+              <button
+                onClick={() => setShowMessageModal(false)}
+                className="w-8 h-8 border-2 border-[#323232] flex items-center justify-center font-bold hover:bg-red-500 hover:text-white transition-colors"
+              >
+                X
+              </button>
+            </div>
 
-            <div className="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">Send Message to {selectedStudent.name}</h3>
-                <button
-                  onClick={() => setShowMessageModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <form className="space-y-6">
+              <div>
+                <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+                  SUBJECT HEADING
+                </label>
+                <input
+                  type="text"
+                  className="neo-input uppercase"
+                  placeholder="CLASSIFIED SUBJECT..."
+                />
               </div>
 
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Message subject"
-                  />
-                </div>
+              <div>
+                <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+                  MESSAGE CORE
+                </label>
+                <textarea
+                  rows={6}
+                  className="neo-input uppercase resize-none"
+                  placeholder="ENTER COMMS DATA..."
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Message
-                  </label>
-                  <textarea
-                    rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Type your message here..."
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowMessageModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    Send Message
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="flex justify-end space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowMessageModal(false)}
+                  className="neo-button !py-2 !px-6 !bg-white !min-h-0 uppercase"
+                >
+                  ABORT
+                </button>
+                <button
+                  type="submit"
+                  className="neo-button !py-2 !px-8 !bg-purple-500 !text-white !min-h-0 uppercase tracking-widest"
+                >
+                  SEND TRANSMISSION
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

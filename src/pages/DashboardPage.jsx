@@ -60,14 +60,19 @@ function DashboardPage() {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="max-w-[1400px] mx-auto p-6">
       {/* Welcome Banner */}
-      <div style={styles.welcomeBanner}>
+      <div className="neo-card !flex-row !justify-between !items-center !bg-white mb-8 p-8">
         <div>
-          <h1 style={styles.welcomeTitle}>
-            Welcome back, {profile?.full_name || 'Student'}!
+          <h1 className="neo-title !text-4xl">
+            Welcome back, {profile?.full_name?.toUpperCase() || 'STUDENT'}!
           </h1>
-          <p style={styles.welcomeDate}>{getCurrentDate()}</p>
+          <p className="neo-subtitle mt-2">{getCurrentDate().toUpperCase()}</p>
+        </div>
+        <div className="hidden lg:block">
+          <div className="w-16 h-16 bg-[#e8e8e8] border-2 border-[#323232] rounded flex items-center justify-center text-3xl shadow-[4px_4px_0px_#323232]">
+            👋
+          </div>
         </div>
       </div>
 
@@ -75,127 +80,100 @@ function DashboardPage() {
       <KPIBar />
 
       {/* Quick Stats */}
-      <div style={styles.quickStats}>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>📊</div>
-          <div style={styles.statValue}>{totalApplications}</div>
-          <div style={styles.statLabel}>Total Applications</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-8">
+        <div className="neo-card !p-6 text-center !bg-white">
+          <div className="text-4xl mb-4">📊</div>
+          <div className="neo-title !text-3xl mb-1">{totalApplications}</div>
+          <div className="neo-subtitle">TOTAL APPLICATIONS</div>
         </div>
 
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>
+        <div className="neo-card !p-6 text-center !bg-white">
+          <div className="text-4xl mb-4">
             {profile?.is_placed ? '✓' : '⏳'}
           </div>
-          <div
-            style={{
-              ...styles.statValue,
-              color: profile?.is_placed ? '#4CAF50' : '#FF9800',
-            }}
-          >
-            {profile?.is_placed ? 'Placed' : 'In Progress'}
+          <div className={`neo-title !text-2xl mb-1 ${profile?.is_placed ? 'text-green-600' : 'text-orange-500'}`}>
+            {profile?.is_placed ? 'PLACED' : 'IN PROGRESS'}
           </div>
-          <div style={styles.statLabel}>Placement Status</div>
+          <div className="neo-subtitle">PLACEMENT STATUS</div>
         </div>
 
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>
+        <div className="neo-card !p-6 text-center !bg-white">
+          <div className="text-4xl mb-4">
             {eligibility?.eligible ? '✓' : '✗'}
           </div>
-          <div
-            style={{
-              ...styles.statValue,
-              color: eligibility?.eligible ? '#4CAF50' : '#f44336',
-            }}
-          >
-            {eligibility?.eligible ? 'Eligible' : 'Not Eligible'}
+          <div className={`neo-title !text-2xl mb-1 ${eligibility?.eligible ? 'text-green-600' : 'text-red-500'}`}>
+            {eligibility?.eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}
           </div>
-          <div style={styles.statLabel}>Eligibility Status</div>
+          <div className="neo-subtitle">ELIGIBILITY STATUS</div>
         </div>
 
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>📝</div>
-          <div
-            style={{
-              ...styles.statValue,
-              color: profileCompletion >= 80 ? '#4CAF50' : '#FF9800',
-            }}
-          >
+        <div className="neo-card !p-6 text-center !bg-white">
+          <div className="text-4xl mb-4">📝</div>
+          <div className={`neo-title !text-3xl mb-1 ${profileCompletion >= 80 ? 'text-green-600' : 'text-orange-500'}`}>
             {profileCompletion}%
           </div>
-          <div style={styles.statLabel}>Profile Completion</div>
+          <div className="neo-subtitle">PROFILE COMPLETION</div>
         </div>
       </div>
 
       {/* Profile Completion Alert */}
       {profileCompletion < 100 && (
-        <div style={styles.alertBox}>
-          <div style={styles.alertIcon}>⚠️</div>
-          <div style={styles.alertContent}>
-            <strong>Complete your profile</strong> to increase your chances of getting placed.
-            Your profile is {profileCompletion}% complete.
+        <div className="neo-card !bg-orange-50 !border-orange-500 !flex-row !items-center !gap-6 mb-8 shadow-[4px_4px_0px_#f97316]">
+          <div className="text-3xl">⚠️</div>
+          <div className="flex-1">
+            <p className="neo-title !text-lg !text-orange-950">COMPLETE YOUR PROFILE</p>
+            <p className="neo-subtitle !text-orange-800">Your profile is {profileCompletion}% complete. Complete it to increase your placement chances.</p>
           </div>
           <button
             onClick={() => navigate('/profile')}
-            style={styles.alertButton}
+            className="neo-button !w-auto bg-orange-500 !text-white hover:bg-orange-600 whitespace-nowrap"
           >
-            Complete Profile
+            COMPLETE NOW
           </button>
         </div>
       )}
 
       {/* Widgets Grid */}
-      <div style={styles.widgetsGrid}>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
         <UpcomingDrives />
         <EventsBar />
         <InboxPreview />
       </div>
 
       {/* Quick Actions */}
-      <div style={styles.quickActions}>
-        <h3 style={styles.quickActionsTitle}>Quick Actions</h3>
-        <div style={styles.actionButtons}>
+      <div className="neo-card !bg-white p-8">
+        <h3 className="neo-widget-header">QUICK ACTIONS</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <button
             onClick={() => navigate('/profile')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#2196F3',
-            }}
+            className="neo-button hover:!bg-blue-500"
           >
-            <span style={styles.actionButtonIcon}>👤</span>
-            Update Profile
+            <span className="text-xl">👤</span>
+            UPDATE PROFILE
           </button>
 
           <button
             onClick={() => navigate('/drives')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#4CAF50',
-            }}
+            className="neo-button hover:!bg-green-500"
           >
-            <span style={styles.actionButtonIcon}>🏢</span>
-            Browse Drives
+            <span className="text-xl">🏢</span>
+            BROWSE DRIVES
           </button>
 
           <button
             onClick={() => navigate('/applications')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#FF9800',
-            }}
+            className="neo-button hover:!bg-orange-500"
           >
-            <span style={styles.actionButtonIcon}>📋</span>
-            View Applications
+            <span className="text-xl">📋</span>
+            MY APPLICATIONS
           </button>
 
           <button
             onClick={() => navigate('/events')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#9C27B0',
-            }}
+            className="neo-button hover:!bg-purple-500"
           >
-            <span style={styles.actionButtonIcon}>📅</span>
-            Upcoming Events
+            <span className="text-xl">📅</span>
+            UPCOMING EVENTS
           </button>
         </div>
       </div>

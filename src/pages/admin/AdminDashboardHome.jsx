@@ -99,105 +99,112 @@ function AdminDashboardHome() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
+      <div className="neo-card !bg-white !p-10 border-indigo-600 shadow-[8px_8px_0px_#4f46e5]">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Welcome to Admin Dashboard</h2>
-            <p className="text-purple-100">Manage your placement system efficiently</p>
+            <h2 className="neo-title !text-4xl mb-4 tracking-tight">WELCOME, COMMANDER.</h2>
+            <p className="neo-subtitle !text-lg font-bold opacity-70">
+              PLACEMENT SYSTEM OPERATIONS HUB — ALL SYSTEMS NOMINAL.
+            </p>
           </div>
           <div className="hidden md:block">
-            <svg className="w-24 h-24 opacity-20" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-            </svg>
+            <div className="w-24 h-24 border-4 border-[#323232] rounded flex items-center justify-center bg-indigo-50 shadow-[4px_4px_0px_#323232]">
+              <span className="text-5xl">📊</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {statCards.map((stat, index) => (
           <div
             key={index}
-            className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-6"
+            className="neo-card !bg-white !p-6 flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-gray-600 text-sm font-medium mb-1">{stat.name}</p>
-                <h3 className="text-3xl font-bold text-gray-900">{stat.value}</h3>
+                <p className="neo-subtitle !text-[11px] font-bold opacity-60 uppercase mb-1">{stat.name}</p>
+                <h3 className="neo-title !text-4xl !mb-0">{stat.value}</h3>
               </div>
-              <div className={`${stat.bgColor} p-4 rounded-xl`}>
-                <div className={stat.textColor}>
+              <div className="w-14 h-14 border-2 border-[#323232] rounded flex items-center justify-center bg-[#f0f0f0] shadow-[3px_3px_0px_#323232]">
+                <div className="text-[#323232]">
                   {stat.icon}
                 </div>
               </div>
             </div>
-            <div className="mt-4">
-              <div className={`h-2 bg-gray-100 rounded-full overflow-hidden`}>
-                <div className={`h-full bg-gradient-to-r ${stat.color} rounded-full`} style={{ width: '70%' }}></div>
+            <div className="mt-2">
+              <div className="h-4 bg-[#f0f0f0] border-2 border-[#323232] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 border-r-2 border-[#323232]"
+                  style={{ width: '70%' }}
+                ></div>
+              </div>
+              <div className="mt-2 text-right">
+                <span className="neo-subtitle !text-[10px] font-bold opacity-50 uppercase leading-none">TARGET REACHED: 70%</span>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Quick Actions & Activity */}
+      <div className="grid lg:grid-cols-2 gap-8">
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
-            <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">
-              View All
+        <div className="neo-card !bg-white !p-8">
+          <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-[#323232] border-dashed">
+            <h3 className="neo-widget-header !mb-0">RECENT SYSTEM LOGS</h3>
+            <button className="neo-button !py-1 !px-4 !text-[11px] !min-h-0 uppercase font-bold !bg-indigo-50 hover:!bg-indigo-100">
+              FETCH ALL
             </button>
           </div>
           <div className="space-y-4">
             {[
-              { action: 'New student registered', time: '2 minutes ago', icon: '👤' },
-              { action: 'Company drive created', time: '15 minutes ago', icon: '🏢' },
-              { action: 'Application submitted', time: '1 hour ago', icon: '📄' },
-              { action: 'Student profile updated', time: '2 hours ago', icon: '✏️' }
+              { action: 'NEW STUDENT REGISTERED', time: '2 MIN AGO', icon: '👤' },
+              { action: 'COMPANY DRIVE CREATED', time: '15 MIN AGO', icon: '🏢' },
+              { action: 'APPLICATION SUBMITTED', time: '1 HOUR AGO', icon: '📄' },
+              { action: 'STUDENT PROFILE UPDATED', time: '2 HOURS AGO', icon: '✏️' }
             ].map((activity, index) => (
-              <div key={index} className="flex items-center p-3 hover:bg-gray-50 rounded-lg transition-colors">
+              <div key={index} className="neo-list-item !py-4 transition-colors">
                 <div className="text-2xl mr-4">{activity.icon}</div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
+                  <p className="neo-subtitle !text-[13px] font-bold">{activity.action}</p>
+                  <p className="neo-subtitle !text-[10px] font-bold opacity-50">{activity.time}</p>
                 </div>
+                <div className="bg-green-500 w-2 h-2 rounded-full shadow-[1px_1px_0px_#323232]"></div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <button className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl transition-all duration-200 group">
-              <svg className="w-8 h-8 text-purple-600 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span className="text-sm font-medium text-purple-900">Add Company</span>
+        <div className="neo-card !bg-white !p-8">
+          <h3 className="neo-widget-header mb-8 pb-4 border-b-2 border-[#323232] border-dashed">QUICK OPERATIONS</h3>
+          <div className="grid grid-cols-2 gap-6">
+            <button className="neo-button !flex-col !gap-3 !h-auto !py-8 bg-purple-50 hover:bg-purple-100">
+              <span className="text-3xl">🏢</span>
+              <span className="font-['Space_Mono'] font-bold text-xs">ADD COMPANY</span>
             </button>
-            <button className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl transition-all duration-200 group">
-              <svg className="w-8 h-8 text-blue-600 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span className="text-sm font-medium text-blue-900">Create Drive</span>
+            <button className="neo-button !flex-col !gap-3 !h-auto !py-8 bg-blue-50 hover:bg-blue-100">
+              <span className="text-3xl">🚀</span>
+              <span className="font-['Space_Mono'] font-bold text-xs">CREATE DRIVE</span>
             </button>
-            <button className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl transition-all duration-200 group">
-              <svg className="w-8 h-8 text-green-600 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              <span className="text-sm font-medium text-green-900">Send Message</span>
+            <button className="neo-button !flex-col !gap-3 !h-auto !py-8 bg-green-50 hover:bg-green-100">
+              <span className="text-3xl">✉️</span>
+              <span className="font-['Space_Mono'] font-bold text-xs">SEND MESSAGE</span>
             </button>
-            <button className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-xl transition-all duration-200 group">
-              <svg className="w-8 h-8 text-orange-600 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="text-sm font-medium text-orange-900">View Reports</span>
+            <button className="neo-button !flex-col !gap-3 !h-auto !py-8 bg-orange-50 hover:bg-orange-100">
+              <span className="text-3xl">📝</span>
+              <span className="font-['Space_Mono'] font-bold text-xs">REPORTS HUB</span>
             </button>
+          </div>
+
+          <div className="mt-8 p-6 bg-[#f8f8f8] border-2 border-[#323232] rounded-lg border-dashed">
+            <p className="neo-subtitle !text-[11px] font-bold text-center opacity-60 italic">
+              DASHBOARD VERSION 4.2.0 • INDUSTRIAL EDITION
+            </p>
           </div>
         </div>
       </div>

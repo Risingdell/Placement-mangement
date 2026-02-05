@@ -2,45 +2,42 @@ import { NavLink } from 'react-router-dom';
 
 function Sidebar() {
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
-    { path: '/dashboard/profile', label: 'My Profile', icon: '👤' },
-    { path: '/dashboard/drives', label: 'Placement Drives', icon: '🏢' },
-    { path: '/dashboard/applications', label: 'My Applications', icon: '📝' },
-    { path: '/dashboard/inbox', label: 'Inbox', icon: '📬' },
-    { path: '/dashboard/events', label: 'Events', icon: '📅' },
+    { path: '/dashboard', label: 'DASHBOARD', icon: '📊', exact: true },
+    { path: '/dashboard/profile', label: 'MY PROFILE', icon: '👤' },
+    { path: '/dashboard/drives', label: 'PLACEMENT DRIVES', icon: '🏢' },
+    { path: '/dashboard/applications', label: 'MY APPLICATIONS', icon: '📝' },
+    { path: '/dashboard/inbox', label: 'INBOX', icon: '📬' },
+    { path: '/dashboard/events', label: 'EVENTS', icon: '📅' },
   ];
 
   return (
-    <aside className="w-64 bg-slate-800 text-white flex flex-col h-screen sticky top-0 shadow-xl z-20">
-      <div className="p-6 border-b border-slate-700">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent m-0">
-          PlacementHub
+    <aside className="w-72 neo-sidebar flex flex-col h-screen sticky top-0">
+      <div className="p-8 border-b-2 border-[#323232] bg-white">
+        <h2 className="neo-title !text-3xl m-0">
+          PLACEMENT<span>HUB</span>
         </h2>
       </div>
 
-      <nav className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto">
+      <nav className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             end={item.exact}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${isActive
-                ? 'bg-indigo-500/20 text-white shadow-lg shadow-indigo-500/10'
-                : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-              }`
+              `neo-nav-link ${isActive ? 'active' : ''}`
             }
           >
-            <span className="text-lg w-6 text-center">{item.icon}</span>
-            <span className="flex-1">{item.label}</span>
+            <span className="text-xl w-6 text-center">{item.icon}</span>
+            <span className="flex-1 tracking-wider">{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-5 border-t border-slate-700">
-        <div className="text-xs text-slate-400 text-center flex flex-col gap-1">
-          <small>Placement Management</small>
-          <small className="text-slate-500">v1.0.0</small>
+      <div className="p-6 border-t-2 border-[#323232] bg-white">
+        <div className="flex flex-col gap-1 items-center">
+          <small className="neo-subtitle !text-[10px] font-bold">PLACEMENT MANAGEMENT</small>
+          <small className="neo-subtitle !text-[10px] opacity-50">V1.0.0</small>
         </div>
       </div>
     </aside>

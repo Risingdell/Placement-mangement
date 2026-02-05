@@ -52,91 +52,77 @@ function UpcomingDrives() {
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <h3 style={styles.title}>Upcoming Placement Drives</h3>
-        <div style={styles.loadingText}>Loading upcoming drives...</div>
+      <div className="neo-card !h-full !bg-white p-6">
+        <h3 className="neo-widget-header">UPCOMING DRIVES</h3>
+        <div className="neo-subtitle animate-pulse text-center p-8">LOADING UPCOMING DRIVES...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={styles.container}>
-        <h3 style={styles.title}>Upcoming Placement Drives</h3>
-        <div style={styles.errorText}>
-          {error}
-        </div>
+      <div className="neo-card !h-full !bg-white p-6 border-red-500">
+        <h3 className="neo-widget-header">UPCOMING DRIVES</h3>
+        <div className="neo-error">{error}</div>
       </div>
     );
   }
 
   if (drives.length === 0) {
     return (
-      <div style={styles.container}>
-        <h3 style={styles.title}>Upcoming Placement Drives</h3>
-        <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>🏢</span>
-          <p style={styles.emptyText}>No upcoming drives at this time</p>
-          <p style={styles.emptySubtext}>Check back later for new opportunities</p>
+      <div className="neo-card !h-full !bg-white p-6 text-center">
+        <h3 className="neo-widget-header">UPCOMING DRIVES</h3>
+        <div className="py-12">
+          <span className="text-5xl block mb-4">🏢</span>
+          <p className="neo-title !text-lg">NO UPCOMING DRIVES</p>
+          <p className="neo-subtitle">CHECK BACK LATER FOR OPPORTUNITIES</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h3 style={styles.title}>Upcoming Placement Drives</h3>
+    <div className="neo-card !h-full !bg-white p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="neo-widget-header !mb-0 border-none !pb-0">UPCOMING DRIVES</h3>
         <button
           onClick={() => navigate('/drives')}
-          style={styles.viewAllLink}
+          className="neo-subtitle font-bold hover:underline cursor-pointer"
         >
-          View All →
+          VIEW ALL →
         </button>
       </div>
 
-      <div style={styles.drivesList}>
+      <div className="flex-1 overflow-y-auto mb-6">
         {drives.map((drive) => (
           <div
             key={drive.id}
-            style={styles.driveCard}
+            className="neo-list-item cursor-pointer"
             onClick={() => navigate('/drives')}
           >
-            <div style={styles.driveHeader}>
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <h4 style={styles.companyName}>{drive.company_name}</h4>
-                <p style={styles.jobRole}>{drive.job_role}</p>
+                <h4 className="neo-title !text-lg !mb-0">{drive.company_name.toUpperCase()}</h4>
+                <p className="neo-subtitle !text-[12px]">{drive.job_role.toUpperCase()}</p>
               </div>
               <div
-                style={{
-                  ...styles.eligibilityBadge,
-                  backgroundColor: drive.eligible ? '#e8f5e9' : '#ffebee',
-                  color: drive.eligible ? '#2e7d32' : '#c62828',
-                }}
+                className={`px-3 py-1 border-2 border-[#323232] rounded text-[10px] font-bold shadow-[2px_2px_0px_#323232] ${drive.eligible ? 'bg-green-100' : 'bg-red-100'}`}
               >
-                {drive.eligible ? '✓ Eligible' : '✗ Ineligible'}
+                {drive.eligible ? 'ELIGIBLE' : 'INELIGIBLE'}
               </div>
             </div>
 
-            <div style={styles.driveDetails}>
-              <div style={styles.detailRow}>
-                <span style={styles.detailLabel}>Package:</span>
-                <span style={styles.detailValue}>{drive.package || 'N/A'}</span>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="neo-subtitle !text-[11px] opacity-70">PACKAGE</span>
+                <span className="neo-subtitle !text-[12px] font-bold">{drive.package || 'N/A'}</span>
               </div>
-              <div style={styles.detailRow}>
-                <span style={styles.detailLabel}>Deadline:</span>
+              <div className="flex justify-between items-center">
+                <span className="neo-subtitle !text-[11px] opacity-70">DEADLINE</span>
                 <span
-                  style={{
-                    ...styles.detailValue,
-                    color: isDeadlineSoon(drive.application_deadline)
-                      ? '#f44336'
-                      : '#666',
-                    fontWeight: isDeadlineSoon(drive.application_deadline)
-                      ? '600'
-                      : '400',
-                  }}
+                  className={`neo-subtitle !text-[12px] font-bold ${isDeadlineSoon(drive.application_deadline) ? 'text-red-600 animate-pulse' : ''}`}
                 >
-                  {formatDeadline(drive.application_deadline)}
+                  {formatDeadline(drive.application_deadline).toUpperCase()}
                 </span>
               </div>
             </div>
@@ -146,149 +132,12 @@ function UpcomingDrives() {
 
       <button
         onClick={() => navigate('/drives')}
-        style={styles.viewAllButton}
+        className="neo-button"
       >
-        View All Drives
+        VIEW ALL DRIVES
       </button>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '24px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  viewAllLink: {
-    background: 'none',
-    border: 'none',
-    color: '#2196F3',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    padding: '4px 8px',
-    transition: 'color 0.3s',
-  },
-  drivesList: {
-    flex: 1,
-    overflowY: 'auto',
-    marginBottom: '16px',
-  },
-  driveCard: {
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    padding: '16px',
-    marginBottom: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    ':hover': {
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-    },
-  },
-  driveHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '12px',
-  },
-  companyName: {
-    margin: '0 0 4px 0',
-    fontSize: '1.1rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  jobRole: {
-    margin: 0,
-    fontSize: '0.9rem',
-    color: '#666',
-  },
-  eligibilityBadge: {
-    padding: '4px 12px',
-    borderRadius: '12px',
-    fontSize: '0.75rem',
-    fontWeight: '600',
-    whiteSpace: 'nowrap',
-  },
-  driveDetails: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  detailRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: '0.85rem',
-    color: '#999',
-  },
-  detailValue: {
-    fontSize: '0.9rem',
-    color: '#666',
-    fontWeight: '500',
-  },
-  viewAllButton: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  loadingText: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    color: '#999',
-    fontSize: '0.95rem',
-  },
-  errorText: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    color: '#f44336',
-    fontSize: '0.95rem',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '40px 20px',
-  },
-  emptyIcon: {
-    fontSize: '3rem',
-    display: 'block',
-    marginBottom: '16px',
-  },
-  emptyText: {
-    margin: '0 0 8px 0',
-    color: '#666',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  emptySubtext: {
-    margin: 0,
-    color: '#999',
-    fontSize: '0.9rem',
-  },
-};
 
 export default UpcomingDrives;

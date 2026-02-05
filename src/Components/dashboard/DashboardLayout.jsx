@@ -5,15 +5,12 @@ import CompactKPIBar from "./CompactKPIBar";
 
 function DashboardLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden neo-dashboard-container">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        {/* Placeholder for 3D Background */}
-        <div id="canvas-container" className="absolute inset-0 z-0 pointer-events-none"></div>
-
         {/* Top Navbar */}
         <TopNavbar />
 

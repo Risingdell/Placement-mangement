@@ -65,103 +65,85 @@ function InboxPreview() {
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <h3 style={styles.title}>Recent Messages</h3>
-        <div style={styles.loadingText}>Loading messages...</div>
+      <div className="neo-card !h-full !bg-white p-6">
+        <h3 className="neo-widget-header">RECENT MESSAGES</h3>
+        <div className="neo-subtitle animate-pulse text-center p-8">LOADING MESSAGES...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={styles.container}>
-        <h3 style={styles.title}>Recent Messages</h3>
-        <div style={styles.errorText}>
-          {error}
-        </div>
+      <div className="neo-card !h-full !bg-white p-6 border-red-500">
+        <h3 className="neo-widget-header">RECENT MESSAGES</h3>
+        <div className="neo-error">{error}</div>
       </div>
     );
   }
 
   if (messages.length === 0) {
     return (
-      <div style={styles.container}>
-        <h3 style={styles.title}>Recent Messages</h3>
-        <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>📬</span>
-          <p style={styles.emptyText}>Your inbox is empty</p>
-          <p style={styles.emptySubtext}>No new messages</p>
+      <div className="neo-card !h-full !bg-white p-6 text-center">
+        <h3 className="neo-widget-header">RECENT MESSAGES</h3>
+        <div className="py-12">
+          <span className="text-5xl block mb-4">📬</span>
+          <p className="neo-title !text-lg">INBOX IS EMPTY</p>
+          <p className="neo-subtitle">NO NEW MESSAGES</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div style={styles.titleContainer}>
-          <h3 style={styles.title}>Recent Messages</h3>
+    <div className="neo-card !h-full !bg-white p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <h3 className="neo-widget-header !mb-0 border-none !pb-0">RECENT MESSAGES</h3>
           {unreadCount > 0 && (
-            <span style={styles.unreadBadge}>{unreadCount}</span>
+            <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold border-2 border-[#323232] rounded shadow-[2px_2px_0px_#323232]">
+              {unreadCount} NEW
+            </span>
           )}
         </div>
         <button
           onClick={() => navigate('/inbox')}
-          style={styles.viewAllLink}
+          className="neo-subtitle font-bold hover:underline cursor-pointer"
         >
-          View All →
+          VIEW ALL →
         </button>
       </div>
 
-      <div style={styles.messagesList}>
+      <div className="flex-1 overflow-y-auto mb-6">
         {messages.map((message) => (
           <div
             key={message.id}
-            style={{
-              ...styles.messageItem,
-              ...(message.is_read === false ? styles.messageItemUnread : {}),
-            }}
+            className={`neo-list-item cursor-pointer ${!message.is_read ? 'bg-blue-50 !border-blue-600 shadow-[3px_3px_0px_#2563eb]' : ''}`}
             onClick={() => navigate('/inbox')}
           >
-            <div style={styles.messageHeader}>
-              <div style={styles.messageTopRow}>
-                {message.is_read === false && (
-                  <span style={styles.unreadDot} />
-                )}
-                <h4
-                  style={{
-                    ...styles.messageTitle,
-                    ...(message.is_read === false ? styles.messageTitleUnread : {}),
-                  }}
-                >
-                  {message.title}
+            <div className="flex justify-between items-start mb-3 gap-4">
+              <div className="flex items-center gap-2">
+                {!message.is_read && <div className="w-2 h-2 bg-blue-600 rounded-full shrink-0" />}
+                <h4 className={`neo-title !text-[15px] !mb-0 leading-tight ${!message.is_read ? 'text-blue-900' : ''}`}>
+                  {message.title.toUpperCase()}
                 </h4>
               </div>
               {message.type && (
-                <span
-                  style={{
-                    ...styles.typeBadge,
-                    backgroundColor: getMessageTypeColor(message.type),
-                  }}
-                  title={message.type}
-                >
+                <div className="w-6 h-6 border-2 border-[#323232] rounded bg-white flex items-center justify-center text-[12px] shadow-[1px_1px_0px_#323232]">
                   {message.type === 'Info' && '📋'}
                   {message.type === 'Success' && '✓'}
                   {message.type === 'Warning' && '⚠'}
                   {message.type === 'Error' && '✗'}
-                </span>
+                </div>
               )}
             </div>
 
-            <p style={styles.messagePreview}>
-              {message.message && message.message.length > 80
-                ? `${message.message.substring(0, 80)}...`
-                : message.message || 'No preview available'}
+            <p className="neo-subtitle !text-[12px] line-clamp-2 opacity-80 mb-3">
+              {message.message}
             </p>
 
-            <div style={styles.messageFooter}>
-              <span style={styles.messageTime}>
-                {formatTimeAgo(message.created_at)}
+            <div className="flex justify-start">
+              <span className="neo-subtitle !text-[10px] font-bold opacity-60 italic">
+                {formatTimeAgo(message.created_at).toUpperCase()}
               </span>
             </div>
           </div>
@@ -170,182 +152,12 @@ function InboxPreview() {
 
       <button
         onClick={() => navigate('/inbox')}
-        style={styles.viewAllButton}
+        className="neo-button"
       >
-        View All Messages
-        {unreadCount > 0 && ` (${unreadCount} unread)`}
+        VIEW ALL MESSAGES {unreadCount > 0 && `(${unreadCount} UNREAD)`}
       </button>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '24px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  titleContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  unreadBadge: {
-    backgroundColor: '#f44336',
-    color: '#fff',
-    fontSize: '0.75rem',
-    fontWeight: '600',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    minWidth: '20px',
-    textAlign: 'center',
-  },
-  viewAllLink: {
-    background: 'none',
-    border: 'none',
-    color: '#2196F3',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    padding: '4px 8px',
-    transition: 'color 0.3s',
-  },
-  messagesList: {
-    flex: 1,
-    overflowY: 'auto',
-    marginBottom: '16px',
-  },
-  messageItem: {
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    padding: '14px',
-    marginBottom: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    ':hover': {
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-    },
-  },
-  messageItemUnread: {
-    borderLeft: '4px solid #2196F3',
-    backgroundColor: '#f5f9ff',
-  },
-  messageHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '8px',
-    gap: '8px',
-  },
-  messageTopRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    flex: 1,
-  },
-  unreadDot: {
-    width: '8px',
-    height: '8px',
-    backgroundColor: '#2196F3',
-    borderRadius: '50%',
-    flexShrink: 0,
-  },
-  messageTitle: {
-    margin: 0,
-    fontSize: '0.95rem',
-    fontWeight: '500',
-    color: '#555',
-  },
-  messageTitleUnread: {
-    fontWeight: '600',
-    color: '#333',
-  },
-  typeBadge: {
-    width: '24px',
-    height: '24px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.75rem',
-    color: '#fff',
-    flexShrink: 0,
-  },
-  messagePreview: {
-    margin: '0 0 8px 0',
-    fontSize: '0.85rem',
-    color: '#666',
-    lineHeight: '1.4',
-  },
-  messageFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  messageTime: {
-    fontSize: '0.75rem',
-    color: '#999',
-  },
-  viewAllButton: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  loadingText: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    color: '#999',
-    fontSize: '0.95rem',
-  },
-  errorText: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    color: '#f44336',
-    fontSize: '0.95rem',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '40px 20px',
-  },
-  emptyIcon: {
-    fontSize: '3rem',
-    display: 'block',
-    marginBottom: '16px',
-  },
-  emptyText: {
-    margin: '0 0 8px 0',
-    color: '#666',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  emptySubtext: {
-    margin: 0,
-    color: '#999',
-    fontSize: '0.9rem',
-  },
-};
 
 export default InboxPreview;

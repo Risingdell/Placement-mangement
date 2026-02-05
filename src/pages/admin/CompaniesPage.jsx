@@ -292,180 +292,142 @@ function CompaniesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center mb-10">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Company Management</h2>
-          <p className="text-gray-600 mt-1">Manage companies and create student shortlists</p>
+          <h2 className="neo-title !text-3xl mb-1 uppercase tracking-tight">MANAGE COMPANIES</h2>
+          <p className="neo-subtitle !text-[11px] font-bold opacity-60 uppercase">System Partner Directory</p>
         </div>
         <button
           onClick={handleAddCompany}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 shadow-lg transition-all duration-200"
+          className="neo-button !px-6 !py-3 !bg-indigo-600 !text-white flex items-center shadow-[4px_4px_0px_#323232]"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add Company
+          <span className="text-xl mr-2">+</span>
+          <span className="font-bold uppercase tracking-wider">Add Company</span>
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-md">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-purple-500 shadow-[4px_4px_0px_#a855f7]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Total Partners</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Companies</p>
-              <p className="text-2xl font-bold text-gray-900">{companies.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{companies.length}</h3>
+            <span className="text-2xl">🏢</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-green-500 shadow-[4px_4px_0px_#22c55e]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Active Now</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Active Companies</p>
-              <p className="text-2xl font-bold text-green-600">
-                {companies.filter(c => c.is_active).length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{companies.filter(c => c.is_active).length}</h3>
+            <span className="text-2xl">✅</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-blue-500 shadow-[4px_4px_0px_#3b82f6]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Product Based</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Product Based</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {companies.filter(c => c.company_type === 'Product').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{companies.filter(c => c.company_type === 'Product').length}</h3>
+            <span className="text-2xl">💎</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="neo-card !bg-white !p-4 !gap-1 border-orange-500 shadow-[4px_4px_0px_#f97316]">
+          <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">Service Based</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Service Based</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {companies.filter(c => c.company_type === 'Service').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
+            <h3 className="neo-title !text-2xl !mb-0">{companies.filter(c => c.company_type === 'Service').length}</h3>
+            <span className="text-2xl">🛠️</span>
           </div>
         </div>
       </div>
 
       {/* Companies Table */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="neo-card !bg-white !p-0 overflow-hidden mb-10 shadow-[8px_8px_0px_#d3d3d3]">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Company Name
+            <thead>
+              <tr className="bg-[#f8f8f8] border-b-2 border-[#323232]">
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Company Entity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Classification
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  HQ Location
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  System Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
                   Shortlisted
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th className="px-6 py-4 text-right neo-subtitle !text-[11px] font-bold uppercase tracking-wider text-[#323232]">
+                  Operations
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y-2 divide-[#323232] divide-dashed">
               {companies.map((company) => (
                 <tr key={company.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-5 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center text-white font-bold mr-3">
+                      <div className="w-10 h-10 bg-indigo-500 border-2 border-[#323232] rounded flex items-center justify-center text-white font-bold mr-3 shadow-[2px_2px_0px_#323232]">
                         {company.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{company.name}</div>
-                        <div className="text-sm text-gray-500">{company.industry || 'Technology'}</div>
+                        <div className="neo-subtitle !text-[13px] font-bold text-[#323232]">{company.name.toUpperCase()}</div>
+                        <div className="neo-subtitle !text-[10px] font-bold opacity-50 uppercase">{company.industry || 'Technology'}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${company.company_type === 'Product'
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className={`px-3 py-1 border-2 border-[#323232] rounded text-[10px] font-bold shadow-[2px_2px_0px_#323232] ${company.company_type === 'Product'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-orange-100 text-orange-800'
                       }`}>
-                      {company.company_type}
+                      {company.company_type.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {company.location || 'N/A'}
+                  <td className="px-6 py-5 whitespace-nowrap neo-subtitle !text-[12px] font-bold text-[#323232]">
+                    {company.location?.toUpperCase() || 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${company.is_active
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className={`px-3 py-1 border-2 border-[#323232] rounded text-[10px] font-bold shadow-[2px_2px_0px_#323232] ${company.is_active
                       ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-800'
                       }`}>
-                      {company.is_active ? 'Active' : 'Inactive'}
+                      {company.is_active ? 'ACTIVE' : 'INACTIVE'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-5 whitespace-nowrap">
                     <button
                       onClick={() => handleManageShortlist(company)}
-                      className="text-purple-600 hover:text-purple-800 font-medium"
+                      className="neo-subtitle !text-[12px] font-bold text-indigo-600 hover:text-indigo-800 underline underline-offset-4 decoration-2"
                     >
-                      {company.total_shortlisted || 0} Students
+                      {company.total_shortlisted || 0} RECRUITS
                     </button>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <td className="px-6 py-5 whitespace-nowrap text-right space-x-3">
                     <button
                       onClick={() => handleEditCompany(company)}
-                      className="text-indigo-600 hover:text-indigo-900 inline-flex items-center"
+                      className="neo-button !py-1 !px-3 !bg-indigo-50 !text-indigo-800 !text-[11px] !min-h-0 !border-[#4f46e5]"
                     >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      Edit
+                      EDIT
                     </button>
                     <button
                       onClick={() => handleDeleteCompany(company.id)}
-                      className="text-red-600 hover:text-red-900 inline-flex items-center ml-3"
+                      className="neo-button !py-1 !px-3 !bg-red-50 !text-red-700 !text-[11px] !min-h-0 !border-red-600"
                     >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete
+                      DELETE
                     </button>
                   </td>
                 </tr>
               ))}
               {companies.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
-                    No companies found. Click "Add Company" to create one.
+                  <td colSpan="6" className="px-6 py-12 text-center neo-subtitle !text-[13px] font-bold opacity-50 uppercase tracking-widest italic">
+                    — DATABASE EMPTY —
                   </td>
                 </tr>
               )}
@@ -476,444 +438,403 @@ function CompaniesPage() {
 
       {/* Add/Edit Company Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowModal(false)}></div>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="neo-card !bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto !p-8 shadow-[12px_12px_0px_#323232]">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-[#323232] border-dashed">
+              <h3 className="neo-title !text-2xl !mb-0 uppercase tracking-tight">
+                {modalMode === 'add' ? 'INITIALIZE NEW PARTNER' : 'UPDATE PARTNER INTEL'}
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="neo-button !p-2 !w-10 !h-10 !flex items-center justify-center !min-h-0 !translate-y-0"
+              >
+                <span className="text-2xl font-bold">×</span>
+              </button>
+            </div>
 
-            <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {modalMode === 'add' ? 'Add New Company' : 'Edit Company'}
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="neo-subtitle !text-[11px] font-bold uppercase mb-2 block text-[#323232]">
+                    COMPANY IDENTITY *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="neo-input uppercase"
+                    placeholder="E.G., GOOGLE"
+                  />
+                </div>
+
+                <div>
+                  <label className="neo-subtitle !text-[11px] font-bold uppercase mb-2 block text-[#323232]">
+                    CLASSIFICATION *
+                  </label>
+                  <select
+                    required
+                    value={formData.company_type}
+                    onChange={(e) => setFormData({ ...formData, company_type: e.target.value })}
+                    className="neo-input uppercase"
+                  >
+                    <option value="Product">PRODUCT BASED</option>
+                    <option value="Service">SERVICE BASED</option>
+                    <option value="Startup">STARTUP</option>
+                  </select>
+                </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="neo-subtitle !text-[11px] font-bold uppercase mb-2 block text-[#323232]">
+                  HQ OPERATIONS CENTER
+                </label>
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="neo-input uppercase"
+                  placeholder="E.G., BANGALORE"
+                />
+              </div>
+
+              <div>
+                <label className="neo-subtitle !text-[11px] font-bold uppercase mb-2 block text-[#323232]">
+                  MISSION INTEL
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  className="neo-input uppercase resize-none"
+                  placeholder="BRIEF DESCRIPTION ABOUT THE ROLE AND COMPANY"
+                />
+              </div>
+
+              {/* Eligibility Requirements Section */}
+              <div className="pt-6 mt-6 border-t-2 border-[#323232] border-dashed">
+                <h4 className="neo-title !text-lg mb-6 uppercase tracking-widest text-indigo-600">RECRUITMENT PROTOCOLS</h4>
+
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Company Name *
+                    <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+                      MINIMUM CGPA THRESHOLD
                     </label>
                     <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="e.g., Google"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="10"
+                      value={formData.minCgpa}
+                      onChange={(e) => setFormData({ ...formData, minCgpa: e.target.value })}
+                      className="neo-input"
+                      placeholder="E.G., 7.00"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Company Type *
+                    <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+                      MAX BACKLOG ALLOWANCE
                     </label>
-                    <select
-                      required
-                      value={formData.company_type}
-                      onChange={(e) => setFormData({ ...formData, company_type: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="Product">Product Based</option>
-                      <option value="Service">Service Based</option>
-                      <option value="Startup">Startup</option>
-                    </select>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.maxBacklogs}
+                      onChange={(e) => setFormData({ ...formData, maxBacklogs: e.target.value })}
+                      className="neo-input"
+                      placeholder="E.G., 0"
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
+                <div className="mt-6">
+                  <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+                    AUTHORIZED DIVISIONS
                   </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="e.g., Bangalore"
-                  />
+                  <div className="flex flex-wrap gap-2">
+                    {branchOptions.map(branch => (
+                      <button
+                        key={branch}
+                        type="button"
+                        onClick={() => toggleBranch(branch)}
+                        className={`px-4 py-1.5 border-2 border-[#323232] rounded text-[10px] font-bold transition-all shadow-[2px_2px_0px_#323232] ${formData.allowedBranches.includes(branch)
+                          ? 'bg-indigo-600 text-white shadow-none translate-x-[1px] translate-y-[1px]'
+                          : 'bg-white text-[#323232] hover:bg-gray-50'
+                          }`}
+                      >
+                        {branch}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                <div className="mt-6">
+                  <label className="neo-subtitle !text-[10px] font-bold uppercase mb-2 block text-[#323232]">
+                    TARGET BATCH CYCLES
                   </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Brief description about the role and company"
-                  />
+                  <div className="flex flex-wrap gap-2">
+                    {batchYearOptions.map(year => (
+                      <button
+                        key={year}
+                        type="button"
+                        onClick={() => toggleBatchYear(year)}
+                        className={`px-4 py-1.5 border-2 border-[#323232] rounded text-[10px] font-bold transition-all shadow-[2px_2px_0px_#323232] ${formData.allowedBatchYears.includes(year)
+                          ? 'bg-purple-600 text-white shadow-none translate-x-[1px] translate-y-[1px]'
+                          : 'bg-white text-[#323232] hover:bg-gray-50'
+                          }`}
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Eligibility Requirements Section */}
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Requirements</h4>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minimum CGPA
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="10"
-                        value={formData.minCgpa}
-                        onChange={(e) => setFormData({ ...formData, minCgpa: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="e.g., 7.0"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max Active Backlogs
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.maxBacklogs}
-                        onChange={(e) => setFormData({ ...formData, maxBacklogs: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="e.g., 0"
-                      />
-                    </div>
+                {/* Eligible Students Display */}
+                <div className="mt-8 pt-6 border-t-2 border-[#323232] border-dashed">
+                  <div className="flex items-center justify-between mb-4">
+                    <h5 className="neo-subtitle !text-[12px] font-bold uppercase tracking-wider">AVAILABLE RECRUITS</h5>
+                    <span className="neo-subtitle !text-[10px] font-bold bg-gray-100 px-3 py-1 border-2 border-[#323232] rounded shadow-[2px_2px_0px_#323232]">
+                      {loadingStudents ? 'SYNCHRONIZING...' : `${eligibleStudents.length} MATCHES`}
+                    </span>
                   </div>
 
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Allowed Branches
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {branchOptions.map(branch => (
-                        <button
-                          key={branch}
-                          type="button"
-                          onClick={() => toggleBranch(branch)}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${formData.allowedBranches.includes(branch)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                          {branch}
-                        </button>
-                      ))}
+                  {!formData.minCgpa && formData.allowedBranches.length === 0 &&
+                    !formData.maxBacklogs && formData.allowedBatchYears.length === 0 ? (
+                    <div className="bg-[#f8f8f8] border-2 border-[#323232] border-dashed rounded-lg p-6 text-center">
+                      <p className="neo-subtitle !text-[11px] font-bold opacity-50 uppercase">
+                        SET PROTOCOLS TO SCAN DATABASE
+                      </p>
                     </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Allowed Batch Years
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {batchYearOptions.map(year => (
-                        <button
-                          key={year}
-                          type="button"
-                          onClick={() => toggleBatchYear(year)}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${formData.allowedBatchYears.includes(year)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                          {year}
-                        </button>
-                      ))}
+                  ) : loadingStudents ? (
+                    <div className="bg-[#f8f8f8] border-2 border-[#323232] border-dashed rounded-lg p-6 text-center">
+                      <p className="neo-subtitle !text-[11px] font-bold opacity-50 uppercase animate-pulse">
+                        SCANNING RECRUITMENT DATABASE...
+                      </p>
                     </div>
-                  </div>
-
-                  {/* Eligible Students Display */}
-                  <div className="mt-6 border-t border-gray-200 pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h5 className="text-md font-semibold text-gray-900">Eligible Students</h5>
-                      <span className="text-sm text-gray-600">
-                        {loadingStudents ? 'Loading...' : `${eligibleStudents.length} students`}
-                      </span>
+                  ) : eligibleStudents.length === 0 ? (
+                    <div className="bg-[#f8f8f8] border-2 border-[#323232] border-dashed rounded-lg p-6 text-center">
+                      <p className="neo-subtitle !text-[11px] font-bold text-red-600 uppercase">
+                        NO RECRUITS MATCH CURRENT CRITERIA
+                      </p>
                     </div>
-
-                    {!formData.minCgpa && formData.allowedBranches.length === 0 &&
-                      !formData.maxBacklogs && formData.allowedBatchYears.length === 0 ? (
-                      <div className="bg-gray-50 rounded-lg p-4 text-center">
-                        <p className="text-gray-600 text-sm">
-                          Set requirements above to see eligible students
-                        </p>
-                      </div>
-                    ) : loadingStudents ? (
-                      <div className="bg-gray-50 rounded-lg p-4 text-center">
-                        <p className="text-gray-600 text-sm">Loading eligible students...</p>
-                      </div>
-                    ) : eligibleStudents.length === 0 ? (
-                      <div className="bg-gray-50 rounded-lg p-4 text-center">
-                        <p className="text-gray-600 text-sm">No students match these criteria</p>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-                        <div className="space-y-2">
-                          {eligibleStudents.map(student => (
-                            <div key={student.id} className="bg-white p-3 rounded-lg shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="font-medium text-gray-900">{student.name}</p>
-                                  <p className="text-sm text-gray-600">{student.usn} • {student.branch}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold text-purple-600">{student.cgpa} CGPA</p>
-                                  <p className="text-xs text-gray-500">
-                                    Backlogs: {student.active_backlogs}
-                                  </p>
-                                </div>
-                              </div>
+                  ) : (
+                    <div className="bg-[#f8f8f8] border-2 border-[#323232] rounded-lg p-4 max-h-64 overflow-y-auto space-y-3">
+                      {eligibleStudents.map(student => (
+                        <div key={student.id} className="neo-list-item !py-3 !px-4 !bg-white">
+                          <div className="flex items-center justify-between w-full">
+                            <div>
+                              <p className="neo-subtitle !text-[13px] font-bold text-[#323232] uppercase">{student.name}</p>
+                              <p className="neo-subtitle !text-[10px] font-bold opacity-60 uppercase">{student.usn} • {student.branch}</p>
                             </div>
-                          ))}
+                            <div className="text-right">
+                              <p className="neo-subtitle !text-[13px] font-extrabold text-indigo-700 leading-none">{student.cgpa} CGPA</p>
+                              <p className="neo-subtitle !text-[9px] font-bold opacity-50 uppercase mt-1">
+                                BACKLOGS: {student.active_backlogs}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
-                  >
-                    {modalMode === 'add' ? 'Add Company' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="flex justify-end gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="neo-button !bg-gray-100 !text-[#323232] !px-8 !py-3 uppercase font-bold tracking-widest"
+                >
+                  Abord
+                </button>
+                <button
+                  type="submit"
+                  className="neo-button !bg-indigo-600 !text-white !px-8 !py-3 uppercase font-bold tracking-widest shadow-[4px_4px_0px_#323232]"
+                >
+                  {modalMode === 'add' ? 'INITIALIZE' : 'DEPLOY UPDATES'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* Student Shortlist Modal */}
       {showShortlistModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowShortlistModal(false)}></div>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="neo-card !bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto !p-8 shadow-[12px_12px_0px_#323232]">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-[#323232] border-dashed">
+              <div>
+                <h3 className="neo-title !text-2xl !mb-0 uppercase tracking-tight">
+                  PARTNER SHORTLIST: {selectedCompany?.name.toUpperCase()}
+                </h3>
+                <p className="neo-subtitle !text-[11px] font-bold opacity-60 uppercase mt-1">
+                  {loadingShortlist ? 'SYNCHRONIZING...' : `${shortlistedStudents.length} RECRUITS ASSIGNED`}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowShortlistModal(false)}
+                className="neo-button !p-2 !w-10 !h-10 !flex items-center justify-center !min-h-0 !translate-y-0"
+              >
+                <span className="text-2xl font-bold">×</span>
+              </button>
+            </div>
 
-            <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+            <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Student Shortlist - {selectedCompany?.name}
-                  </h3>
-                  <p className="text-gray-600 mt-1">
-                    {loadingShortlist ? 'Loading...' : `${shortlistedStudents.length} students shortlisted`}
-                  </p>
-                </div>
                 <button
-                  onClick={() => setShowShortlistModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  onClick={() => {
+                    setShowSearch(!showSearch);
+                    setSearchTerm('');
+                    setSearchResults([]);
+                  }}
+                  className={`neo-button !px-6 !py-2 !text-[11px] !min-h-0 uppercase font-extrabold tracking-wider ${showSearch
+                    ? '!bg-red-50 !text-red-700'
+                    : '!bg-green-50 !text-green-700'
+                    }`}
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <span className="text-lg mr-2 font-bold">{showSearch ? '×' : '+'}</span>
+                  {showSearch ? 'CANCEL MANUAL INPUT' : 'MANUAL RECRUIT ASSIGNMENT'}
                 </button>
               </div>
 
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <button
-                    onClick={() => {
-                      setShowSearch(!showSearch);
-                      setSearchTerm('');
-                      setSearchResults([]);
-                    }}
-                    className={`px-4 py-2 rounded-lg transition-colors flex items-center ${showSearch
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                      }`}
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {showSearch ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      )}
-                    </svg>
-                    {showSearch ? 'Cancel Manual Add' : 'Add Student Manually'}
-                  </button>
-                </div>
+              {showSearch && (
+                <div className="bg-[#f8f8f8] p-6 border-2 border-[#323232] border-dashed rounded-lg mb-6">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      placeholder="SEARCH RECRUIT BY NAME OR USN..."
+                      className="neo-input !pl-12 uppercase"
+                      autoFocus
+                    />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl opacity-40">🔍</span>
+                  </div>
 
-                {showSearch && (
-                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-dashed border-gray-200 animate-fadeIn">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Search by student name or USN..."
-                        className="w-full px-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
-                        autoFocus
-                      />
-                      <svg className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-
-                    {isSearching ? (
-                      <div className="text-center py-4 text-gray-500">Searching students...</div>
-                    ) : searchTerm.length >= 2 ? (
-                      <div className="mt-3 bg-white rounded-lg shadow-inner max-h-48 overflow-y-auto divide-y divide-gray-100">
-                        {searchResults.length > 0 ? (
-                          searchResults.map(student => (
-                            <div key={student.id} className="flex items-center justify-between p-3 hover:bg-purple-50 transition-colors">
-                              <div>
-                                <p className="font-semibold text-gray-900">{student.name}</p>
-                                <p className="text-sm text-gray-500">{student.usn} • {student.branch}</p>
-                              </div>
-                              <button
-                                onClick={() => handleAddManualShortlist(student)}
-                                className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 flex items-center shadow-sm"
-                              >
-                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                Add to Shortlist
-                              </button>
+                  {isSearching ? (
+                    <div className="text-center py-6 neo-subtitle !text-[11px] font-bold opacity-50 uppercase animate-pulse">SEARCHING STUDENT FILES...</div>
+                  ) : searchTerm.length >= 2 ? (
+                    <div className="mt-4 bg-white border-2 border-[#323232] rounded overflow-hidden max-h-48 overflow-y-auto divide-y-2 divide-[#323232] divide-dashed shadow-[4px_4px_0px_rgba(0,0,0,0.1)]">
+                      {searchResults.length > 0 ? (
+                        searchResults.map(student => (
+                          <div key={student.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                            <div>
+                              <p className="neo-subtitle !text-[13px] font-bold uppercase text-[#323232]">{student.name}</p>
+                              <p className="neo-subtitle !text-[10px] font-bold opacity-50 uppercase">{student.usn} • {student.branch}</p>
                             </div>
-                          ))
-                        ) : (
-                          <div className="p-4 text-center text-gray-500">No matching students found</div>
-                        )}
-                      </div>
-                    ) : searchTerm.length > 0 ? (
-                      <div className="mt-2 text-xs text-center text-gray-400">Type at least 2 characters to search</div>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-
-              {loadingShortlist ? (
-                <div className="bg-gray-50 rounded-lg p-8 text-center">
-                  <p className="text-gray-600">Loading shortlisted students...</p>
-                </div>
-              ) : shortlistedStudents.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg p-8 text-center">
-                  <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <p className="text-gray-600 font-medium">No students shortlisted yet</p>
-                  <p className="text-sm text-gray-500 mt-2">Click "Add Students" to shortlist students for this company</p>
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg overflow-hidden">
-                  <div className="max-h-96 overflow-y-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 sticky top-0">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Student
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            USN
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            CGPA
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {shortlistedStudents.map((student) => (
-                          <tr key={student.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                                  {student.student_name ? student.student_name.charAt(0) : 'S'}
-                                </div>
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">{student.student_name || 'N/A'}</div>
-                                  <div className="text-sm text-gray-500">{student.email || ''}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {student.usn || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm font-semibold text-purple-600">
-                                {student.cgpa ? Number(student.cgpa).toFixed(2) : 'N/A'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${student.status === 'Shortlisted'
-                                ? 'bg-green-100 text-green-800'
-                                : student.status === 'Notified'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                {student.status || 'Shortlisted'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button className="text-red-600 hover:text-red-900">
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            <button
+                              onClick={() => handleAddManualShortlist(student)}
+                              className="neo-button !py-1 !px-4 !bg-indigo-600 !text-white !text-[10px] !min-h-0"
+                            >
+                              ASSIGN TO LIST
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-6 text-center neo-subtitle !text-[11px] font-bold text-red-600 uppercase tracking-widest opacity-50 italic">NO RECRUITS FOUND</div>
+                      )}
+                    </div>
+                  ) : searchTerm.length > 0 ? (
+                    <div className="mt-3 text-[9px] text-center neo-subtitle font-bold opacity-40 uppercase tracking-widest">INPUT MINIMUM 2 CHARACTERS FOR INTEL SCAN</div>
+                  ) : null}
                 </div>
               )}
+            </div>
 
-              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
-                <button
-                  onClick={() => setShowShortlistModal(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Close
-                </button>
-                {shortlistedStudents.length > 0 && (
-                  <button
-                    onClick={handleSendNotifications}
-                    disabled={notifying}
-                    className={`px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center ${notifying ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                  >
-                    {notifying ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        Send Notifications
-                      </>
-                    )}
-                  </button>
-                )}
+            {loadingShortlist ? (
+              <div className="bg-[#f8f8f8] border-2 border-[#323232] border-dashed rounded-lg p-10 text-center">
+                <p className="neo-subtitle !text-[12px] font-bold opacity-50 uppercase animate-pulse">SYNCHRONIZING SHORTLIST INTEL...</p>
               </div>
+            ) : shortlistedStudents.length === 0 ? (
+              <div className="bg-[#f8f8f8] border-2 border-[#323232] border-dashed rounded-lg p-10 text-center">
+                <div className="text-5xl opacity-20 mb-4">📭</div>
+                <p className="neo-subtitle !text-[13px] font-bold uppercase tracking-widest text-[#323232]">SHORTLIST IS CURRENTLY NULL</p>
+                <p className="neo-subtitle !text-[10px] font-bold opacity-40 uppercase mt-2 italic">SCAN DATABASE OR MANUAL INPUT REQUIRED</p>
+              </div>
+            ) : (
+              <div className="neo-card !p-0 !bg-white border-2 border-[#323232] overflow-hidden shadow-[6px_6px_0px_#d3d3d3]">
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full">
+                    <thead className="bg-[#f0f0f0] border-b-2 border-[#323232] sticky top-0 z-10">
+                      <tr>
+                        <th className="px-6 py-4 text-left neo-subtitle !text-[10px] font-bold uppercase text-[#323232]">RECRUIT</th>
+                        <th className="px-6 py-4 text-left neo-subtitle !text-[10px] font-bold uppercase text-[#323232]">IDENTIFIER</th>
+                        <th className="px-6 py-4 text-left neo-subtitle !text-[10px] font-bold uppercase text-[#323232]">RANK</th>
+                        <th className="px-6 py-4 text-left neo-subtitle !text-[10px] font-bold uppercase text-[#323232]">STATUS</th>
+                        <th className="px-6 py-4 text-right neo-subtitle !text-[10px] font-bold uppercase text-[#323232]">OPS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y-2 divide-[#323232] divide-dashed">
+                      {shortlistedStudents.map((student) => (
+                        <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="w-9 h-9 border-2 border-[#323232] rounded flex items-center justify-center bg-indigo-500 text-white font-bold mr-3 shadow-[2px_2px_0px_#323232]">
+                                {student.student_name ? student.student_name.charAt(0) : 'S'}
+                              </div>
+                              <div>
+                                <div className="neo-subtitle !text-[12px] font-bold text-[#323232] uppercase">{student.student_name || 'N/A'}</div>
+                                <div className="neo-subtitle !text-[9px] font-bold opacity-40 uppercase">{student.email || ''}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap neo-subtitle !text-[11px] font-bold text-[#323232] tracking-wider">
+                            {student.usn || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="neo-subtitle !text-[12px] font-extrabold text-indigo-700">
+                              {student.cgpa ? Number(student.cgpa).toFixed(2) : 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 border-2 border-[#323232] rounded text-[9px] font-bold shadow-[2px_2px_0px_#323232] ${student.status === 'Shortlisted'
+                              ? 'bg-green-100 text-green-800'
+                              : student.status === 'Notified'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                              }`}>
+                              {(student.status || 'SHORTLISTED').toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <button className="neo-subtitle !text-[11px] font-bold text-red-600 hover:text-red-800 uppercase underline underline-offset-4 decoration-2">
+                              REJECT
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-4 pt-8 border-t-2 border-[#323232] border-dashed mt-8">
+              <button
+                onClick={() => setShowShortlistModal(false)}
+                className="neo-button !bg-gray-100 !text-[#323232] !px-8 !py-3 uppercase font-bold tracking-widest"
+              >
+                CLOSE
+              </button>
+              {shortlistedStudents.length > 0 && (
+                <button
+                  onClick={handleSendNotifications}
+                  disabled={notifying}
+                  className={`neo-button !bg-indigo-600 !text-white !px-8 !py-3 uppercase font-bold tracking-widest shadow-[4px_4px_0px_#323232] flex items-center ${notifying ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                >
+                  {notifying ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 mr-3 border-2 border-white border-t-transparent rounded-full" />
+                      TRANSMITTING...
+                    </>
+                  ) : (
+                    'DEPLOY NOTIFICATIONS'
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
