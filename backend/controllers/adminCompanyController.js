@@ -67,7 +67,7 @@ exports.getCompanyById = async (req, res) => {
 
     // Get shortlists
     const [shortlists] = await promisePool.query(
-      `SELECT cs.*, u.name as student_name, u.email, sa.cgpa
+      `SELECT cs.*, u.full_name as student_name, u.email, sa.cgpa
        FROM company_shortlists cs
        JOIN users u ON cs.student_id = u.id
        LEFT JOIN student_academics sa ON u.id = sa.user_id
@@ -228,7 +228,7 @@ exports.getCompanyShortlists = async (req, res) => {
       `SELECT cs.*,
         u.full_name as student_name, u.email, u.usn,
         sa.cgpa, sa.branch,
-        pd.job_title as drive_role, pd.package_offered as ctc,
+        pd.role as drive_role, pd.ctc as ctc,
         admin.full_name as shortlisted_by_name
        FROM company_shortlists cs
        JOIN users u ON cs.student_id = u.id
@@ -240,16 +240,19 @@ exports.getCompanyShortlists = async (req, res) => {
       [id]
     );
 
+    console.log(`Found ${shortlists.length} shortlists for company ${id}`);
+
     res.json({
       success: true,
       data: shortlists
     });
   } catch (error) {
-    console.error('Error fetching shortlists:', error);
+    console.error('Error fetching shortlists for company', req.params.id, ':', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching shortlists',
-      error: error.message
+      error: error.message,
+      stack: error.stack
     });
   }
 };
@@ -265,7 +268,7 @@ exports.createShortlist = async (req, res) => {
         company_id, drive_id, student_id, shortlisted_by,
         status, remarks, created_at
       ) VALUES (?, ?, ?, ?, 'Shortlisted', ?, NOW())`,
-      [company_id, drive_id, student_id, req.user.id, remarks]
+      [company_id, drive_id || null, student_id, req.user.id, remarks]
     );
 
     // Log admin action
@@ -275,6 +278,30 @@ exports.createShortlist = async (req, res) => {
       ) VALUES (?, 'Create', 'Shortlist', ?, ?, NOW())`,
       [req.user.id, result.insertId, `Shortlisted student for company`]
     );
+
+    // Send automated notification to student inbox
+    try {
+      const [companies] = await promisePool.query(
+        'SELECT name FROM companies WHERE id = ?',
+        [company_id]
+      );
+
+      if (companies.length > 0) {
+        const companyName = companies[0].name;
+        const subject = `Shortlisted for ${companyName}`;
+        const messageText = `Congratulations! You have been shortlisted for ${companyName}. Keep checking your dashboard for further updates.`;
+
+        await promisePool.query(
+          `INSERT INTO inbox_messages 
+           (recipient_id, sender_id, subject, message, message_type, related_drive_id, sent_at)
+           VALUES (?, ?, ?, ?, 'Notification', ?, NOW())`,
+          [student_id, req.user.id, subject, messageText, drive_id || null]
+        );
+      }
+    } catch (notifyError) {
+      console.error('Error sending automated notification:', notifyError);
+      // We don't fail the whole request if notification fails
+    }
 
     res.status(201).json({
       success: true,

@@ -129,6 +129,20 @@ export const createShortlist = async (companyId, shortlistData) => {
     return res.json();
 };
 
+// Search students by name or USN
+export const searchStudents = async (searchTerm) => {
+    const res = await fetch(`http://localhost:5000/api/admin/students?search=${searchTerm}`, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!res.ok) throw new Error('Failed to search students');
+    return res.json();
+};
+
+
 export default {
     getAllCompanies,
     getCompanyById,
@@ -137,5 +151,6 @@ export default {
     deleteCompany,
     getEligibleStudents,
     getCompanyShortlists,
-    createShortlist
+    createShortlist,
+    searchStudents
 };

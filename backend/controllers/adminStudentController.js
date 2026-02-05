@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const { promisePool } = require('../config/database');
 
 // Get all students with filters
 exports.getAllStudents = async (req, res) => {
@@ -6,13 +6,12 @@ exports.getAllStudents = async (req, res) => {
     const { search, branch, year, placed, sortBy = 'name', order = 'ASC' } = req.query;
 
     let query = `
-      SELECT u.id, u.name, u.email, u.usn, u.phone, u.is_placed, u.created_at,
-        sa.cgpa, sa.branch, sa.year, sa.backlogs,
-        pd.name as placed_company, pd.ctc,
-        sp.linkedin_url, sp.github_url, sp.resume_url
+      SELECT u.id, u.full_name as name, u.email, u.usn, u.phone, u.is_placed, u.created_at,
+        sa.cgpa, sa.branch, sa.batch_year as year, sa.active_backlogs as backlogs,
+        pd.company_name as placed_company, pd.ctc,
+        sa.resume_url
       FROM users u
       LEFT JOIN student_academics sa ON u.id = sa.user_id
-      LEFT JOIN student_profiles sp ON u.id = sp.user_id
       LEFT JOIN applications a ON u.id = a.user_id AND a.status = 'Selected'
       LEFT JOIN placement_drives pd ON a.drive_id = pd.id
       WHERE u.role = 'student'
@@ -21,7 +20,7 @@ exports.getAllStudents = async (req, res) => {
     const params = [];
 
     if (search) {
-      query += ` AND (u.name LIKE ? OR u.email LIKE ? OR u.usn LIKE ?)`;
+      query += ` AND (u.full_name LIKE ? OR u.email LIKE ? OR u.usn LIKE ?)`;
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
@@ -40,9 +39,14 @@ exports.getAllStudents = async (req, res) => {
       params.push(placed === 'true' ? 1 : 0);
     }
 
-    query += ` ORDER BY u.${sortBy} ${order}`;
+    let sortColumn = 'full_name';
+    if (sortBy === 'email') sortColumn = 'email';
+    if (sortBy === 'usn') sortColumn = 'usn';
+    if (sortBy === 'created_at') sortColumn = 'created_at';
 
-    const [students] = await db.query(query, params);
+    query += ` ORDER BY u.${sortColumn} ${order}`;
+
+    const [students] = await promisePool.query(query, params);
 
     res.json({
       success: true,
@@ -62,7 +66,7 @@ exports.getAllStudents = async (req, res) => {
 // Get student statistics
 exports.getStudentStats = async (req, res) => {
   try {
-    const [stats] = await db.query(`
+    const [stats] = await promisePool.query(`
       SELECT
         COUNT(DISTINCT u.id) as total_students,
         SUM(u.is_placed) as placed_students,
@@ -78,7 +82,7 @@ exports.getStudentStats = async (req, res) => {
     `);
 
     // Branch-wise stats
-    const [branchStats] = await db.query(`
+    const [branchStats] = await promisePool.query(`
       SELECT
         sa.branch,
         COUNT(DISTINCT u.id) as total,
@@ -112,11 +116,10 @@ exports.getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [students] = await db.query(
-      `SELECT u.*, sa.*, sp.*
+    const [students] = await promisePool.query(
+      `SELECT u.*, sa.*
        FROM users u
        LEFT JOIN student_academics sa ON u.id = sa.user_id
-       LEFT JOIN student_profiles sp ON u.id = sp.user_id
        WHERE u.id = ? AND u.role = 'student'`,
       [id]
     );
@@ -129,8 +132,8 @@ exports.getStudentById = async (req, res) => {
     }
 
     // Get student applications
-    const [applications] = await db.query(
-      `SELECT a.*, pd.name as company_name, pd.role, pd.ctc
+    const [applications] = await promisePool.query(
+      `SELECT a.*, pd.company_name, pd.role, pd.ctc
        FROM applications a
        JOIN placement_drives pd ON a.drive_id = pd.id
        WHERE a.user_id = ?
@@ -164,12 +167,12 @@ exports.updateStudentProfile = async (req, res) => {
     // Update user table
     if (updates.name || updates.email || updates.phone) {
       const userUpdates = {};
-      if (updates.name) userUpdates.name = updates.name;
+      if (updates.name) userUpdates.full_name = updates.name;
       if (updates.email) userUpdates.email = updates.email;
       if (updates.phone) userUpdates.phone = updates.phone;
 
       const setClause = Object.keys(userUpdates).map(key => `${key} = ?`).join(', ');
-      await db.query(
+      await promisePool.query(
         `UPDATE users SET ${setClause}, updated_at = NOW() WHERE id = ?`,
         [...Object.values(userUpdates), id]
       );
@@ -180,18 +183,18 @@ exports.updateStudentProfile = async (req, res) => {
       const academicUpdates = {};
       if (updates.cgpa) academicUpdates.cgpa = updates.cgpa;
       if (updates.branch) academicUpdates.branch = updates.branch;
-      if (updates.year) academicUpdates.year = updates.year;
-      if (updates.backlogs !== undefined) academicUpdates.backlogs = updates.backlogs;
+      if (updates.year) academicUpdates.batch_year = updates.year;
+      if (updates.backlogs !== undefined) academicUpdates.active_backlogs = updates.backlogs;
 
       const setClause = Object.keys(academicUpdates).map(key => `${key} = ?`).join(', ');
-      await db.query(
+      await promisePool.query(
         `UPDATE student_academics SET ${setClause}, updated_at = NOW() WHERE user_id = ?`,
         [...Object.values(academicUpdates), id]
       );
     }
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Update', 'Student', ?, ?, NOW())`,
@@ -218,13 +221,13 @@ exports.updatePlacementStatus = async (req, res) => {
     const { id } = req.params;
     const { is_placed, company_id, ctc, offer_letter } = req.body;
 
-    await db.query(
+    await promisePool.query(
       `UPDATE users SET is_placed = ?, updated_at = NOW() WHERE id = ?`,
       [is_placed, id]
     );
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Update', 'Student', ?, ?, NOW())`,
@@ -250,15 +253,15 @@ exports.getDocumentVerifications = async (req, res) => {
   try {
     const { status = 'Pending' } = req.query;
 
-    const [documents] = await db.query(
+    const [documents] = await promisePool.query(
       `SELECT dv.*,
-        u.name as student_name, u.email, u.usn,
-        verifier.name as verifier_name
+        u.full_name as student_name, u.email, u.usn,
+        verifier.full_name as verifier_name
        FROM document_verifications dv
        JOIN users u ON dv.user_id = u.id
        LEFT JOIN users verifier ON dv.verified_by = verifier.id
        WHERE dv.status = ?
-       ORDER BY dv.uploaded_at DESC`,
+       ORDER BY dv.created_at DESC`,
       [status]
     );
 
@@ -282,7 +285,7 @@ exports.verifyDocument = async (req, res) => {
     const { docId } = req.params;
     const { status, notes } = req.body;
 
-    await db.query(
+    await promisePool.query(
       `UPDATE document_verifications
        SET status = ?, verified_by = ?, verification_notes = ?, verified_at = NOW()
        WHERE id = ?`,
@@ -290,7 +293,7 @@ exports.verifyDocument = async (req, res) => {
     );
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, 'Approve', 'Document', ?, ?, NOW())`,
@@ -316,10 +319,10 @@ exports.getProfileChangeRequests = async (req, res) => {
   try {
     const { status = 'Pending' } = req.query;
 
-    const [requests] = await db.query(
+    const [requests] = await promisePool.query(
       `SELECT pcr.*,
-        u.name as student_name, u.email, u.usn,
-        reviewer.name as reviewer_name
+        u.full_name as student_name, u.email, u.usn,
+        reviewer.full_name as reviewer_name
        FROM profile_change_requests pcr
        JOIN users u ON pcr.user_id = u.id
        LEFT JOIN users reviewer ON pcr.reviewed_by = reviewer.id
@@ -349,7 +352,7 @@ exports.approveProfileChange = async (req, res) => {
     const { status, notes } = req.body;
 
     // Get the change request
-    const [requests] = await db.query(
+    const [requests] = await promisePool.query(
       'SELECT * FROM profile_change_requests WHERE id = ?',
       [requestId]
     );
@@ -369,14 +372,14 @@ exports.approveProfileChange = async (req, res) => {
         ? 'student_academics'
         : 'users';
 
-      await db.query(
+      await promisePool.query(
         `UPDATE ${table} SET ${request.field_name} = ? WHERE ${table === 'users' ? 'id' : 'user_id'} = ?`,
         [request.new_value, request.user_id]
       );
     }
 
     // Update request status
-    await db.query(
+    await promisePool.query(
       `UPDATE profile_change_requests
        SET status = ?, reviewed_by = ?, review_notes = ?, reviewed_at = NOW()
        WHERE id = ?`,
@@ -384,7 +387,7 @@ exports.approveProfileChange = async (req, res) => {
     );
 
     // Log admin action
-    await db.query(
+    await promisePool.query(
       `INSERT INTO admin_actions (
         admin_id, action_type, entity_type, entity_id, description, created_at
       ) VALUES (?, ?, 'ProfileChange', ?, ?, NOW())`,

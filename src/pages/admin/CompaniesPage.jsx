@@ -12,6 +12,10 @@ function CompaniesPage() {
   const [loadingShortlist, setLoadingShortlist] = useState(false);
   const [eligibleStudents, setEligibleStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -207,6 +211,55 @@ function CompaniesPage() {
         : [...prev.allowedBatchYears, year]
     }));
   };
+
+  const handleSearch = async (term) => {
+    setSearchTerm(term);
+    if (term.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await companyService.searchStudents(term);
+      // Filter out students already in the shortlist
+      const existingIds = shortlistedStudents.map(s => s.student_id);
+      const filtered = (response.data || []).filter(s => !existingIds.includes(s.id));
+      setSearchResults(filtered);
+    } catch (error) {
+      console.error('Error searching students:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddManualShortlist = async (student) => {
+    try {
+      await companyService.createShortlist(selectedCompany.id, {
+        student_id: student.id,
+        status: 'Shortlisted',
+        remarks: 'Manually shortlisted'
+      });
+
+      // Refresh shortlist
+      const response = await companyService.getCompanyShortlists(selectedCompany.id);
+      setShortlistedStudents(response.data || []);
+
+      // Clear search
+      setSearchTerm('');
+      setSearchResults([]);
+      setShowSearch(false);
+
+      // Update company count locally if possible or just refresh all companies
+      fetchCompanies();
+
+      alert(`${student.name} added to shortlist successfully!`);
+    } catch (error) {
+      console.error('Error adding to shortlist:', error);
+      alert('Failed to add student to shortlist');
+    }
+  };
+
 
   if (loading) {
     return (
@@ -655,13 +708,77 @@ function CompaniesPage() {
                 </button>
               </div>
 
-              <div className="mb-4">
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Add Students
-                </button>
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={() => {
+                      setShowSearch(!showSearch);
+                      setSearchTerm('');
+                      setSearchResults([]);
+                    }}
+                    className={`px-4 py-2 rounded-lg transition-colors flex items-center ${showSearch
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {showSearch ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      )}
+                    </svg>
+                    {showSearch ? 'Cancel Manual Add' : 'Add Student Manually'}
+                  </button>
+                </div>
+
+                {showSearch && (
+                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-dashed border-gray-200 animate-fadeIn">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        placeholder="Search by student name or USN..."
+                        className="w-full px-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
+                        autoFocus
+                      />
+                      <svg className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+
+                    {isSearching ? (
+                      <div className="text-center py-4 text-gray-500">Searching students...</div>
+                    ) : searchTerm.length >= 2 ? (
+                      <div className="mt-3 bg-white rounded-lg shadow-inner max-h-48 overflow-y-auto divide-y divide-gray-100">
+                        {searchResults.length > 0 ? (
+                          searchResults.map(student => (
+                            <div key={student.id} className="flex items-center justify-between p-3 hover:bg-purple-50 transition-colors">
+                              <div>
+                                <p className="font-semibold text-gray-900">{student.name}</p>
+                                <p className="text-sm text-gray-500">{student.usn} • {student.branch}</p>
+                              </div>
+                              <button
+                                onClick={() => handleAddManualShortlist(student)}
+                                className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 flex items-center shadow-sm"
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add to Shortlist
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">No matching students found</div>
+                        )}
+                      </div>
+                    ) : searchTerm.length > 0 ? (
+                      <div className="mt-2 text-xs text-center text-gray-400">Type at least 2 characters to search</div>
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               {loadingShortlist ? (
@@ -718,7 +835,7 @@ function CompaniesPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className="text-sm font-semibold text-purple-600">
-                                {student.cgpa ? student.cgpa.toFixed(2) : 'N/A'}
+                                {student.cgpa ? Number(student.cgpa).toFixed(2) : 'N/A'}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
