@@ -1,15 +1,28 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import inboxService from '../../services/inboxService';
 
 function TopNavbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
-
-  // Mock data - will be replaced with actual inbox count later
-  const unreadCount = 3;
+  const [unreadCount, setUnreadCount] = useState(0);
   const isOfficerAvailable = true;
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await inboxService.getUnreadCount();
+      setUnreadCount(response.data.count || 0);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [location.pathname]); // Refresh when navigating, especially back to dashboard or inbox
 
   const handleLogout = () => {
     logout();

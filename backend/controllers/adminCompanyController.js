@@ -425,3 +425,73 @@ exports.getEligibleStudents = async (req, res) => {
     });
   }
 };
+
+// Send notifications to shortlisted students
+exports.notifyShortlistedStudents = async (req, res) => {
+  try {
+    const company_id = req.params.id;
+
+    // Get company name
+    const [companies] = await promisePool.query(
+      'SELECT name FROM companies WHERE id = ?',
+      [company_id]
+    );
+
+    if (companies.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found',
+      });
+    }
+
+    const companyName = companies[0].name;
+
+    // Get all shortlisted students who haven't been notified yet for this company
+    const [shortlisted] = await promisePool.query(
+      `SELECT student_id, drive_id FROM company_shortlists 
+       WHERE company_id = ? AND status = 'Shortlisted'`,
+      [company_id]
+    );
+
+    if (shortlisted.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No new students to notify',
+      });
+    }
+
+    // Prepare notifications
+    const subject = `Shortlisted for ${companyName}`;
+    const messageText = `Congratulations! You have been shortlisted for ${companyName}. Keep checking your dashboard for further updates.`;
+
+    for (const item of shortlisted) {
+      // Insert into inbox_messages
+      await promisePool.query(
+        `INSERT INTO inbox_messages 
+         (recipient_id, sender_id, subject, message, message_type, related_drive_id, sent_at)
+         VALUES (?, ?, ?, ?, 'Notification', ?, NOW())`,
+        [item.student_id, req.user.id, subject, messageText, item.drive_id || null]
+      );
+
+      // Update shortlist status
+      await promisePool.query(
+        `UPDATE company_shortlists 
+         SET status = 'Notified', notified_at = NOW() 
+         WHERE company_id = ? AND student_id = ?`,
+        [company_id, item.student_id]
+      );
+    }
+
+    res.json({
+      success: true,
+      message: `Notifications sent to ${shortlisted.length} students`,
+    });
+  } catch (error) {
+    console.error('Error sending notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending notifications',
+      error: error.message,
+    });
+  }
+};

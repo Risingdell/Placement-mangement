@@ -16,6 +16,7 @@ function CompaniesPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [notifying, setNotifying] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -257,6 +258,25 @@ function CompaniesPage() {
     } catch (error) {
       console.error('Error adding to shortlist:', error);
       alert('Failed to add student to shortlist');
+    }
+  };
+
+  const handleSendNotifications = async () => {
+    if (!selectedCompany || shortlistedStudents.length === 0) return;
+
+    try {
+      setNotifying(true);
+      const response = await companyService.notifyShortlistedStudents(selectedCompany.id);
+      alert(response.message || 'Notifications sent successfully!');
+
+      // Refresh shortlist to show 'Notified' status
+      const shortlistRes = await companyService.getCompanyShortlists(selectedCompany.id);
+      setShortlistedStudents(shortlistRes.data || []);
+    } catch (error) {
+      console.error('Error sending notifications:', error);
+      alert('Failed to send notifications. Please check the network connection.');
+    } finally {
+      setNotifying(false);
     }
   };
 
@@ -869,11 +889,28 @@ function CompaniesPage() {
                   Close
                 </button>
                 {shortlistedStudents.length > 0 && (
-                  <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    Send Notifications
+                  <button
+                    onClick={handleSendNotifications}
+                    disabled={notifying}
+                    className={`px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center ${notifying ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                  >
+                    {notifying ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        Send Notifications
+                      </>
+                    )}
                   </button>
                 )}
               </div>

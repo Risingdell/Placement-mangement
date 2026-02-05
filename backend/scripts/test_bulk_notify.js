@@ -4,7 +4,7 @@ require('dotenv').config({ path: './backend/.env' });
 async function testBulkNotify() {
     const JWT_SECRET = process.env.JWT_SECRET;
     const token = jwt.sign({ id: 1 }, JWT_SECRET, { expiresIn: '1h' });
-    const companyId = 1; // Assuming company 1 has shortlisted students
+    const companyId = 15; // Company "fiyfiy"
 
     console.log('Testing Bulk Notify for Company ID:', companyId);
 

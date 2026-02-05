@@ -142,6 +142,20 @@ export const searchStudents = async (searchTerm) => {
     return res.json();
 };
 
+// Send bulk notifications to shortlisted students
+export const notifyShortlistedStudents = async (companyId) => {
+    const res = await fetch(`http://localhost:5000/api/admin/companies/${companyId}/notify`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!res.ok) throw new Error('Failed to send notifications');
+    return res.json();
+};
+
 
 export default {
     getAllCompanies,
@@ -152,5 +166,6 @@ export default {
     getEligibleStudents,
     getCompanyShortlists,
     createShortlist,
-    searchStudents
+    searchStudents,
+    notifyShortlistedStudents
 };

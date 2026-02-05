@@ -347,6 +347,36 @@ const sendBulkMessage = async (req, res) => {
   }
 };
 
+// @desc    Get all messages sent by current user (Admin)
+// @route   GET /api/inbox/sent
+// @access  Private/Admin
+const getSentMessages = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [messages] = await promisePool.query(
+      `SELECT im.id, im.subject, im.message, im.message_type, im.sent_at,
+              u.full_name as recipient_name, u.usn as recipient_usn, u.email as recipient_email
+       FROM inbox_messages im
+       JOIN users u ON im.recipient_id = u.id
+       WHERE im.sender_id = ?
+       ORDER BY im.sent_at DESC`,
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      data: messages
+    });
+  } catch (error) {
+    console.error('Get sent messages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch sent messages'
+    });
+  }
+};
+
 module.exports = {
   getMyMessages,
   getMessageById,
@@ -356,5 +386,6 @@ module.exports = {
   getUnreadCount,
   getInboxPreview,
   sendMessage,
-  sendBulkMessage
+  sendBulkMessage,
+  getSentMessages
 };

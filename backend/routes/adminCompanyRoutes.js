@@ -9,7 +9,8 @@ const {
   createShortlist,
   updateShortlistStatus,
   deleteShortlist,
-  getEligibleStudents
+  getEligibleStudents,
+  notifyShortlistedStudents
 } = require('../controllers/adminCompanyController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
@@ -34,5 +35,6 @@ router.get('/:id/shortlists', getCompanyShortlists);
 router.post('/:id/shortlists', createShortlist);
 router.put('/shortlists/:shortlistId', updateShortlistStatus);
 router.delete('/shortlists/:shortlistId', deleteShortlist);
+router.post('/:id/notify', notifyShortlistedStudents);
 
 module.exports = router;

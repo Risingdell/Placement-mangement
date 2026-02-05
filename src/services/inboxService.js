@@ -31,6 +31,18 @@ export const deleteMessage = async (id) => {
   return await apiRequest(`/inbox/${id}`, { method: 'DELETE' });
 };
 
+export const getSentMessages = async () => {
+  return await apiRequest('/inbox/admin/sent', { method: 'GET' });
+};
+
+export const sendMessage = async (messageData) => {
+  return await apiRequest('/inbox/send', {
+    method: 'POST',
+    body: JSON.stringify(messageData),
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
+
 export default {
   getMyMessages,
   getMessageById,
@@ -39,4 +51,6 @@ export default {
   markAsRead,
   markAsUnread,
   deleteMessage,
+  getSentMessages,
+  sendMessage
 };
