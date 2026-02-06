@@ -29,12 +29,14 @@ const getAllDrives = async (req, res) => {
              pd.job_description, pd.eligibility_criteria, pd.min_cgpa, pd.max_backlogs,
              pd.allowed_branches, pd.drive_date, pd.registration_deadline, pd.status,
              pd.created_at,
+             da.attendance_key, da.attended_at,
              EXISTS(SELECT 1 FROM applications a WHERE a.drive_id = pd.id AND a.user_id = ?) as has_applied
       FROM placement_drives pd
+      LEFT JOIN drive_attendees da ON pd.id = da.drive_id AND da.user_id = ?
       WHERE 1=1
     `;
 
-    const queryParams = [userId];
+    const queryParams = [userId, userId];
 
     if (status) {
       query += ' AND pd.status = ?';

@@ -71,6 +71,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/drives', require('./routes/driveRoutes'));
+app.use('/api', require('./routes/attendeeRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/inbox', require('./routes/inboxRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
