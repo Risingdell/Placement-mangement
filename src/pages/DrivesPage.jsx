@@ -232,6 +232,46 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
         </div>
       </div>
 
+      {/* Attendance Key Badge - Display if student attended this drive */}
+      {drive.attendance_key && (
+        <div style={{
+          marginBottom: '15px',
+          padding: '12px 15px',
+          background: 'linear-gradient(135deg, #f3e5f5 0%, #e3f2fd 100%)',
+          border: '2px solid #9c27b0',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '11px',
+            fontWeight: '600',
+            color: '#6a1b9a',
+            marginBottom: '4px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            🎟️ Your Attendance Key
+          </div>
+          <div style={{
+            fontSize: '18px',
+            fontWeight: '700',
+            color: '#4a148c',
+            letterSpacing: '2px',
+            fontFamily: 'monospace',
+            marginBottom: '6px'
+          }}>
+            {drive.attendance_key}
+          </div>
+          <div style={{
+            fontSize: '10px',
+            color: '#7b1fa2',
+            fontStyle: 'italic'
+          }}>
+            ✓ Verified Attendee - Present this key during interviews
+          </div>
+        </div>
+      )}
+
       {/* Details Grid */}
       <div style={styles.detailsGrid}>
         <div style={styles.detailItem}>

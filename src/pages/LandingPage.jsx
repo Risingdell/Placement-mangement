@@ -18,7 +18,8 @@ function LandingPage() {
         {/* Student Card */}
         <div className="neo-card">
           <p className="neo-card-title">
-            STUDENT<span>PORTAL</span>
+            STUDENT PORTAL
+            <span></span>
           </p>
           <div className="w-full h-[2px] bg-gray-400 my-2 rounded"></div>
 
@@ -46,7 +47,8 @@ function LandingPage() {
         {/* Admin Card */}
         <div className="neo-card">
           <p className="neo-card-title">
-            ADMIN<span>PORTAL</span>
+            ADMIN PORTAL
+            <span></span>
           </p>
           <div className="w-full h-[2px] bg-gray-400 my-2 rounded"></div>
 

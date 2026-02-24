@@ -27,6 +27,53 @@ const register = async (req, res) => {
       });
     }
 
+    // Check if email is in authorized whitelist
+    const [authorizedEmails] = await connection.query(
+      `SELECT id, is_active, is_used, student_name, usn as authorized_usn, branch as authorized_branch, batch_year as authorized_batch_year
+       FROM authorized_emails
+       WHERE LOWER(email) = LOWER(?) AND is_active = 1`,
+      [email]
+    );
+
+    if (authorizedEmails.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Email not authorized for registration. Please contact the placement office.'
+      });
+    }
+
+    const authorizedEmail = authorizedEmails[0];
+
+    // Check if email was already used
+    if (authorizedEmail.is_used) {
+      return res.status(403).json({
+        success: false,
+        message: 'This email has already been used for registration.'
+      });
+    }
+
+    // Optional: Validate provided data matches authorized data
+    if (authorizedEmail.authorized_usn && authorizedEmail.authorized_usn !== usn) {
+      return res.status(400).json({
+        success: false,
+        message: `USN mismatch. Expected: ${authorizedEmail.authorized_usn}`
+      });
+    }
+
+    if (authorizedEmail.authorized_branch && authorizedEmail.authorized_branch !== branch) {
+      return res.status(400).json({
+        success: false,
+        message: `Branch mismatch. Expected: ${authorizedEmail.authorized_branch}`
+      });
+    }
+
+    if (authorizedEmail.authorized_batch_year && authorizedEmail.authorized_batch_year !== parseInt(batchYear)) {
+      return res.status(400).json({
+        success: false,
+        message: `Batch year mismatch. Expected: ${authorizedEmail.authorized_batch_year}`
+      });
+    }
+
     // Check if user already exists
     const [existingUsers] = await connection.query(
       'SELECT id FROM users WHERE usn = ? OR email = ?',
@@ -58,6 +105,14 @@ const register = async (req, res) => {
     await connection.query(
       'INSERT INTO student_academics (user_id, branch, batch_year) VALUES (?, ?, ?)',
       [userId, branch, batchYear]
+    );
+
+    // Mark authorized email as used
+    await connection.query(
+      `UPDATE authorized_emails
+       SET is_used = 1, used_by_user_id = ?, used_at = NOW()
+       WHERE id = ?`,
+      [userId, authorizedEmail.id]
     );
 
     await connection.commit();

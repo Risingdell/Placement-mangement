@@ -3,7 +3,8 @@ const {
   getAttendees,
   addAttendees,
   removeAttendee,
-  getNonAttendees
+  getNonAttendees,
+  sendMessageToAttendees
 } = require('../controllers/attendeeController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
@@ -24,5 +25,8 @@ router.delete('/drives/:driveId/attendees/:userId', restrictTo('admin', 'tpo'), 
 
 // Get non-attendees (students who haven't attended this drive yet)
 router.get('/drives/:driveId/non-attendees', restrictTo('admin', 'tpo'), getNonAttendees);
+
+// Send message to all attendees of a drive
+router.post('/drives/:driveId/attendees/send-message', restrictTo('admin', 'tpo'), sendMessageToAttendees);
 
 module.exports = router;

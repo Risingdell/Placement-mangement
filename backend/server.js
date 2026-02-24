@@ -83,6 +83,7 @@ app.use('/api/admin/applications', require('./routes/adminApplicationRoutes'));
 app.use('/api/admin/messages', require('./routes/adminMessageRoutes'));
 app.use('/api/admin/notifications', require('./routes/adminNotificationRoutes'));
 app.use('/api/admin/stats', require('./routes/adminStatsRoutes'));
+app.use('/api/admin/authorized-emails', require('./routes/authorizedEmailRoutes'));
 
 // =============================================
 // ERROR HANDLING

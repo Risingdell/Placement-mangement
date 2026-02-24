@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import authService from "../../services/authService";
+import authorizedEmailService from "../../services/authorizedEmailService";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,9 @@ function Register() {
     branch: "",
     batchYear: ""
   });
+  const [emailError, setEmailError] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -19,13 +23,42 @@ function Register() {
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear errors when user starts typing
+    if (e.target.name === 'email') {
+      setEmailError("");
+    }
+    setError("");
+  };
+
+  const handleEmailBlur = async () => {
+    if (!formData.email) return;
+
+    try {
+      setChecking(true);
+      const result = await authorizedEmailService.checkEmailAuthorization(formData.email);
+      if (!result.authorized) {
+        setEmailError("This email is not authorized for registration. Please contact the placement office.");
+      } else {
+        setEmailError("");
+      }
+    } catch (err) {
+      // Silent fail - will be caught during registration
+      console.error('Email check failed:', err);
+    } finally {
+      setChecking(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.usn || !formData.email || !formData.password || !formData.fullName || !formData.branch || !formData.batchYear) {
-      alert("All fields are required");
+      setError("All fields are required");
+      return;
+    }
+
+    if (emailError) {
+      setError("Please fix the email error before proceeding");
       return;
     }
 
@@ -34,7 +67,15 @@ function Register() {
       alert("Registration successful! Please login.");
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      const errorMessage = err.response?.data?.message || "Registration failed";
+
+      // Highlight email authorization errors
+      if (errorMessage.includes('not authorized') || errorMessage.includes('already been used')) {
+        setEmailError(errorMessage);
+        setError("Email Authorization Error - " + errorMessage);
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 
@@ -48,6 +89,12 @@ function Register() {
             </p>
             <div className="neo-subtitle mt-2">Join the placement management system</div>
           </div>
+
+          {error && (
+            <div className="neo-error mb-4">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-4">
@@ -82,8 +129,19 @@ function Register() {
                 placeholder="student@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="neo-input"
+                onBlur={handleEmailBlur}
+                className={`neo-input ${emailError ? 'border-red-500' : ''}`}
               />
+              {emailError && (
+                <div className="neo-error-text text-red-600 text-sm">
+                  {emailError}
+                </div>
+              )}
+              {checking && (
+                <div className="text-blue-600 text-sm">
+                  ✓ Checking email...
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-4">

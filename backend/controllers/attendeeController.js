@@ -277,9 +277,138 @@ const getNonAttendees = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Send message to all attendees of a drive
+ * @route   POST /api/drives/:driveId/attendees/send-message
+ * @access  Private/Admin
+ */
+const sendMessageToAttendees = async (req, res) => {
+  const connection = await promisePool.getConnection();
+
+  try {
+    const { driveId } = req.params;
+    const { subject, message, examLink, messageType } = req.body;
+
+    // Validate input
+    if (!subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject and message are required'
+      });
+    }
+
+    if (messageType !== 'general' && !examLink) {
+      return res.status(400).json({
+        success: false,
+        message: 'Link is required for exam/interview message types'
+      });
+    }
+
+    // Verify drive exists
+    const [drive] = await promisePool.query(
+      'SELECT id, company_name FROM placement_drives WHERE id = ?',
+      [driveId]
+    );
+
+    if (drive.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Placement drive not found'
+      });
+    }
+
+    await connection.beginTransaction();
+
+    // Get all attendees for this drive
+    const [attendees] = await connection.query(
+      'SELECT user_id FROM drive_attendees WHERE drive_id = ?',
+      [driveId]
+    );
+
+    if (attendees.length === 0) {
+      await connection.commit();
+      return res.json({
+        success: true,
+        message: 'No attendees to send messages to',
+        sentCount: 0
+      });
+    }
+
+    // Prepare message content - include link if provided
+    let messageContent = message;
+    if (examLink) {
+      messageContent += `\n\n🔗 ${examLink}`;
+    }
+
+    // Create messages for all attendees in bulk
+    const insertMessages = attendees.map(attendee => [
+      req.user.id,                    // from_admin_id
+      attendee.user_id,               // to_user_id
+      subject,
+      messageContent,
+      'Drive',                        // message_type
+      null,                           // parent_message_id
+      'PlacementDrive',               // related_entity_type
+      driveId,                        // related_entity_id
+      0                               // is_read (not read yet)
+    ]);
+
+    const insertQuery = `
+      INSERT INTO admin_messages
+      (from_admin_id, to_user_id, subject, message, message_type,
+       parent_message_id, related_entity_type, related_entity_id, is_read)
+      VALUES ?
+    `;
+
+    await connection.query(insertQuery, [insertMessages]);
+
+    // Log the action
+    await connection.query(
+      `INSERT INTO admin_actions
+       (admin_id, action_type, entity_type, entity_id, description, metadata)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        req.user.id,
+        'Send',
+        'Message',
+        driveId,
+        `Sent ${messageType} message to ${attendees.length} attendee(s) for ${drive[0].company_name}`,
+        JSON.stringify({
+          driveId,
+          driveName: drive[0].company_name,
+          messageType,
+          attendeeCount: attendees.length,
+          subject
+        })
+      ]
+    );
+
+    await connection.commit();
+
+    res.json({
+      success: true,
+      message: `Message sent successfully to ${attendees.length} attendee(s)`,
+      sentCount: attendees.length,
+      driveName: drive[0].company_name,
+      messageType
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error('Send message to attendees error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to attendees'
+    });
+  } finally {
+    connection.release();
+  }
+};
+
 module.exports = {
   getAttendees,
   addAttendees,
   removeAttendee,
-  getNonAttendees
+  getNonAttendees,
+  sendMessageToAttendees
 };

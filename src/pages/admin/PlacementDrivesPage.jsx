@@ -1,17 +1,21 @@
 import { useState } from 'react';
+import DriveAttendeesModal from '../../Components/admin/DriveAttendeesModal';
+import AttendeeMessageModal from '../../Components/admin/AttendeeMessageModal';
 
 function PlacementDrivesPage() {
   const [drives, setDrives] = useState([
-    { id: 1, company: 'Google', role: 'Software Engineer', ctc: '25 LPA', date: '2026-03-15', deadline: '2026-03-10', status: 'Upcoming', applicants: 45, minCGPA: 7.5 },
-    { id: 2, company: 'Microsoft', role: 'SDE', ctc: '22 LPA', date: '2026-03-20', deadline: '2026-03-12', status: 'Active', applicants: 52, minCGPA: 8.0 },
-    { id: 3, company: 'Amazon', role: 'SDE-1', ctc: '18 LPA', date: '2026-03-10', deadline: '2026-03-05', status: 'Active', applicants: 68, minCGPA: 7.0 },
-    { id: 4, company: 'TCS', role: 'Systems Engineer', ctc: '3.5 LPA', date: '2026-02-28', deadline: '2026-02-25', status: 'Completed', applicants: 120, minCGPA: 6.0 },
+    { id: 1, company_name: 'Google', company: 'Google', role: 'Software Engineer', ctc: '25 LPA', date: '2026-03-15', drive_date: '2026-03-15', deadline: '2026-03-10', status: 'Upcoming', applicants: 45, minCGPA: 7.5 },
+    { id: 2, company_name: 'Microsoft', company: 'Microsoft', role: 'SDE', ctc: '22 LPA', date: '2026-03-20', drive_date: '2026-03-20', deadline: '2026-03-12', status: 'Active', applicants: 52, minCGPA: 8.0 },
+    { id: 3, company_name: 'Amazon', company: 'Amazon', role: 'SDE-1', ctc: '18 LPA', date: '2026-03-10', drive_date: '2026-03-10', deadline: '2026-03-05', status: 'Active', applicants: 68, minCGPA: 7.0 },
+    { id: 4, company_name: 'TCS', company: 'TCS', role: 'Systems Engineer', ctc: '3.5 LPA', date: '2026-02-28', drive_date: '2026-02-28', deadline: '2026-02-25', status: 'Completed', applicants: 120, minCGPA: 6.0 },
   ]);
 
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedDrive, setSelectedDrive] = useState(null);
   const [showEligibilityModal, setShowEligibilityModal] = useState(false);
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   const [formData, setFormData] = useState({
     company: '',
@@ -249,6 +253,30 @@ function PlacementDrivesPage() {
                       Eligibility
                     </button>
                     <button
+                      onClick={() => {
+                        setSelectedDrive(drive);
+                        setShowAttendeesModal(true);
+                      }}
+                      className="text-purple-600 hover:text-purple-900 inline-flex items-center ml-3"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a4 4 0 100-8" />
+                      </svg>
+                      Attendees ({drive.attendees || 0})
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedDrive(drive);
+                        setShowMessageModal(true);
+                      }}
+                      className="text-green-600 hover:text-green-900 inline-flex items-center ml-3"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Send Message
+                    </button>
+                    <button
                       onClick={() => handleEditDrive(drive)}
                       className="text-indigo-600 hover:text-indigo-900 inline-flex items-center ml-3"
                     >
@@ -478,6 +506,26 @@ function PlacementDrivesPage() {
           </div>
         </div>
       )}
+
+      {/* Drive Attendees Modal */}
+      <DriveAttendeesModal
+        drive={selectedDrive}
+        isOpen={showAttendeesModal}
+        onClose={() => setShowAttendeesModal(false)}
+        onAttendeesUpdated={() => {
+          // Refresh drives list if needed
+        }}
+      />
+
+      {/* Attendee Message Modal */}
+      <AttendeeMessageModal
+        drive={selectedDrive}
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+        onMessageSent={() => {
+          // Refresh drives list if needed
+        }}
+      />
     </div>
   );
 }

@@ -20,6 +20,7 @@ import AdminApplicationsPage from "./pages/admin/ApplicationsPage";
 import MessagesPage from "./pages/admin/MessagesPage";
 import AdminEventsPage from "./pages/admin/EventsPage";
 import ReportsPage from "./pages/admin/ReportsPage";
+import AuthorizedEmailsPage from "./pages/admin/AuthorizedEmailsPage";
 
 
 function App() {
@@ -69,6 +70,7 @@ function App() {
           <Route path="messages" element={<MessagesPage />} />
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="authorized-emails" element={<AuthorizedEmailsPage />} />
           <Route path="settings" element={<h2>Settings - Coming Soon</h2>} />
         </Route>
       </Routes>
