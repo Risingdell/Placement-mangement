@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   getProfile,
+  updateBasicInfo,
   updateAcademics,
   uploadPhoto,
   uploadResume,
@@ -11,6 +12,9 @@ const {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  addInternship,
+  updateInternship,
+  deleteInternship,
   getEligibilityStatus
 } = require('../controllers/profileController');
 const { protect } = require('../middlewares/authMiddleware');
@@ -24,6 +28,7 @@ router.use(protect);
 // Profile routes
 router.get('/', getProfile);
 router.get('/eligibility', getEligibilityStatus);
+router.put('/basic', updateBasicInfo);
 router.put('/academics', updateAcademics);
 
 // File uploads
@@ -42,5 +47,10 @@ router.delete('/projects/:id', deleteProject);
 // Achievements
 router.post('/achievements', addAchievement);
 router.delete('/achievements/:id', deleteAchievement);
+
+// Internships
+router.post('/internships', addInternship);
+router.put('/internships/:id', updateInternship);
+router.delete('/internships/:id', deleteInternship);
 
 module.exports = router;

@@ -471,8 +471,112 @@ const getEligibilityStatus = async (req, res) => {
   }
 };
 
+// @desc    Update basic profile info (name, phone)
+// @route   PUT /api/profile/basic
+// @access  Private
+const updateBasicInfo = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { full_name, phone } = req.body;
+
+    if (!full_name || !full_name.trim()) {
+      return res.status(400).json({ success: false, message: 'Full name is required' });
+    }
+
+    await promisePool.query(
+      'UPDATE users SET full_name = ?, phone = ?, updated_at = NOW() WHERE id = ?',
+      [full_name.trim(), phone || null, userId]
+    );
+
+    res.json({ success: true, message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Update basic info error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update profile' });
+  }
+};
+
+// @desc    Add internship
+// @route   POST /api/profile/internships
+// @access  Private
+const addInternship = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { company_name, role, duration_months, start_date, end_date, description } = req.body;
+
+    if (!company_name || !role) {
+      return res.status(400).json({ success: false, message: 'Company name and role are required' });
+    }
+
+    const [result] = await promisePool.query(
+      'INSERT INTO internships (user_id, company_name, role, duration_months, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, company_name, role, duration_months || null, start_date || null, end_date || null, description || null]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Internship added successfully',
+      data: { id: result.insertId }
+    });
+  } catch (error) {
+    console.error('Add internship error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add internship' });
+  }
+};
+
+// @desc    Update internship
+// @route   PUT /api/profile/internships/:id
+// @access  Private
+const updateInternship = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const internshipId = req.params.id;
+    const { company_name, role, duration_months, start_date, end_date, description } = req.body;
+
+    if (!company_name || !role) {
+      return res.status(400).json({ success: false, message: 'Company name and role are required' });
+    }
+
+    const [result] = await promisePool.query(
+      `UPDATE internships SET company_name = ?, role = ?, duration_months = ?,
+       start_date = ?, end_date = ?, description = ?
+       WHERE id = ? AND user_id = ?`,
+      [company_name, role, duration_months || null, start_date || null, end_date || null, description || null, internshipId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Internship not found' });
+    }
+
+    res.json({ success: true, message: 'Internship updated successfully' });
+  } catch (error) {
+    console.error('Update internship error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update internship' });
+  }
+};
+
+// @desc    Delete internship
+// @route   DELETE /api/profile/internships/:id
+// @access  Private
+const deleteInternship = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const internshipId = req.params.id;
+
+    await promisePool.query(
+      'DELETE FROM internships WHERE id = ? AND user_id = ?',
+      [internshipId, userId]
+    );
+
+    res.json({ success: true, message: 'Internship deleted successfully' });
+  } catch (error) {
+    console.error('Delete internship error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete internship' });
+  }
+};
+
 module.exports = {
   getProfile,
+  updateBasicInfo,
   updateAcademics,
   uploadPhoto,
   uploadResume,
@@ -483,5 +587,8 @@ module.exports = {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  addInternship,
+  updateInternship,
+  deleteInternship,
   getEligibilityStatus
 };

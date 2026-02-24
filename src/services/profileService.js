@@ -71,9 +71,37 @@ export const deleteAchievement = async (id) => {
   return await apiRequest(`/profile/achievements/${id}`, { method: 'DELETE' });
 };
 
+// Basic Info
+export const updateBasicInfo = async (data) => {
+  return await apiRequest('/profile/basic', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+// Internships
+export const addInternship = async (data) => {
+  return await apiRequest('/profile/internships', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateInternship = async (id, data) => {
+  return await apiRequest(`/profile/internships/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteInternship = async (id) => {
+  return await apiRequest(`/profile/internships/${id}`, { method: 'DELETE' });
+};
+
 export default {
   getProfile,
   getEligibility,
+  updateBasicInfo,
   updateAcademics,
   uploadPhoto,
   uploadResume,
@@ -84,4 +112,7 @@ export default {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  addInternship,
+  updateInternship,
+  deleteInternship,
 };

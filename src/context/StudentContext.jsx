@@ -173,6 +173,54 @@ export const StudentProvider = ({ children }) => {
     }
   };
 
+  const updateBasicInfo = async (data) => {
+    try {
+      const response = await profileService.updateBasicInfo(data);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const addInternship = async (data) => {
+    try {
+      const response = await profileService.addInternship(data);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const updateInternship = async (id, data) => {
+    try {
+      const response = await profileService.updateInternship(id, data);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const deleteInternship = async (id) => {
+    try {
+      const response = await profileService.deleteInternship(id);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const value = {
     profile,
     eligibility,
@@ -180,6 +228,7 @@ export const StudentProvider = ({ children }) => {
     error,
     fetchProfile,
     fetchEligibility,
+    updateBasicInfo,
     updateAcademics,
     addSkill,
     deleteSkill,
@@ -190,6 +239,9 @@ export const StudentProvider = ({ children }) => {
     deleteAchievement,
     uploadPhoto,
     uploadResume,
+    addInternship,
+    updateInternship,
+    deleteInternship,
   };
 
   return <StudentContext.Provider value={value}>{children}</StudentContext.Provider>;
