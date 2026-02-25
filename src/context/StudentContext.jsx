@@ -149,6 +149,18 @@ export const StudentProvider = ({ children }) => {
     }
   };
 
+  const uploadAchievementCertificate = async (id, file) => {
+    try {
+      const response = await profileService.uploadAchievementCertificate(id, file);
+      if (response.success) {
+        await fetchProfile();
+        return response;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const uploadPhoto = async (file) => {
     try {
       const response = await profileService.uploadPhoto(file);
@@ -237,6 +249,7 @@ export const StudentProvider = ({ children }) => {
     deleteProject,
     addAchievement,
     deleteAchievement,
+    uploadAchievementCertificate,
     uploadPhoto,
     uploadResume,
     addInternship,

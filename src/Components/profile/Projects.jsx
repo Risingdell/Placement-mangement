@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStudent } from '../../context/StudentContext';
 import {
   validateProjectTitle,
@@ -232,7 +232,7 @@ function Projects() {
       {/* Projects List */}
       {filteredProjects.length === 0 ? (
         <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>📁</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 56, color: '#D1D5DB', display: 'block', marginBottom: 12 }}>folder_open</span>
           <p style={styles.emptyText}>No projects added yet</p>
           <button onClick={() => setShowAddModal(true)} style={styles.addButtonSecondary}>
             Add Your First Project
@@ -281,10 +281,10 @@ const ProjectCard = ({ project, onEdit, onDelete }) => (
       <h4 style={styles.projectTitle}>{project.title}</h4>
       <div style={styles.projectActions}>
         <button onClick={() => onEdit(project)} style={styles.editIconButton} title="Edit project">
-          ✎
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
         </button>
         <button onClick={() => onDelete(project.id)} style={styles.deleteIconButton} title="Delete project">
-          ×
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
         </button>
       </div>
     </div>
@@ -312,12 +312,12 @@ const ProjectCard = ({ project, onEdit, onDelete }) => (
     <div style={styles.projectLinks}>
       {project.project_url && (
         <a href={project.project_url} target="_blank" rel="noopener noreferrer" style={styles.link}>
-          🔗 Repository
+          <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 3 }}>link</span>Repository
         </a>
       )}
       {project.demo_url && (
         <a href={project.demo_url} target="_blank" rel="noopener noreferrer" style={styles.link}>
-          🚀 Live Demo
+          <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 3 }}>open_in_new</span>Live Demo
         </a>
       )}
     </div>
@@ -325,15 +325,24 @@ const ProjectCard = ({ project, onEdit, onDelete }) => (
 );
 
 // Project Modal Component
-const ProjectModal = ({ project, isEdit, onClose, onSubmit, onChange, onBlur, errors, submitting }) => (
-  <div style={styles.modalOverlay} onClick={onClose}>
-    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <div style={styles.modalHeader}>
-        <h3 style={styles.modalTitle}>{isEdit ? 'Edit Project' : 'Add New Project'}</h3>
-        <button onClick={onClose} style={styles.closeButton}>×</button>
-      </div>
+function ProjectModal({ project, isEdit, onClose, onSubmit, onChange, onBlur, errors, submitting }) {
+  const formBodyRef = useRef(null);
 
-      <form onSubmit={onSubmit} style={styles.modalBody}>
+  useEffect(() => {
+    if (formBodyRef.current) {
+      formBodyRef.current.scrollTop = 0;
+    }
+  }, [isEdit, project.id]);
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h3 style={styles.modalTitle}>{isEdit ? 'Edit Project' : 'Add New Project'}</h3>
+          <button onClick={onClose} style={styles.closeButton}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span></button>
+        </div>
+
+        <form ref={formBodyRef} onSubmit={onSubmit} style={styles.modalBody}>
         {/* Title */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Project Title *</label>
@@ -468,9 +477,10 @@ const ProjectModal = ({ project, isEdit, onClose, onSubmit, onChange, onBlur, er
           </button>
         </div>
       </form>
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
 const styles = {
   container: {
@@ -652,17 +662,22 @@ const styles = {
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.5)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     zIndex: 1000,
+    padding: '40px 16px',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
   },
   modal: {
     backgroundColor: '#fff',
     borderRadius: '8px',
     maxWidth: '600px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflow: 'auto',
+    width: '100%',
+    maxHeight: 'calc(100vh - 32px)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   },
   modalHeader: {
     display: 'flex',
@@ -670,6 +685,7 @@ const styles = {
     alignItems: 'center',
     padding: '20px 24px',
     borderBottom: '1px solid #e0e0e0',
+    flexShrink: 0,
   },
   modalTitle: {
     margin: 0,
@@ -689,6 +705,9 @@ const styles = {
   },
   modalBody: {
     padding: '24px',
+    overflowY: 'auto',
+    flex: 1,
+    minHeight: 0,
   },
   formGroup: {
     marginBottom: '20px',
@@ -769,6 +788,12 @@ const styles = {
     marginTop: '24px',
     paddingTop: '20px',
     borderTop: '1px solid #e0e0e0',
+    position: 'sticky',
+    bottom: 0,
+    backgroundColor: '#fff',
+    marginLeft: '-24px',
+    marginRight: '-24px',
+    padding: '16px 24px',
   },
   cancelButton: {
     padding: '10px 20px',

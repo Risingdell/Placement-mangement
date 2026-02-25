@@ -71,6 +71,12 @@ export const deleteAchievement = async (id) => {
   return await apiRequest(`/profile/achievements/${id}`, { method: 'DELETE' });
 };
 
+export const uploadAchievementCertificate = async (id, file) => {
+  const formData = new FormData();
+  formData.append('certificate', file);
+  return await apiUpload(`/profile/achievements/${id}/certificate`, formData);
+};
+
 // Basic Info
 export const updateBasicInfo = async (data) => {
   return await apiRequest('/profile/basic', {
@@ -102,6 +108,7 @@ export default {
   getProfile,
   getEligibility,
   updateBasicInfo,
+  uploadAchievementCertificate,
   updateAcademics,
   uploadPhoto,
   uploadResume,

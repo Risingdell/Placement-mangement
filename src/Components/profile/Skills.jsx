@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStudent } from '../../context/StudentContext';
 
 function Skills() {
@@ -11,12 +11,19 @@ function Skills() {
     proficiency: 'Intermediate',
   });
   const [submitting, setSubmitting] = useState(false);
+  const formBodyRef = useRef(null);
 
   useEffect(() => {
     if (profile?.skills) {
       setSkills(profile.skills);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (showAddModal && formBodyRef.current) {
+      formBodyRef.current.scrollTop = 0;
+    }
+  }, [showAddModal]);
 
   const categories = ['Programming', 'Framework', 'Tool', 'Soft Skill', 'Other'];
   const proficiencyLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
@@ -116,7 +123,7 @@ function Skills() {
                         style={styles.deleteButton}
                         title="Delete skill"
                       >
-                        ×
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
                       </button>
                     </div>
                     <div style={{
@@ -143,47 +150,49 @@ function Skills() {
                 onClick={() => setShowAddModal(false)}
                 style={styles.closeButton}
               >
-                ×
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
               </button>
             </div>
 
-            <form onSubmit={handleAddSkill}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Skill Name *</label>
-                <input
-                  type="text"
-                  value={newSkill.skill_name}
-                  onChange={(e) => setNewSkill({ ...newSkill, skill_name: e.target.value })}
-                  placeholder="e.g., React.js"
-                  style={styles.input}
-                  required
-                />
-              </div>
+            <form onSubmit={handleAddSkill} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+              <div ref={formBodyRef} style={styles.formBody}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Skill Name *</label>
+                  <input
+                    type="text"
+                    value={newSkill.skill_name}
+                    onChange={(e) => setNewSkill({ ...newSkill, skill_name: e.target.value })}
+                    placeholder="e.g., React.js"
+                    style={styles.input}
+                    required
+                  />
+                </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Category</label>
-                <select
-                  value={newSkill.category}
-                  onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
-                  style={styles.select}
-                >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Category</label>
+                  <select
+                    value={newSkill.category}
+                    onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
+                    style={styles.select}
+                  >
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Proficiency Level</label>
-                <select
-                  value={newSkill.proficiency}
-                  onChange={(e) => setNewSkill({ ...newSkill, proficiency: e.target.value })}
-                  style={styles.select}
-                >
-                  {proficiencyLevels.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Proficiency Level</label>
+                  <select
+                    value={newSkill.proficiency}
+                    onChange={(e) => setNewSkill({ ...newSkill, proficiency: e.target.value })}
+                    style={styles.select}
+                  >
+                    {proficiencyLevels.map(level => (
+                      <option key={level} value={level}>{level}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div style={styles.modalActions}>
@@ -327,18 +336,23 @@ const styles = {
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.5)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     zIndex: 1000,
+    padding: '40px 16px',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
   },
   modal: {
     backgroundColor: '#fff',
     borderRadius: '8px',
     padding: '0',
     maxWidth: '500px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflow: 'auto',
+    width: '100%',
+    maxHeight: 'calc(100vh - 32px)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
   },
   modalHeader: {
     display: 'flex',
@@ -346,6 +360,7 @@ const styles = {
     alignItems: 'center',
     padding: '20px',
     borderBottom: '1px solid #e0e0e0',
+    flexShrink: 0,
   },
   modalTitle: {
     fontSize: '1.25rem',
@@ -364,9 +379,13 @@ const styles = {
     height: '30px',
     lineHeight: '30px',
   },
+  formBody: {
+    padding: '20px',
+    overflowY: 'auto',
+    flex: 1,
+  },
   formGroup: {
-    padding: '0 20px',
-    marginTop: '20px',
+    marginBottom: '20px',
   },
   label: {
     display: 'block',
@@ -400,7 +419,8 @@ const styles = {
     gap: '10px',
     padding: '20px',
     borderTop: '1px solid #e0e0e0',
-    marginTop: '20px',
+    flexShrink: 0,
+    backgroundColor: '#fff',
   },
   cancelButton: {
     padding: '10px 20px',

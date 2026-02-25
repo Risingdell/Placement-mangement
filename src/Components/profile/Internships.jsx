@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStudent } from '../../context/StudentContext';
 
 const emptyForm = {
@@ -17,12 +17,23 @@ function Internships() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const formBodyRef = useRef(null);
 
   useEffect(() => {
     if (profile?.internships) {
       setInternships(profile.internships);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (showModal && formBodyRef.current) {
+      setTimeout(() => {
+        if (formBodyRef.current) {
+          formBodyRef.current.scrollTop = 0;
+        }
+      }, 0);
+    }
+  }, [showModal]);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -111,7 +122,7 @@ function Internships() {
 
       {internships.length === 0 ? (
         <div style={styles.emptyState}>
-          <p style={{ fontSize: '2rem', marginBottom: '10px' }}>💼</p>
+          <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#D1D5DB', marginBottom: 10, display: 'block' }}>work</span>
           <p style={{ color: '#999', marginBottom: '20px' }}>No internships added yet.</p>
           <button onClick={openAddModal} style={styles.addButtonSecondary}>
             Add Your First Internship
@@ -136,14 +147,14 @@ function Internships() {
                     style={styles.editButton}
                     title="Edit"
                   >
-                    ✏️
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
                     style={styles.deleteButton}
                     title="Delete"
                   >
-                    🗑️
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
                   </button>
                 </div>
               </div>
@@ -163,11 +174,11 @@ function Internships() {
               <h3 style={styles.modalTitle}>
                 {editingId ? 'Edit Internship' : 'Add Internship'}
               </h3>
-              <button onClick={closeModal} style={styles.closeButton}>×</button>
+              <button onClick={closeModal} style={styles.closeButton}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span></button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div style={styles.formBody}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+              <div ref={formBodyRef} style={styles.formBody}>
                 <div style={styles.formRow}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Company Name *</label>
@@ -348,17 +359,22 @@ const styles = {
     top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.5)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     zIndex: 1000,
+    padding: '40px 16px',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
   },
   modal: {
     backgroundColor: '#fff',
     borderRadius: '8px',
     maxWidth: '600px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflow: 'auto',
+    width: '100%',
+    maxHeight: 'calc(100vh - 32px)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   },
   modalHeader: {
     display: 'flex',
@@ -366,18 +382,28 @@ const styles = {
     alignItems: 'center',
     padding: '20px',
     borderBottom: '1px solid #e0e0e0',
+    flexShrink: 0,
   },
   modalTitle: { fontSize: '1.25rem', fontWeight: '600', color: '#333', margin: 0 },
   closeButton: {
     background: 'none',
     border: 'none',
-    fontSize: '2rem',
     color: '#999',
     cursor: 'pointer',
-    padding: 0,
-    lineHeight: 1,
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '4px',
   },
-  formBody: { padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' },
+  formBody: {
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    overflowY: 'auto',
+    flex: 1,
+  },
   formRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
   formGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
   label: { fontSize: '0.9rem', fontWeight: '500', color: '#555' },
@@ -395,8 +421,10 @@ const styles = {
     display: 'flex',
     justifyContent: 'flex-end',
     gap: '10px',
-    padding: '20px',
+    padding: '16px 20px',
     borderTop: '1px solid #e0e0e0',
+    flexShrink: 0,
+    backgroundColor: '#fff',
   },
   cancelButton: {
     padding: '10px 20px',

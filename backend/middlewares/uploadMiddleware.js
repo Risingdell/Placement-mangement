@@ -54,6 +54,20 @@ const documentFilter = (req, file, cb) => {
   }
 };
 
+// File filter for certificates (PDF or image)
+const certificateFilter = (req, file, cb) => {
+  const allowedExt = /pdf|jpeg|jpg|png/;
+  const allowedMime = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  const extname = allowedExt.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedMime.includes(file.mimetype);
+
+  if (extname && mimetype) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF, JPEG, JPG, and PNG files are allowed for certificates'), false);
+  }
+};
+
 // Configure multer for different upload types
 const uploadPhoto = multer({
   storage: createStorage('photos'),
@@ -77,6 +91,14 @@ const uploadResume = multer({
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
   },
   fileFilter: documentFilter
+});
+
+const uploadCertificate = multer({
+  storage: createStorage('certificates'),
+  limits: {
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
+  },
+  fileFilter: certificateFilter
 });
 
 // Error handling middleware for multer
@@ -105,5 +127,6 @@ module.exports = {
   uploadPhoto,
   uploadDocument,
   uploadResume,
+  uploadCertificate,
   handleUploadError
 };

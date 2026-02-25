@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStudent } from '../context/StudentContext';
 import ProfileHeader from '../Components/profile/ProfileHeader';
 import StatsCards from '../Components/profile/StatsCards';
-import AcademicGrid from '../Components/profile/AcademicGrid';
+import AcademicInfo from '../Components/profile/AcademicInfo';
 import ProfileRightSidebar from '../Components/profile/ProfileRightSidebar';
 import Skills from '../Components/profile/Skills';
 import Projects from '../Components/profile/Projects';
@@ -29,12 +29,12 @@ function ProfilePage() {
   const completion = calculateCompletion();
 
   const tabs = [
-    { id: 'academic', label: 'Academic', component: AcademicGrid },
+    { id: 'academic', label: 'Academic', component: AcademicInfo },
     { id: 'skills', label: 'Skills', component: Skills },
     { id: 'projects', label: 'Projects', component: Projects },
     { id: 'internships', label: 'Internships', component: Internships },
     { id: 'achievements', label: 'Achievements', component: Achievements },
-    { id: 'resume', label: 'Resume', component: () => <div className="p-4">Resume Component Placeholder</div> },
+    { id: 'resume', label: 'Resume', component: ProfessionalProfile },
   ];
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
@@ -59,33 +59,34 @@ function ProfilePage() {
         {/* Left Column (Content) */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* 3. Profile Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-20 z-10 overflow-x-auto">
-            <div className="flex px-2 border-b border-gray-100">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${activeTab === tab.id
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                >
-                  {tab.label}
-                  {/* Optional Counter Badges could go here */}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tab Content Area */}
-          <div className="bg-transparent min-h-[400px]">
-            {/* Pass generic props OR specific ones. AcademicGrid needs 'academic' (profile) */}
-            {ActiveComponent && (
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <ActiveComponent academic={profile} />
+          {/* 3. Profile Tabs + Content — unified card, no sticky */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            {/* Tab nav bar */}
+            <div className="overflow-x-auto border-b border-gray-100">
+              <div className="flex px-2 min-w-max">
+                {tabs.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${activeTab === tab.id
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+
+            {/* Tab content inside same card */}
+            <div className="p-6 min-h-[400px]">
+              {ActiveComponent && (
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <ActiveComponent academic={profile} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

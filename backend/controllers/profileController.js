@@ -199,9 +199,10 @@ const uploadResume = async (req, res) => {
 const addSkill = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { skillName, category, proficiency } = req.body;
+    const { skill_name, skillName, category, proficiency } = req.body;
+    const name = skill_name || skillName;
 
-    if (!skillName) {
+    if (!name) {
       return res.status(400).json({
         success: false,
         message: 'Skill name is required'
@@ -210,7 +211,7 @@ const addSkill = async (req, res) => {
 
     const [result] = await promisePool.query(
       'INSERT INTO skills (user_id, skill_name, category, proficiency) VALUES (?, ?, ?, ?)',
-      [userId, skillName, category || 'Other', proficiency || 'Intermediate']
+      [userId, name, category || 'Other', proficiency || 'Intermediate']
     );
 
     res.status(201).json({
@@ -574,6 +575,36 @@ const deleteInternship = async (req, res) => {
   }
 };
 
+// @desc    Upload certificate for an achievement
+// @route   POST /api/profile/achievements/:id/certificate
+// @access  Private
+const uploadAchievementCertificate = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const achievementId = req.params.id;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload a certificate file' });
+    }
+
+    const certificateUrl = `/uploads/certificates/${req.file.filename}`;
+
+    const [result] = await promisePool.query(
+      'UPDATE achievements SET certificate_url = ? WHERE id = ? AND user_id = ?',
+      [certificateUrl, achievementId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Achievement not found' });
+    }
+
+    res.json({ success: true, message: 'Certificate uploaded successfully', data: { certificateUrl } });
+  } catch (error) {
+    console.error('Upload certificate error:', error);
+    res.status(500).json({ success: false, message: 'Failed to upload certificate' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateBasicInfo,
@@ -587,6 +618,7 @@ module.exports = {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  uploadAchievementCertificate,
   addInternship,
   updateInternship,
   deleteInternship,

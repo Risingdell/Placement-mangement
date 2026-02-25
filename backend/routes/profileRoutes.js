@@ -12,13 +12,19 @@ const {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  uploadAchievementCertificate,
   addInternship,
   updateInternship,
   deleteInternship,
   getEligibilityStatus
 } = require('../controllers/profileController');
 const { protect } = require('../middlewares/authMiddleware');
-const { uploadPhoto: photoUpload, uploadResume: resumeUpload, handleUploadError } = require('../middlewares/uploadMiddleware');
+const {
+  uploadPhoto: photoUpload,
+  uploadResume: resumeUpload,
+  uploadCertificate: certUpload,
+  handleUploadError
+} = require('../middlewares/uploadMiddleware');
 
 const router = express.Router();
 
@@ -47,6 +53,7 @@ router.delete('/projects/:id', deleteProject);
 // Achievements
 router.post('/achievements', addAchievement);
 router.delete('/achievements/:id', deleteAchievement);
+router.post('/achievements/:id/certificate', certUpload.single('certificate'), handleUploadError, uploadAchievementCertificate);
 
 // Internships
 router.post('/internships', addInternship);
