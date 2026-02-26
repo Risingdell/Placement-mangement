@@ -687,6 +687,116 @@ const uploadAchievementCertificate = async (req, res) => {
   }
 };
 
+// @desc    Get student's placement rank among all students
+// @route   GET /api/profile/ranking
+// @access  Private
+const getRankingInsights = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [students] = await promisePool.query(
+      `SELECT u.id,
+              u.full_name,
+              u.usn,
+              COALESCE(sa.cgpa, 0) AS cgpa,
+              COALESCE(skills.skill_count, 0) AS skill_count,
+              COALESCE(ints.total_months, 0) AS internship_months
+       FROM users u
+       LEFT JOIN student_academics sa ON sa.user_id = u.id
+       LEFT JOIN (
+         SELECT user_id, COUNT(*) AS skill_count
+         FROM skills
+         GROUP BY user_id
+       ) skills ON skills.user_id = u.id
+       LEFT JOIN (
+         SELECT user_id,
+                SUM(
+                  CASE
+                    WHEN duration_months IS NOT NULL AND duration_months > 0 THEN duration_months
+                    ELSE 2
+                  END
+                ) AS total_months
+         FROM internships
+         GROUP BY user_id
+       ) ints ON ints.user_id = u.id
+       WHERE u.role = 'student' AND u.is_active = 1`
+    );
+
+    if (students.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No student records found'
+      });
+    }
+
+    const scoredStudents = students.map((student) => {
+      const cgpa = Number(student.cgpa) || 0;
+      const skills = Number(student.skill_count) || 0;
+      const internshipMonths = Number(student.internship_months) || 0;
+
+      // Weighted scoring: CGPA (60), Internship (30), Skills (10)
+      const cgpaPoints = Math.min(10, cgpa) * 6;
+      const internshipPoints = Math.min(12, internshipMonths) * 2.5;
+      const skillPoints = Math.min(10, skills) * 1;
+      const totalScore = Number((cgpaPoints + internshipPoints + skillPoints).toFixed(2));
+
+      return {
+        ...student,
+        cgpa,
+        skills,
+        internshipMonths,
+        points: {
+          cgpa: Number(cgpaPoints.toFixed(2)),
+          internships: Number(internshipPoints.toFixed(2)),
+          skills: Number(skillPoints.toFixed(2)),
+          total: totalScore
+        }
+      };
+    });
+
+    scoredStudents.sort((a, b) => {
+      if (b.points.total !== a.points.total) return b.points.total - a.points.total;
+      if (b.cgpa !== a.cgpa) return b.cgpa - a.cgpa;
+      if (b.internshipMonths !== a.internshipMonths) return b.internshipMonths - a.internshipMonths;
+      if (b.skills !== a.skills) return b.skills - a.skills;
+      return a.id - b.id;
+    });
+
+    const rankIndex = scoredStudents.findIndex((student) => student.id === userId);
+
+    if (rankIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Current student not found for ranking'
+      });
+    }
+
+    const me = scoredStudents[rankIndex];
+    const totalStudents = scoredStudents.length;
+
+    res.json({
+      success: true,
+      data: {
+        rank: rankIndex + 1,
+        totalStudents,
+        percentile: Number((((totalStudents - rankIndex - 1) / totalStudents) * 100).toFixed(2)),
+        score: me.points,
+        metrics: {
+          cgpa: me.cgpa,
+          skills: me.skills,
+          internshipMonths: me.internshipMonths
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get ranking insights error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ranking insights'
+    });
+  }
+};
+
 // @desc    Add portfolio link
 // @route   POST /api/profile/portfolios
 // @access  Private
@@ -840,5 +950,6 @@ module.exports = {
   addInternship,
   updateInternship,
   deleteInternship,
-  getEligibilityStatus
+  getEligibilityStatus,
+  getRankingInsights
 };

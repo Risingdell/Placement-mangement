@@ -7,6 +7,8 @@ function CompactKPIBar() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (profile && eligibility) return;
+
     const loadData = async () => {
       try {
         await Promise.all([fetchProfile(), fetchEligibility()]);
@@ -16,7 +18,7 @@ function CompactKPIBar() {
     };
 
     loadData();
-  }, []);
+  }, [profile, eligibility, fetchProfile, fetchEligibility]);
 
   if (!profile || !eligibility) return null;
 

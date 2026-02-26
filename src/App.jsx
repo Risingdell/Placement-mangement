@@ -7,6 +7,7 @@ import AdminLogin from "./Components/auth/AdminLogin";
 import ProtectedRoute from "./Components/common/ProtectedRoute";
 import DashboardLayout from "./Components/dashboard/DashboardLayout";
 import AdminDashboardLayout from "./Components/admin/AdminDashboardLayout";
+import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import DrivesPage from "./pages/DrivesPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
@@ -45,7 +46,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<h2>Dashboard Home</h2>} />
+          <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="drives" element={<DrivesPage />} />
           <Route path="applications" element={<ApplicationsPage />} />

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import profileService from '../services/profileService';
 
 const StudentContext = createContext();
@@ -16,33 +16,89 @@ export const StudentProvider = ({ children }) => {
   const [eligibility, setEligibility] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const profileRequestRef = useRef(null);
+  const eligibilityRequestRef = useRef(null);
+  const profileCacheRef = useRef(null);
+  const eligibilityCacheRef = useRef(null);
+  const profileFetchedAtRef = useRef(0);
+  const eligibilityFetchedAtRef = useRef(0);
 
-  const fetchProfile = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await profileService.getProfile();
-      if (response.success) {
-        setProfile(response.data);
+  useEffect(() => {
+    profileCacheRef.current = profile;
+  }, [profile]);
+
+  useEffect(() => {
+    eligibilityCacheRef.current = eligibility;
+  }, [eligibility]);
+
+  const fetchProfile = useCallback(async ({ force = false } = {}) => {
+    const now = Date.now();
+    const isFresh = now - profileFetchedAtRef.current < 10000;
+    if (!force && profileCacheRef.current) {
+      return { success: true, data: profileCacheRef.current };
+    }
+
+    if (profileRequestRef.current) {
+      return profileRequestRef.current;
+    }
+
+    profileRequestRef.current = (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await profileService.getProfile();
+        if (response.success) {
+          setProfile(response.data);
+          profileFetchedAtRef.current = Date.now();
+        }
+        return response;
+      } catch (err) {
+        setError(err.message);
+        console.error('Failed to fetch profile:', err);
+        throw err;
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(err.message);
-      console.error('Failed to fetch profile:', err);
+    })();
+
+    try {
+      return await profileRequestRef.current;
     } finally {
-      setLoading(false);
+      profileRequestRef.current = null;
     }
-  };
+  }, []);
 
-  const fetchEligibility = async () => {
-    try {
-      const response = await profileService.getEligibility();
-      if (response.success) {
-        setEligibility(response.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch eligibility:', err);
+  const fetchEligibility = useCallback(async ({ force = false } = {}) => {
+    const now = Date.now();
+    const isFresh = now - eligibilityFetchedAtRef.current < 10000;
+    if (!force && eligibilityCacheRef.current) {
+      return { success: true, data: eligibilityCacheRef.current };
     }
-  };
+
+    if (eligibilityRequestRef.current) {
+      return eligibilityRequestRef.current;
+    }
+
+    eligibilityRequestRef.current = (async () => {
+      try {
+        const response = await profileService.getEligibility();
+        if (response.success) {
+          setEligibility(response.data);
+          eligibilityFetchedAtRef.current = Date.now();
+        }
+        return response;
+      } catch (err) {
+        console.error('Failed to fetch eligibility:', err);
+        throw err;
+      }
+    })();
+
+    try {
+      return await eligibilityRequestRef.current;
+    } finally {
+      eligibilityRequestRef.current = null;
+    }
+  }, []);
 
   const updateAcademics = async (data) => {
     setLoading(true);
@@ -50,8 +106,8 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.updateAcademics(data);
       if (response.success) {
-        await fetchProfile();
-        await fetchEligibility();
+        await fetchProfile({ force: true });
+        await fetchEligibility({ force: true });
         return true;
       }
     } catch (err) {
@@ -66,7 +122,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.addSkill(data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -78,7 +134,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.deleteSkill(id);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -90,8 +146,8 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.addProject(data);
       if (response.success) {
-        await fetchProfile();
-        await fetchEligibility();
+        await fetchProfile({ force: true });
+        await fetchEligibility({ force: true });
         return true;
       }
     } catch (err) {
@@ -103,8 +159,8 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.updateProject(id, data);
       if (response.success) {
-        await fetchProfile();
-        await fetchEligibility();
+        await fetchProfile({ force: true });
+        await fetchEligibility({ force: true });
         return true;
       }
     } catch (err) {
@@ -116,8 +172,8 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.deleteProject(id);
       if (response.success) {
-        await fetchProfile();
-        await fetchEligibility();
+        await fetchProfile({ force: true });
+        await fetchEligibility({ force: true });
         return true;
       }
     } catch (err) {
@@ -129,7 +185,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.addAchievement(data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -141,7 +197,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.deleteAchievement(id);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -153,7 +209,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.uploadAchievementCertificate(id, file);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return response;
       }
     } catch (err) {
@@ -165,7 +221,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.uploadPhoto(file);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -177,7 +233,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.uploadResume(file);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -189,7 +245,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.addPortfolio(data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -201,7 +257,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.updatePortfolio(id, data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -213,7 +269,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.deletePortfolio(id);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -225,7 +281,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.deleteResume();
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -237,7 +293,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.updateBasicInfo(data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -249,7 +305,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.addInternship(data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -261,7 +317,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.updateInternship(id, data);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -273,7 +329,7 @@ export const StudentProvider = ({ children }) => {
     try {
       const response = await profileService.deleteInternship(id);
       if (response.success) {
-        await fetchProfile();
+        await fetchProfile({ force: true });
         return true;
       }
     } catch (err) {
@@ -313,3 +369,4 @@ export const StudentProvider = ({ children }) => {
 };
 
 export default StudentContext;
+

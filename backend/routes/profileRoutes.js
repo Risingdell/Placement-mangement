@@ -20,7 +20,8 @@ const {
   addInternship,
   updateInternship,
   deleteInternship,
-  getEligibilityStatus
+  getEligibilityStatus,
+  getRankingInsights
 } = require('../controllers/profileController');
 const { protect } = require('../middlewares/authMiddleware');
 const {
@@ -38,6 +39,7 @@ router.use(protect);
 // Profile routes
 router.get('/', getProfile);
 router.get('/eligibility', getEligibilityStatus);
+router.get('/ranking', getRankingInsights);
 router.put('/basic', updateBasicInfo);
 router.put('/academics', updateAcademics);
 

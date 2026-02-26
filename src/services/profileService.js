@@ -9,6 +9,10 @@ export const getEligibility = async () => {
   return await apiRequest('/profile/eligibility', { method: 'GET' });
 };
 
+export const getRanking = async () => {
+  return await apiRequest('/profile/ranking', { method: 'GET' });
+};
+
 export const updateAcademics = async (data) => {
   return await apiRequest('/profile/academics', {
     method: 'PUT',
@@ -130,6 +134,7 @@ export const deleteInternship = async (id) => {
 export default {
   getProfile,
   getEligibility,
+  getRanking,
   updateBasicInfo,
   uploadAchievementCertificate,
   updateAcademics,
