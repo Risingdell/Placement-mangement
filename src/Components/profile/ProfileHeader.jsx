@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
 
 function ProfileHeader({ profile, completion = 0 }) {
@@ -164,8 +165,8 @@ function ProfileHeader({ profile, completion = 0 }) {
                 </div>
             </div>
 
-            {/* Edit Profile Modal */}
-            {showEditModal && (
+            {/* Edit Profile Modal — portalled to document.body to escape stacking context */}
+            {showEditModal && createPortal(
                 <div style={modalStyles.overlay} onClick={() => setShowEditModal(false)}>
                     <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
                         <div style={modalStyles.header}>
@@ -220,7 +221,8 @@ function ProfileHeader({ profile, completion = 0 }) {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

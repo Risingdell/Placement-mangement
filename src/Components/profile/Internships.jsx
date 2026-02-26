@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
 
 const emptyForm = {
@@ -166,8 +167,8 @@ function Internships() {
         </div>
       )}
 
-      {/* Add / Edit Modal */}
-      {showModal && (
+      {/* Add / Edit Modal — portalled to document.body to escape stacking context */}
+      {showModal && createPortal(
         <div style={styles.modalOverlay} onClick={closeModal}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
@@ -275,7 +276,8 @@ function Internships() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -371,7 +373,7 @@ const styles = {
     borderRadius: '8px',
     maxWidth: '600px',
     width: '100%',
-    maxHeight: 'calc(100vh - 32px)',
+    maxHeight: 'calc(100vh - 80px)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',

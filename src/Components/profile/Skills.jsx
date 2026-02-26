@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
 
 function Skills() {
@@ -21,7 +22,11 @@ function Skills() {
 
   useEffect(() => {
     if (showAddModal && formBodyRef.current) {
-      formBodyRef.current.scrollTop = 0;
+      setTimeout(() => {
+        if (formBodyRef.current) {
+          formBodyRef.current.scrollTop = 0;
+        }
+      }, 0);
     }
   }, [showAddModal]);
 
@@ -140,8 +145,8 @@ function Skills() {
         </div>
       )}
 
-      {/* Add Skill Modal */}
-      {showAddModal && (
+      {/* Add Skill Modal — portalled to document.body to escape stacking context */}
+      {showAddModal && createPortal(
         <div style={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
@@ -214,7 +219,8 @@ function Skills() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -349,7 +355,7 @@ const styles = {
     padding: '0',
     maxWidth: '500px',
     width: '100%',
-    maxHeight: 'calc(100vh - 32px)',
+    maxHeight: 'calc(100vh - 80px)',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',

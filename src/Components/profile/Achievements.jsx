@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
 
 const Icon = ({ name, size = 18, color, style: extra = {} }) => (
@@ -216,7 +217,7 @@ const styles = {
     margin: 'auto',
     display: 'flex',
     flexDirection: 'column',
-    maxHeight: 'calc(100vh - 32px)',
+    maxHeight: 'calc(100vh - 80px)',
     overflow: 'hidden',
     boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
   },
@@ -330,7 +331,11 @@ export default function Achievements() {
 
   useEffect(() => {
     if (showModal && formBodyRef.current) {
-      formBodyRef.current.scrollTop = 0;
+      setTimeout(() => {
+        if (formBodyRef.current) {
+          formBodyRef.current.scrollTop = 0;
+        }
+      }, 0);
     }
   }, [showModal]);
 
@@ -554,8 +559,8 @@ export default function Achievements() {
         </div>
       )}
 
-      {/* Add Achievement Modal */}
-      {showModal && (
+      {/* Add Achievement Modal — portalled to document.body to escape stacking context */}
+      {showModal && createPortal(
         <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && closeModal()}>
           <div style={styles.modal}>
             {/* Modal Header */}
@@ -678,7 +683,8 @@ export default function Achievements() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
 import {
   validateProjectTitle,
@@ -330,11 +331,15 @@ function ProjectModal({ project, isEdit, onClose, onSubmit, onChange, onBlur, er
 
   useEffect(() => {
     if (formBodyRef.current) {
-      formBodyRef.current.scrollTop = 0;
+      setTimeout(() => {
+        if (formBodyRef.current) {
+          formBodyRef.current.scrollTop = 0;
+        }
+      }, 0);
     }
   }, [isEdit, project.id]);
 
-  return (
+  return createPortal(
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalHeader}>
@@ -478,7 +483,8 @@ function ProjectModal({ project, isEdit, onClose, onSubmit, onChange, onBlur, er
         </div>
       </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -674,7 +680,7 @@ const styles = {
     borderRadius: '8px',
     maxWidth: '600px',
     width: '100%',
-    maxHeight: 'calc(100vh - 32px)',
+    maxHeight: 'calc(100vh - 80px)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',

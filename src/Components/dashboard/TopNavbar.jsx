@@ -31,10 +31,10 @@ function TopNavbar() {
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-      <div className="flex justify-between items-center px-6 py-4">
+      <div className="flex justify-between items-center px-6 py-2.5">
         {/* Left section */}
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-800">Student Dashboard</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Student Dashboard</h3>
         </div>
 
         {/* Right section */}
