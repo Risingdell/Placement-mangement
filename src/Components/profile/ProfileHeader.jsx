@@ -141,7 +141,7 @@ function ProfileHeader({ profile, completion = 0 }) {
               <div className="flex justify-between text-xs font-semibold text-[#9ca3af] mb-0.5">
                 <span>Profile Completion</span>
                 <span className={completion === 100 ? 'text-emerald-400' : 'text-[#ffa116]'}>
-                  {completion}%
+                  {completion}% {completion >= 100 ? '(Complete)' : '(In Progress)'}
                 </span>
               </div>
               <div className="w-full bg-[#2a2a2a] rounded-full h-2.5 overflow-hidden border border-[#3a3a3a]">

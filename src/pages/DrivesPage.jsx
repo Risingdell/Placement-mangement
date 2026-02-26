@@ -39,28 +39,24 @@ function DrivesPage() {
   };
 
   const handleApply = (drive) => {
-    // Check if profile is complete
     if (!profile || !profile.cgpa || !profile.sgpa) {
       alert('Please complete your academic profile before applying');
-      navigate('/profile');
+      navigate('/dashboard/profile');
       return;
     }
-
     setSelectedDrive(drive);
     setShowApplyModal(true);
   };
 
   const handleConfirmApply = async () => {
     if (!selectedDrive) return;
-
     setApplying(true);
     try {
       const response = await applicationService.applyForDrive(selectedDrive.id);
       if (response.success) {
-        alert('Application submitted successfully!');
+        alert('Application submitted successfully');
         setShowApplyModal(false);
         setSelectedDrive(null);
-        // Refresh drives to update hasApplied status
         await fetchDrives();
       }
     } catch (error) {
@@ -82,7 +78,6 @@ function DrivesPage() {
     const date = new Date(deadline);
     const now = new Date();
     const diffDays = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
-
     if (diffDays < 0) return 'Expired';
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Tomorrow';
@@ -90,65 +85,32 @@ function DrivesPage() {
     return date.toLocaleDateString();
   };
 
-  const filterDrives = () => {
-    let filtered = drives;
-
-    // Filter by status
-    if (filterStatus !== 'All') {
-      filtered = filtered.filter(d => d.status === filterStatus);
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(d =>
-        d.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.job_role.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    return filtered;
-  };
-
-  const filteredDrives = filterDrives();
-
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.loadingState}>Loading placement drives...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.errorState}>
-          Failed to load drives: {error}
-          <button onClick={fetchDrives} style={styles.retryButton}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const filteredDrives = drives
+    .filter((d) => (filterStatus === 'All' ? true : d.status === filterStatus))
+    .filter((d) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return d.company_name.toLowerCase().includes(q) || d.job_role.toLowerCase().includes(q);
+    });
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>Placement Drives</h2>
-          <p style={styles.subtitle}>View and apply for placement opportunities</p>
-        </div>
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl md:text-3xl font-semibold text-zinc-100">Placement Drives</h2>
+        <p className="text-zinc-400 mt-1">Find active opportunities and apply with one click.</p>
       </div>
 
-      {/* Filter Bar */}
-      <div style={styles.filterBar}>
-        <div style={styles.statusFilters}>
-          {['All', 'Active', 'Upcoming', 'Completed'].map(status => (
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {['All', 'Active', 'Upcoming', 'Completed'].map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              style={filterStatus === status ? styles.filterActive : styles.filter}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer ${
+                filterStatus === status
+                  ? 'bg-[#f7b545] text-[#1b1b1f] border-[#f7b545]'
+                  : 'bg-[#1f1f24] text-zinc-300 border-[#33333a] hover:bg-[#26262d]'
+              }`}
             >
               {status}
             </button>
@@ -157,28 +119,30 @@ function DrivesPage() {
 
         <input
           type="text"
-          placeholder="Search by company or role..."
+          placeholder="Search company or role"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={styles.searchInput}
+          className="w-full lg:w-80 rounded-lg border border-[#33333a] bg-[#1f1f24] px-4 py-2.5 text-sm text-zinc-100 outline-none"
         />
       </div>
 
-      {/* Drives List */}
-      {filteredDrives.length === 0 ? (
-        <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>🏢</span>
-          <h3>No drives found</h3>
-          <p>
-            {searchQuery
-              ? `No drives matching "${searchQuery}"`
-              : `No ${filterStatus.toLowerCase()} drives at this time`
-            }
-          </p>
+      {loading && <div className="py-20 text-center text-zinc-400">Loading placement drives...</div>}
+      {error && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
+          Failed to load drives: {error}
         </div>
-      ) : (
-        <div style={styles.drivesGrid}>
-          {filteredDrives.map(drive => (
+      )}
+
+      {!loading && !error && filteredDrives.length === 0 && (
+        <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-12 text-center">
+          <p className="text-zinc-200 text-lg font-medium">No drives found</p>
+          <p className="text-zinc-400 text-sm mt-1">Try changing filters or search query.</p>
+        </div>
+      )}
+
+      {!loading && !error && filteredDrives.length > 0 && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {filteredDrives.map((drive) => (
             <DriveCard
               key={drive.id}
               drive={drive}
@@ -190,7 +154,6 @@ function DrivesPage() {
         </div>
       )}
 
-      {/* Apply Modal */}
       {showApplyModal && selectedDrive && (
         <ApplyModal
           drive={selectedDrive}
@@ -207,191 +170,126 @@ function DrivesPage() {
   );
 }
 
-// Drive Card Component
 const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
   const [showEligibility, setShowEligibility] = useState(false);
 
   return (
-    <div style={styles.driveCard}>
-      {/* Header */}
-      <div style={styles.cardHeader}>
-        <div style={styles.cardHeaderContent}>
-          <h3 style={styles.companyName}>{drive.company_name}</h3>
-          <p style={styles.jobRole}>{drive.job_role}</p>
+    <article className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-xl font-semibold text-zinc-100">{drive.company_name}</h3>
+          <p className="text-sm text-zinc-400">{drive.job_role}</p>
         </div>
-
-        {/* Eligibility Badge */}
-        <div
-          style={{
-            ...styles.eligibilityBadge,
-            backgroundColor: drive.isEligible ? '#e8f5e9' : '#ffebee',
-            color: drive.isEligible ? '#2e7d32' : '#c62828',
-          }}
-        >
-          {drive.isEligible ? '✓ Eligible' : '✗ Not Eligible'}
-        </div>
+        <span className={`inline-flex items-center gap-2 text-xs font-medium ${drive.isEligible ? 'text-emerald-300' : 'text-red-300'}`}>
+          <span className={`h-2 w-2 rounded-full ${drive.isEligible ? 'bg-emerald-400' : 'bg-red-400'}`} />
+          {drive.isEligible ? 'Eligible' : 'Not Eligible'}
+        </span>
       </div>
 
-      {/* Attendance Key Badge - Display if student attended this drive */}
       {drive.attendance_key && (
-        <div style={{
-          marginBottom: '15px',
-          padding: '12px 15px',
-          background: 'linear-gradient(135deg, #f3e5f5 0%, #e3f2fd 100%)',
-          border: '2px solid #9c27b0',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            fontSize: '11px',
-            fontWeight: '600',
-            color: '#6a1b9a',
-            marginBottom: '4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-          }}>
-            🎟️ Your Attendance Key
-          </div>
-          <div style={{
-            fontSize: '18px',
-            fontWeight: '700',
-            color: '#4a148c',
-            letterSpacing: '2px',
-            fontFamily: 'monospace',
-            marginBottom: '6px'
-          }}>
-            {drive.attendance_key}
-          </div>
-          <div style={{
-            fontSize: '10px',
-            color: '#7b1fa2',
-            fontStyle: 'italic'
-          }}>
-            ✓ Verified Attendee - Present this key during interviews
-          </div>
+        <div className="mb-4 rounded-xl border border-[#6d4cf3]/30 bg-[#6d4cf3]/10 px-4 py-3">
+          <p className="text-[11px] uppercase tracking-wider text-violet-300">Attendance Key</p>
+          <p className="mt-1 text-lg font-semibold text-violet-200">{drive.attendance_key}</p>
         </div>
       )}
 
-      {/* Details Grid */}
-      <div style={styles.detailsGrid}>
-        <div style={styles.detailItem}>
-          <span style={styles.detailLabel}>Package</span>
-          <span style={styles.detailValue}>{drive.package || 'Not disclosed'}</span>
-        </div>
-        <div style={styles.detailItem}>
-          <span style={styles.detailLabel}>Location</span>
-          <span style={styles.detailValue}>{drive.location || 'TBD'}</span>
-        </div>
-        <div style={styles.detailItem}>
-          <span style={styles.detailLabel}>Deadline</span>
-          <span
-            style={{
-              ...styles.detailValue,
-              color: isDeadlineSoon(drive.registration_deadline) ? '#f44336' : '#333',
-              fontWeight: isDeadlineSoon(drive.registration_deadline) ? '600' : '400',
-            }}
-          >
-            {formatDeadline(drive.registration_deadline)}
-          </span>
-        </div>
-        <div style={styles.detailItem}>
-          <span style={styles.detailLabel}>Drive Date</span>
-          <span style={styles.detailValue}>
-            {new Date(drive.drive_date).toLocaleDateString()}
-          </span>
-        </div>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <Detail label="Package" value={drive.package || 'Not disclosed'} />
+        <Detail label="Location" value={drive.location || 'TBD'} />
+        <Detail
+          label="Deadline"
+          value={formatDeadline(drive.registration_deadline)}
+          tone={isDeadlineSoon(drive.registration_deadline) ? 'text-red-300' : 'text-zinc-200'}
+        />
+        <Detail label="Drive Date" value={new Date(drive.drive_date).toLocaleDateString()} />
       </div>
 
-      {/* Eligibility Criteria Toggle */}
       <button
-        onClick={() => setShowEligibility(!showEligibility)}
-        style={styles.toggleButton}
+        onClick={() => setShowEligibility((prev) => !prev)}
+        className="w-full mb-4 rounded-lg border border-[#34343d] bg-[#23232a] px-3 py-2 text-left text-sm text-zinc-300 hover:bg-[#2a2a33] cursor-pointer"
       >
-        {showEligibility ? '▼' : '▶'} Eligibility Criteria
+        {showEligibility ? 'Hide' : 'Show'} Eligibility Criteria
       </button>
 
       {showEligibility && (
-        <div style={styles.eligibilityCriteria}>
-          <ul style={styles.criteriaList}>
-            <li>Minimum CGPA: {drive.min_cgpa || 'N/A'}</li>
-            <li>Maximum Active Backlogs: {drive.max_active_backlogs ?? 'N/A'}</li>
-            {drive.allowed_branches && (
-              <li>Allowed Branches: {drive.allowed_branches.join(', ')}</li>
-            )}
-            {drive.allowed_batch_years && (
-              <li>Batch Years: {drive.allowed_batch_years.join(', ')}</li>
-            )}
-          </ul>
-        </div>
+        <ul className="mb-4 rounded-lg border border-[#34343d] bg-[#23232a] p-3 text-sm text-zinc-300 space-y-1">
+          <li>Minimum CGPA: {drive.min_cgpa || 'N/A'}</li>
+          <li>Maximum Active Backlogs: {drive.max_active_backlogs ?? 'N/A'}</li>
+          {drive.allowed_branches && <li>Allowed Branches: {drive.allowed_branches.join(', ')}</li>}
+          {drive.allowed_batch_years && <li>Batch Years: {drive.allowed_batch_years.join(', ')}</li>}
+        </ul>
       )}
 
-      {/* Actions */}
-      <div style={styles.cardActions}>
-        <span style={styles.applicationsCount}>
-          {drive.applications_count || 0} applications
-        </span>
+      <div className="flex items-center justify-between border-t border-[#2c2c33] pt-4">
+        <span className="text-xs text-zinc-400">{drive.applications_count || 0} applications</span>
 
         {drive.hasApplied ? (
-          <button style={styles.appliedButton} disabled>
+          <button className="rounded-lg bg-[#1f3d2d] text-emerald-300 px-4 py-2 text-sm font-medium border border-emerald-500/30 cursor-default">
             Already Applied
           </button>
         ) : (
           <button
             onClick={() => onApply(drive)}
             disabled={!drive.isEligible || drive.status !== 'Active'}
-            style={
+            className={`rounded-lg px-4 py-2 text-sm font-semibold border-none ${
               drive.isEligible && drive.status === 'Active'
-                ? styles.applyButton
-                : styles.applyButtonDisabled
-            }
+                ? 'bg-[#f7b545] text-[#1a1a1f] cursor-pointer hover:bg-[#f9c46c]'
+                : 'bg-[#2a2a31] text-zinc-500 cursor-not-allowed'
+            }`}
           >
             {drive.status === 'Active' ? 'Apply Now' : drive.status}
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 };
 
-// Apply Modal Component
+const Detail = ({ label, value, tone = 'text-zinc-200' }) => (
+  <div>
+    <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
+    <p className={`mt-1 text-sm ${tone}`}>{value}</p>
+  </div>
+);
+
 const ApplyModal = ({ drive, onClose, onConfirm, applying, formatDeadline }) => (
-  <div style={styles.modalOverlay} onClick={onClose}>
-    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <div style={styles.modalHeader}>
-        <h3 style={styles.modalTitle}>Apply for {drive.company_name}</h3>
-        <button onClick={onClose} style={styles.closeButton}>×</button>
+  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+    <div className="w-full max-w-lg rounded-2xl border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[#2c2c33]">
+        <h3 className="text-lg font-semibold text-zinc-100">Apply for {drive.company_name}</h3>
+        <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 bg-transparent border-none cursor-pointer text-xl">
+          x
+        </button>
       </div>
 
-      <div style={styles.modalBody}>
-        <p><strong>Position:</strong> {drive.job_role}</p>
-        <p><strong>Package:</strong> {drive.package || 'Not disclosed'}</p>
-        <p><strong>Location:</strong> {drive.location || 'TBD'}</p>
-        <p><strong>Deadline:</strong> {formatDeadline(drive.registration_deadline)}</p>
+      <div className="p-5 text-sm text-zinc-300 space-y-2">
+        <p><span className="text-zinc-500">Position:</span> {drive.job_role}</p>
+        <p><span className="text-zinc-500">Package:</span> {drive.package || 'Not disclosed'}</p>
+        <p><span className="text-zinc-500">Location:</span> {drive.location || 'TBD'}</p>
+        <p><span className="text-zinc-500">Deadline:</span> {formatDeadline(drive.registration_deadline)}</p>
 
-        <div style={styles.warningBox}>
-          <strong>⚠️ Important:</strong>
-          <ul style={styles.warningList}>
+        <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-amber-200">
+          <p className="font-semibold mb-1">Before submitting</p>
+          <ul className="list-disc ml-4 space-y-1 text-xs">
             <li>Ensure your profile is complete and up-to-date</li>
             <li>You cannot withdraw after the deadline</li>
-            <li>Make sure you meet all eligibility criteria</li>
+            <li>Verify all eligibility criteria</li>
           </ul>
         </div>
-
-        <p style={styles.confirmText}>Are you sure you want to apply?</p>
       </div>
 
-      <div style={styles.modalActions}>
+      <div className="flex justify-end gap-3 px-5 py-4 border-t border-[#2c2c33]">
         <button
           onClick={onClose}
-          style={styles.cancelButton}
           disabled={applying}
+          className="rounded-lg border border-[#3a3a43] bg-[#24242b] px-4 py-2 text-sm text-zinc-300 cursor-pointer"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          style={styles.confirmButton}
           disabled={applying}
+          className="rounded-lg bg-[#f7b545] text-[#1a1a1f] px-4 py-2 text-sm font-semibold border-none cursor-pointer hover:bg-[#f9c46c]"
         >
           {applying ? 'Submitting...' : 'Confirm Application'}
         </button>
@@ -399,323 +297,5 @@ const ApplyModal = ({ drive, onClose, onConfirm, applying, formatDeadline }) => 
     </div>
   </div>
 );
-
-const styles = {
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '20px',
-  },
-  header: {
-    marginBottom: '30px',
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#333',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '1rem',
-    color: '#666',
-    margin: 0,
-  },
-  filterBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '16px',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-  },
-  statusFilters: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-  },
-  filter: {
-    padding: '10px 20px',
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    transition: 'all 0.3s',
-  },
-  filterActive: {
-    padding: '10px 20px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '600',
-  },
-  searchInput: {
-    flex: '1',
-    minWidth: '250px',
-    padding: '10px 16px',
-    fontSize: '1rem',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    outline: 'none',
-  },
-  drivesGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-    gap: '24px',
-  },
-  driveCard: {
-    backgroundColor: '#fff',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    padding: '24px',
-    transition: 'all 0.3s ease',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '20px',
-    gap: '12px',
-  },
-  cardHeaderContent: {
-    flex: 1,
-  },
-  companyName: {
-    margin: '0 0 6px 0',
-    fontSize: '1.3rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  jobRole: {
-    margin: 0,
-    fontSize: '1rem',
-    color: '#666',
-  },
-  eligibilityBadge: {
-    padding: '6px 14px',
-    borderRadius: '16px',
-    fontSize: '0.8rem',
-    fontWeight: '600',
-    whiteSpace: 'nowrap',
-  },
-  detailsGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-    marginBottom: '16px',
-  },
-  detailItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  detailLabel: {
-    fontSize: '0.8rem',
-    color: '#999',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  detailValue: {
-    fontSize: '1rem',
-    color: '#333',
-    fontWeight: '500',
-  },
-  toggleButton: {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: '#f5f5f5',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    color: '#666',
-    textAlign: 'left',
-    marginBottom: '12px',
-    transition: 'background-color 0.3s',
-  },
-  eligibilityCriteria: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: '6px',
-    padding: '16px',
-    marginBottom: '16px',
-  },
-  criteriaList: {
-    margin: 0,
-    paddingLeft: '20px',
-    fontSize: '0.9rem',
-    color: '#555',
-  },
-  cardActions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: '16px',
-    borderTop: '1px solid #e0e0e0',
-  },
-  applicationsCount: {
-    fontSize: '0.85rem',
-    color: '#999',
-  },
-  applyButton: {
-    padding: '10px 24px',
-    backgroundColor: '#4CAF50',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-    transition: 'background-color 0.3s',
-  },
-  applyButtonDisabled: {
-    padding: '10px 24px',
-    backgroundColor: '#e0e0e0',
-    color: '#999',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'not-allowed',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-  },
-  appliedButton: {
-    padding: '10px 24px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'default',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-  },
-  loadingState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    fontSize: '1.1rem',
-    color: '#666',
-  },
-  errorState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    fontSize: '1rem',
-    color: '#f44336',
-  },
-  retryButton: {
-    marginTop: '20px',
-    padding: '10px 24px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  emptyIcon: {
-    fontSize: '4rem',
-    display: 'block',
-    marginBottom: '20px',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    maxWidth: '500px',
-    width: '90%',
-  },
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '20px 24px',
-    borderBottom: '1px solid #e0e0e0',
-  },
-  modalTitle: {
-    margin: 0,
-    fontSize: '1.3rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  closeButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '2rem',
-    color: '#999',
-    cursor: 'pointer',
-    padding: 0,
-    width: '32px',
-    height: '32px',
-  },
-  modalBody: {
-    padding: '24px',
-  },
-  warningBox: {
-    backgroundColor: '#fff3cd',
-    border: '1px solid #ffc107',
-    borderRadius: '6px',
-    padding: '16px',
-    margin: '20px 0',
-  },
-  warningList: {
-    margin: '8px 0 0 0',
-    paddingLeft: '20px',
-    fontSize: '0.9rem',
-    color: '#856404',
-  },
-  confirmText: {
-    fontSize: '1rem',
-    fontWeight: '500',
-    margin: '16px 0 0 0',
-  },
-  modalActions: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'flex-end',
-    padding: '20px 24px',
-    borderTop: '1px solid #e0e0e0',
-  },
-  cancelButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-  },
-  confirmButton: {
-    padding: '10px 20px',
-    backgroundColor: '#4CAF50',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-  },
-};
 
 export default DrivesPage;

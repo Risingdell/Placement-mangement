@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStudent } from '../context/StudentContext';
 import ProfileHeader from '../Components/profile/ProfileHeader';
-import StatsCards from '../Components/profile/StatsCards';
 import AcademicInfo from '../Components/profile/AcademicInfo';
 import ProfileRightSidebar from '../Components/profile/ProfileRightSidebar';
 import Skills from '../Components/profile/Skills';
@@ -20,11 +19,10 @@ function ProfilePage() {
     fetchEligibility();
   }, []);
 
-  // Calculate generic profile completion (mock logic or reuse from dashboard)
   const calculateCompletion = () => {
     if (!profile) return 0;
     const fields = ['cgpa', 'sgpa', 'resume_url', 'photo_url', 'usn'];
-    const filled = fields.filter(k => profile[k]).length;
+    const filled = fields.filter((k) => profile[k]).length;
     return Math.round((filled / fields.length) * 100);
   };
   const completion = calculateCompletion();
@@ -39,41 +37,26 @@ function ProfilePage() {
     { id: 'resume', label: 'Resume', component: ProfessionalProfile },
   ];
 
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
-
-  // Prepare stats data
-  const stats = {
-    drives: 12, // Mock data or from context
-    applications: profile?.applications_count || 5,
-    backlogs: profile?.active_backlogs || 0,
-    eligible: eligibility?.eligible || false
-  };
+  const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-500 text-[#e4e4e7]">
-      {/* 1. Profile Summary Strip */}
+    <div className="max-w-7xl mx-auto py-2 animate-in fade-in duration-500 text-[#e4e4e7]">
       <ProfileHeader profile={profile} completion={completion} />
 
-      {/* 2. Quick Stats Cards */}
-      {/* <StatsCards stats={stats} />ignoring to test the space  */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column (Content) */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* 3. Profile Tabs + Content — unified card, no sticky */}
-          <div className="bg-[#1f1f1f] rounded-xl border border-[#2f2f2f]">
-            {/* Tab nav bar */}
-            <div className="overflow-x-auto border-b border-[#2f2f2f]">
-              <div className="flex px-2 min-w-max">
-                {tabs.map(tab => (
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">
+        <div className="xl:col-span-8 space-y-6">
+          <div className="bg-[#1d1d22] rounded-2xl border border-[#2f2f36] shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+            <div className="overflow-x-auto border-b border-[#2f2f36]">
+              <div className="flex px-3 min-w-max gap-1">
+                {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${activeTab === tab.id
-                        ? 'border-[#ffa116] text-[#ffa116]'
-                        : 'border-transparent text-[#9ca3af] hover:text-[#f4f4f5] hover:border-[#52525b]'
-                      }`}
+                    className={`px-4 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${
+                      activeTab === tab.id
+                        ? 'border-[#f7b545] text-[#f7b545]'
+                        : 'border-transparent text-[#9ca3af] hover:text-[#f4f4f5] hover:border-[#4b5563]'
+                    }`}
                   >
                     {tab.label}
                   </button>
@@ -81,19 +64,17 @@ function ProfilePage() {
               </div>
             </div>
 
-            {/* Tab content inside same card */}
-            <div className="p-6 min-h-[400px] bg-[#1f1f1f]">
+            <div className="p-5 md:p-6 min-h-[420px] bg-[#1d1d22]">
               {ActiveComponent && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <ActiveComponent academic={profile} />
+                  <ActiveComponent academic={profile} eligibility={eligibility} />
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* 5. Right Side Panel */}
-        <div className="lg:col-span-1">
+        <div className="xl:col-span-4">
           <ProfileRightSidebar profile={profile} readiness={{ skills_count: 5, projects_count: 2 }} />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import inboxService from '../../services/inboxService';
 
@@ -88,7 +88,7 @@ function InboxPreview() {
       <div style={styles.container}>
         <h3 style={styles.title}>Recent Messages</h3>
         <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>📬</span>
+          <span style={styles.emptyIcon}>ðŸ“¬</span>
           <p style={styles.emptyText}>Your inbox is empty</p>
           <p style={styles.emptySubtext}>No new messages</p>
         </div>
@@ -106,10 +106,10 @@ function InboxPreview() {
           )}
         </div>
         <button
-          onClick={() => navigate('/inbox')}
+          onClick={() => navigate('/dashboard/inbox')}
           style={styles.viewAllLink}
         >
-          View All →
+          View All â†’
         </button>
       </div>
 
@@ -121,7 +121,7 @@ function InboxPreview() {
               ...styles.messageItem,
               ...(message.is_read === false ? styles.messageItemUnread : {}),
             }}
-            onClick={() => navigate('/inbox')}
+            onClick={() => navigate('/dashboard/inbox')}
           >
             <div style={styles.messageHeader}>
               <div style={styles.messageTopRow}>
@@ -145,10 +145,10 @@ function InboxPreview() {
                   }}
                   title={message.type}
                 >
-                  {message.type === 'Info' && '📋'}
-                  {message.type === 'Success' && '✓'}
-                  {message.type === 'Warning' && '⚠'}
-                  {message.type === 'Error' && '✗'}
+                  {message.type === 'Info' && 'ðŸ“‹'}
+                  {message.type === 'Success' && 'âœ“'}
+                  {message.type === 'Warning' && 'âš '}
+                  {message.type === 'Error' && 'âœ—'}
                 </span>
               )}
             </div>
@@ -169,7 +169,7 @@ function InboxPreview() {
       </div>
 
       <button
-        onClick={() => navigate('/inbox')}
+        onClick={() => navigate('/dashboard/inbox')}
         style={styles.viewAllButton}
       >
         View All Messages
@@ -349,3 +349,4 @@ const styles = {
 };
 
 export default InboxPreview;
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import eventService from '../../services/eventService';
 
@@ -79,7 +79,7 @@ function EventsBar() {
       <div style={styles.container}>
         <h3 style={styles.title}>Upcoming Events</h3>
         <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>📅</span>
+          <span style={styles.emptyIcon}>ðŸ“…</span>
           <p style={styles.emptyText}>No upcoming events scheduled</p>
           <p style={styles.emptySubtext}>Stay tuned for workshops and seminars</p>
         </div>
@@ -92,10 +92,10 @@ function EventsBar() {
       <div style={styles.header}>
         <h3 style={styles.title}>Upcoming Events</h3>
         <button
-          onClick={() => navigate('/events')}
+          onClick={() => navigate('/dashboard/events')}
           style={styles.viewAllLink}
         >
-          View All →
+          View All â†’
         </button>
       </div>
 
@@ -104,7 +104,7 @@ function EventsBar() {
           <div
             key={event.id}
             style={styles.eventItem}
-            onClick={() => navigate('/events')}
+            onClick={() => navigate('/dashboard/events')}
           >
             <div style={styles.eventLeftBorder} />
             <div style={styles.eventContent}>
@@ -122,14 +122,14 @@ function EventsBar() {
 
               <div style={styles.eventDetails}>
                 <div style={styles.eventDetailRow}>
-                  <span style={styles.eventIcon}>📅</span>
+                  <span style={styles.eventIcon}>ðŸ“…</span>
                   <span style={styles.eventDetailText}>
                     {formatEventDate(event.event_date)}
                   </span>
                 </div>
 
                 <div style={styles.eventDetailRow}>
-                  <span style={styles.eventIcon}>🕒</span>
+                  <span style={styles.eventIcon}>ðŸ•’</span>
                   <span style={styles.eventDetailText}>
                     {formatEventTime(event.event_date)}
                   </span>
@@ -137,7 +137,7 @@ function EventsBar() {
 
                 {event.location && (
                   <div style={styles.eventDetailRow}>
-                    <span style={styles.eventIcon}>📍</span>
+                    <span style={styles.eventIcon}>ðŸ“</span>
                     <span style={styles.eventDetailText}>
                       {event.location}
                     </span>
@@ -150,7 +150,7 @@ function EventsBar() {
       </div>
 
       <button
-        onClick={() => navigate('/events')}
+        onClick={() => navigate('/dashboard/events')}
         style={styles.viewAllButton}
       >
         View All Events
@@ -305,3 +305,4 @@ const styles = {
 };
 
 export default EventsBar;
+

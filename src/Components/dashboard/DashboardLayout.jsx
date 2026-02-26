@@ -1,28 +1,34 @@
-import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import TopNavbar from "./TopNavbar";
-import CompactKPIBar from "./CompactKPIBar";
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import TopNavbar from './TopNavbar';
+import CompactKPIBar from './CompactKPIBar';
 
 function DashboardLayout() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#181818] text-[#f4f4f5]">
-      {/* Sidebar */}
-      <Sidebar />
+    <div className="flex h-screen overflow-hidden bg-[#141416] text-[#e5e7eb]">
+      <Sidebar
+        isCollapsed={isCollapsed}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+      />
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
-        {/* Placeholder for 3D Background */}
-        <div id="canvas-container" className="absolute inset-0 z-0 pointer-events-none"></div>
+        <TopNavbar
+          onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          isCollapsed={isCollapsed}
+        />
 
-        {/* Top Navbar */}
-        <TopNavbar />
-
-        {/* Compact KPI Bar */}
         <CompactKPIBar />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto p-5 md:p-6 relative z-10 bg-[radial-gradient(circle_at_top_right,_rgba(255,161,22,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(56,189,248,0.06),_transparent_35%)]">
+        <main className="flex-1 overflow-auto relative z-10 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]">
+          <div className="px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-8">
           <Outlet />
+          </div>
         </main>
       </div>
     </div>

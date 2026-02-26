@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudent } from '../context/StudentContext';
-import KPIBar from '../Components/dashboard/KPIBar';
 import UpcomingDrives from '../Components/dashboard/UpcomingDrives';
 import EventsBar from '../Components/dashboard/EventsBar';
 import InboxPreview from '../Components/dashboard/InboxPreview';
@@ -16,10 +15,7 @@ function DashboardPage() {
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        // Fetch profile and eligibility
         await Promise.all([fetchProfile(), fetchEligibility()]);
-
-        // Fetch application count
         const applicationsResponse = await applicationService.getMyApplications();
         if (applicationsResponse.success) {
           setTotalApplications(applicationsResponse.data.length || 0);
@@ -28,11 +24,9 @@ function DashboardPage() {
         console.error('Failed to load dashboard data:', error);
       }
     };
-
     loadDashboardData();
   }, [fetchProfile, fetchEligibility]);
 
-  // Calculate profile completion percentage
   useEffect(() => {
     if (profile) {
       const requiredFields = [
@@ -44,289 +38,83 @@ function DashboardPage() {
         'photo_url',
         'resume_url',
       ];
-
       const completedFields = requiredFields.filter(
         (field) => profile[field] !== null && profile[field] !== undefined && profile[field] !== ''
       ).length;
-
-      const completion = Math.round((completedFields / requiredFields.length) * 100);
-      setProfileCompletion(completion);
+      setProfileCompletion(Math.round((completedFields / requiredFields.length) * 100));
     }
   }, [profile]);
 
-  const getCurrentDate = () => {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date().toLocaleDateString('en-US', options);
-  };
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
-    <div style={styles.container}>
-      {/* Welcome Banner */}
-      <div style={styles.welcomeBanner}>
-        <div>
-          <h1 style={styles.welcomeTitle}>
-            Welcome back, {profile?.full_name || 'Student'}!
-          </h1>
-          <p style={styles.welcomeDate}>{getCurrentDate()}</p>
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto">
+      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-6 md:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mb-8">
+        <h1 className="text-2xl md:text-3xl font-semibold text-zinc-100">
+          Welcome back, {profile?.full_name || 'Student'}
+        </h1>
+        <p className="text-zinc-400 mt-2">{today}</p>
+      </section>
 
-      {/* KPI Bar */}
-      <KPIBar />
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Applications" value={totalApplications} />
+        <StatCard label="Placement" value={profile?.is_placed ? 'Placed' : 'In Progress'} tone={profile?.is_placed ? 'text-emerald-300' : 'text-amber-300'} />
+        <StatCard label="Eligibility" value={eligibility?.eligible ? 'Eligible' : 'Not Eligible'} tone={eligibility?.eligible ? 'text-emerald-300' : 'text-red-300'} />
+        <StatCard label="Profile" value={`${profileCompletion}%`} tone={profileCompletion >= 80 ? 'text-emerald-300' : 'text-amber-300'} />
+      </section>
 
-      {/* Quick Stats */}
-      <div style={styles.quickStats}>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>📊</div>
-          <div style={styles.statValue}>{totalApplications}</div>
-          <div style={styles.statLabel}>Total Applications</div>
-        </div>
-
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>
-            {profile?.is_placed ? '✓' : '⏳'}
-          </div>
-          <div
-            style={{
-              ...styles.statValue,
-              color: profile?.is_placed ? '#4CAF50' : '#FF9800',
-            }}
-          >
-            {profile?.is_placed ? 'Placed' : 'In Progress'}
-          </div>
-          <div style={styles.statLabel}>Placement Status</div>
-        </div>
-
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>
-            {eligibility?.eligible ? '✓' : '✗'}
-          </div>
-          <div
-            style={{
-              ...styles.statValue,
-              color: eligibility?.eligible ? '#4CAF50' : '#f44336',
-            }}
-          >
-            {eligibility?.eligible ? 'Eligible' : 'Not Eligible'}
-          </div>
-          <div style={styles.statLabel}>Eligibility Status</div>
-        </div>
-
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>📝</div>
-          <div
-            style={{
-              ...styles.statValue,
-              color: profileCompletion >= 80 ? '#4CAF50' : '#FF9800',
-            }}
-          >
-            {profileCompletion}%
-          </div>
-          <div style={styles.statLabel}>Profile Completion</div>
-        </div>
-      </div>
-
-      {/* Profile Completion Alert */}
       {profileCompletion < 100 && (
-        <div style={styles.alertBox}>
-          <div style={styles.alertIcon}>⚠️</div>
-          <div style={styles.alertContent}>
-            <strong>Complete your profile</strong> to increase your chances of getting placed.
-            Your profile is {profileCompletion}% complete.
-          </div>
+        <section className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <p>
+            Complete your profile to improve drive eligibility. Current completion: <strong>{profileCompletion}%</strong>
+          </p>
           <button
-            onClick={() => navigate('/profile')}
-            style={styles.alertButton}
+            onClick={() => navigate('/dashboard/profile')}
+            className="rounded-lg bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]"
           >
             Complete Profile
           </button>
-        </div>
+        </section>
       )}
 
-      {/* Widgets Grid */}
-      <div style={styles.widgetsGrid}>
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
         <UpcomingDrives />
         <EventsBar />
         <InboxPreview />
-      </div>
+      </section>
 
-      {/* Quick Actions */}
-      <div style={styles.quickActions}>
-        <h3 style={styles.quickActionsTitle}>Quick Actions</h3>
-        <div style={styles.actionButtons}>
-          <button
-            onClick={() => navigate('/profile')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#2196F3',
-            }}
-          >
-            <span style={styles.actionButtonIcon}>👤</span>
-            Update Profile
-          </button>
-
-          <button
-            onClick={() => navigate('/drives')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#4CAF50',
-            }}
-          >
-            <span style={styles.actionButtonIcon}>🏢</span>
-            Browse Drives
-          </button>
-
-          <button
-            onClick={() => navigate('/applications')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#FF9800',
-            }}
-          >
-            <span style={styles.actionButtonIcon}>📋</span>
-            View Applications
-          </button>
-
-          <button
-            onClick={() => navigate('/events')}
-            style={{
-              ...styles.actionButton,
-              backgroundColor: '#9C27B0',
-            }}
-          >
-            <span style={styles.actionButtonIcon}>📅</span>
-            Upcoming Events
-          </button>
+      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+        <h3 className="text-lg font-semibold text-zinc-100 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <ActionButton label="Update Profile" onClick={() => navigate('/dashboard/profile')} />
+          <ActionButton label="Browse Drives" onClick={() => navigate('/dashboard/drives')} />
+          <ActionButton label="View Applications" onClick={() => navigate('/dashboard/applications')} />
+          <ActionButton label="Upcoming Events" onClick={() => navigate('/dashboard/events')} />
         </div>
-      </div>
+      </section>
     </div>
   );
 }
 
-const styles = {
-  container: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '20px',
-  },
-  welcomeBanner: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: '#fff',
-    padding: '32px',
-    borderRadius: '12px',
-    marginBottom: '24px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-  },
-  welcomeTitle: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    margin: '0 0 8px 0',
-  },
-  welcomeDate: {
-    fontSize: '1rem',
-    opacity: 0.9,
-    margin: 0,
-  },
-  quickStats: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    marginBottom: '24px',
-  },
-  statCard: {
-    backgroundColor: '#fff',
-    padding: '24px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    textAlign: 'center',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  },
-  statIcon: {
-    fontSize: '2rem',
-    marginBottom: '12px',
-  },
-  statValue: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    color: '#333',
-    margin: '8px 0',
-  },
-  statLabel: {
-    fontSize: '0.9rem',
-    color: '#666',
-    fontWeight: '500',
-  },
-  alertBox: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    backgroundColor: '#fff3cd',
-    border: '1px solid #ffc107',
-    borderRadius: '8px',
-    padding: '16px 20px',
-    marginBottom: '24px',
-  },
-  alertIcon: {
-    fontSize: '1.5rem',
-    flexShrink: 0,
-  },
-  alertContent: {
-    flex: 1,
-    color: '#856404',
-    fontSize: '0.95rem',
-  },
-  alertButton: {
-    backgroundColor: '#ffc107',
-    color: '#000',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '6px',
-    fontSize: '0.9rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-    whiteSpace: 'nowrap',
-  },
-  widgetsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-    gap: '24px',
-    marginBottom: '32px',
-  },
-  quickActions: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '24px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-  },
-  quickActionsTitle: {
-    margin: '0 0 20px 0',
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  actionButtons: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-  },
-  actionButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-    padding: '16px 24px',
-    border: 'none',
-    borderRadius: '8px',
-    color: '#fff',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  },
-  actionButtonIcon: {
-    fontSize: '1.5rem',
-  },
-};
+const StatCard = ({ label, value, tone = 'text-zinc-100' }) => (
+  <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
+    <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
+    <p className={`text-lg md:text-xl font-semibold mt-1 ${tone}`}>{value}</p>
+  </div>
+);
+
+const ActionButton = ({ label, onClick }) => (
+  <button
+    onClick={onClick}
+    className="rounded-lg border border-[#363640] bg-[#24242b] px-4 py-3 text-sm text-zinc-200 cursor-pointer hover:bg-[#2e2e37]"
+  >
+    {label}
+  </button>
+);
 
 export default DashboardPage;

@@ -1,45 +1,64 @@
 import { NavLink } from 'react-router-dom';
 
-function Sidebar() {
+function Sidebar({ isCollapsed, isMobileOpen, onCloseMobile }) {
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: 'DB', exact: true },
-    { path: '/dashboard/profile', label: 'My Profile', icon: 'PR' },
-    { path: '/dashboard/drives', label: 'Placement Drives', icon: 'DR' },
-    { path: '/dashboard/applications', label: 'My Applications', icon: 'AP' },
+    { path: '/dashboard', label: 'Dashboard', icon: 'DA', exact: true },
+    { path: '/dashboard/profile', label: 'Profile', icon: 'PR' },
+    { path: '/dashboard/drives', label: 'Drives', icon: 'DR' },
+    { path: '/dashboard/applications', label: 'Applications', icon: 'AP' },
     { path: '/dashboard/inbox', label: 'Inbox', icon: 'IN' },
     { path: '/dashboard/events', label: 'Events', icon: 'EV' },
   ];
 
   return (
-    <aside className="hidden lg:flex w-60 bg-[#1b1b1b] text-white flex-col h-screen sticky top-0 border-r border-[#313131] z-20">
-      <div className="h-14 px-5 flex items-center border-b border-[#313131]">
-        <h2 className="text-lg font-semibold text-[#ffa116] m-0 tracking-tight">Student Portal</h2>
-      </div>
+    <>
+      {isMobileOpen && (
+        <button
+          onClick={onCloseMobile}
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden border-none"
+          aria-label="Close sidebar backdrop"
+        />
+      )}
 
-      <nav className="flex-1 p-3 flex flex-col gap-1.5 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.exact}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? 'bg-[#2b2b2b] text-white border border-[#3a3a3a]'
-                  : 'text-[#a1a1aa] hover:bg-[#262626] hover:text-white'
-              }`
-            }
-          >
-            <span className="text-xs w-4 text-center text-[#9ca3af]">{item.icon}</span>
-            <span className="flex-1">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      <aside
+        className={`fixed lg:static top-0 left-0 z-40 h-screen bg-[#17171a] border-r border-[#2e2e33] transition-all duration-200
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isCollapsed ? 'lg:w-[84px]' : 'w-64'}`}
+      >
+        <div className="h-14 px-4 flex items-center border-b border-[#2e2e33]">
+          <h2 className={`text-sm font-semibold text-[#f7b545] tracking-wide ${isCollapsed ? 'hidden' : 'block'}`}>
+            PLACEMENT
+          </h2>
+          <div className={`text-xs font-semibold text-[#f7b545] ${isCollapsed ? 'block mx-auto' : 'hidden'}`}>
+            PM
+          </div>
+        </div>
 
-      <div className="p-4 border-t border-[#313131]">
-        <p className="text-[11px] text-[#71717a] m-0">Placement Management v1.0.0</p>
-      </div>
-    </aside>
+        <nav className="p-3 flex flex-col gap-2 overflow-y-auto h-[calc(100%-56px)]">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.exact}
+              onClick={onCloseMobile}
+              className={({ isActive }) =>
+                `group relative h-12 flex items-center rounded-md transition-all ${
+                  isActive
+                    ? 'bg-[rgba(247,181,69,0.1)] text-white border-l-[3px] border-[#f7b545]'
+                    : 'text-[#a1a1aa] hover:bg-[#232328] hover:text-white border-l-[3px] border-transparent'
+                } ${isCollapsed ? 'justify-center px-2' : 'px-3'}`
+              }
+              title={isCollapsed ? item.label : ''}
+            >
+              <span className="text-[10px] font-bold tracking-wide text-[#d4d4d8] w-7 h-7 rounded-md bg-[#26262d] border border-[#34343a] grid place-items-center">
+                {item.icon}
+              </span>
+              {!isCollapsed && <span className="ml-3 text-sm font-medium">{item.label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }
 

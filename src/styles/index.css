@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 /* Main styles entry point - Import order matters! */
 
 /* 1. Tailwind base styles */
@@ -16,3 +18,9 @@
 @import './components/neo-brutalism.css';
 
 /* 5. Global overrides and custom styles can be added below */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}

@@ -47,7 +47,6 @@ function ApplicationsPage() {
 
   const handleConfirmWithdraw = async () => {
     if (!selectedApplication) return;
-
     setWithdrawing(true);
     try {
       const response = await applicationService.withdrawApplication(selectedApplication.id);
@@ -55,7 +54,6 @@ function ApplicationsPage() {
         alert('Application withdrawn successfully');
         setShowWithdrawModal(false);
         setSelectedApplication(null);
-        // Refresh applications list
         await fetchApplications();
       }
     } catch (error) {
@@ -66,146 +64,103 @@ function ApplicationsPage() {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      Applied: '#2196F3',
-      Shortlisted: '#FF9800',
-      Selected: '#4CAF50',
-      Rejected: '#f44336',
-      Withdrawn: '#9E9E9E',
+  const getStatusTone = (status) => {
+    const tones = {
+      Applied: 'text-blue-300 bg-blue-500/10 border-blue-400/30',
+      Shortlisted: 'text-amber-300 bg-amber-500/10 border-amber-400/30',
+      Selected: 'text-emerald-300 bg-emerald-500/10 border-emerald-400/30',
+      Rejected: 'text-red-300 bg-red-500/10 border-red-400/30',
+      Withdrawn: 'text-zinc-300 bg-zinc-500/10 border-zinc-400/30',
     };
-    return colors[status] || '#9E9E9E';
+    return tones[status] || tones.Withdrawn;
   };
 
-  const filteredApplications = filterStatus === 'All'
-    ? applications
-    : applications.filter(a => a.current_status === filterStatus);
+  const filteredApplications =
+    filterStatus === 'All'
+      ? applications
+      : applications.filter((a) => a.current_status === filterStatus);
 
-  // Calculate stats
   const stats = {
     total: applications.length,
-    applied: applications.filter(a => a.current_status === 'Applied').length,
-    shortlisted: applications.filter(a => a.current_status === 'Shortlisted').length,
-    selected: applications.filter(a => a.current_status === 'Selected').length,
-    rejected: applications.filter(a => a.current_status === 'Rejected').length,
+    applied: applications.filter((a) => a.current_status === 'Applied').length,
+    shortlisted: applications.filter((a) => a.current_status === 'Shortlisted').length,
+    selected: applications.filter((a) => a.current_status === 'Selected').length,
+    rejected: applications.filter((a) => a.current_status === 'Rejected').length,
   };
 
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.loadingState}>Loading your applications...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.errorState}>
-          Failed to load applications: {error}
-          <button onClick={fetchApplications} style={styles.retryButton}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (applications.length === 0) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <h2 style={styles.title}>My Applications</h2>
-          <p style={styles.subtitle}>Track your placement drive applications</p>
-        </div>
-
-        <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>📝</span>
-          <h3>No applications yet</h3>
-          <p>You haven't applied to any drives yet</p>
-          <button onClick={() => navigate('/drives')} style={styles.browseButton}>
-            Browse Placement Drives
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>My Applications</h2>
-          <p style={styles.subtitle}>Track your placement drive applications</p>
-        </div>
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl md:text-3xl font-semibold text-zinc-100">My Applications</h2>
+        <p className="text-zinc-400 mt-1">Track status and timeline of each drive you applied to.</p>
       </div>
 
-      {/* Stats Summary */}
-      <div style={styles.statsContainer}>
-        <div style={styles.statCard}>
-          <div style={styles.statValue}>{stats.total}</div>
-          <div style={styles.statLabel}>Total</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statValue}>{stats.applied}</div>
-          <div style={styles.statLabel}>Applied</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statValue, color: '#FF9800'}}>{stats.shortlisted}</div>
-          <div style={styles.statLabel}>Shortlisted</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statValue, color: '#4CAF50'}}>{stats.selected}</div>
-          <div style={styles.statLabel}>Selected</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statValue, color: '#f44336'}}>{stats.rejected}</div>
-          <div style={styles.statLabel}>Rejected</div>
-        </div>
-      </div>
-
-      {/* Status Filters */}
-      <div style={styles.filterContainer}>
-        {['All', 'Applied', 'Shortlisted', 'Selected', 'Rejected'].map(status => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            style={{
-              ...styles.filterButton,
-              ...(filterStatus === status ? styles.filterButtonActive : {}),
-            }}
-          >
-            {status}
-            <span style={styles.badge}>
-              {status === 'All'
-                ? applications.length
-                : applications.filter(a => a.current_status === status).length
-              }
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Applications List */}
-      {filteredApplications.length === 0 ? (
-        <div style={styles.noResults}>
-          <p>No {filterStatus.toLowerCase()} applications</p>
-        </div>
-      ) : (
-        <div style={styles.applicationsGrid}>
-          {filteredApplications.map(application => (
-            <ApplicationCard
-              key={application.id}
-              application={application}
-              onViewTimeline={handleViewTimeline}
-              onWithdraw={handleWithdraw}
-              getStatusColor={getStatusColor}
-            />
-          ))}
+      {loading && <div className="py-20 text-center text-zinc-400">Loading your applications...</div>}
+      {error && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
+          Failed to load applications: {error}
         </div>
       )}
 
-      {/* Timeline Modal */}
+      {!loading && !error && applications.length === 0 && (
+        <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-10 text-center">
+          <p className="text-zinc-200 text-lg font-semibold">No applications yet</p>
+          <p className="text-zinc-400 text-sm mt-1">Start by exploring active placement drives.</p>
+          <button
+            onClick={() => navigate('/dashboard/drives')}
+            className="mt-5 w-full sm:w-auto rounded-lg bg-[#f7b545] text-[#1a1a1f] px-5 py-2.5 text-sm font-semibold border-none cursor-pointer hover:bg-[#f9c46c]"
+          >
+            Browse Placement Drives
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && applications.length > 0 && (
+        <>
+          <div className="mb-6 grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <StatCard label="Total" value={stats.total} />
+            <StatCard label="Applied" value={stats.applied} />
+            <StatCard label="Shortlisted" value={stats.shortlisted} tone="text-amber-300" />
+            <StatCard label="Selected" value={stats.selected} tone="text-emerald-300" />
+            <StatCard label="Rejected" value={stats.rejected} tone="text-red-300" />
+          </div>
+
+          <div className="mb-6 flex flex-wrap gap-2">
+            {['All', 'Applied', 'Shortlisted', 'Selected', 'Rejected'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer ${
+                  filterStatus === status
+                    ? 'bg-[#f7b545] text-[#1b1b1f] border-[#f7b545]'
+                    : 'bg-[#1f1f24] text-zinc-300 border-[#33333a] hover:bg-[#26262d]'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+
+          {filteredApplications.length === 0 ? (
+            <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-8 text-center text-zinc-400 text-sm">
+              No {filterStatus.toLowerCase()} applications
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {filteredApplications.map((application) => (
+                <ApplicationCard
+                  key={application.id}
+                  application={application}
+                  onViewTimeline={handleViewTimeline}
+                  onWithdraw={handleWithdraw}
+                  getStatusTone={getStatusTone}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {showTimelineModal && selectedApplication && (
         <TimelineModal
           application={selectedApplication}
@@ -213,11 +168,10 @@ function ApplicationsPage() {
             setShowTimelineModal(false);
             setSelectedApplication(null);
           }}
-          getStatusColor={getStatusColor}
+          getStatusTone={getStatusTone}
         />
       )}
 
-      {/* Withdraw Modal */}
       {showWithdrawModal && selectedApplication && (
         <WithdrawModal
           application={selectedApplication}
@@ -233,137 +187,105 @@ function ApplicationsPage() {
   );
 }
 
-// Application Card Component
-const ApplicationCard = ({ application, onViewTimeline, onWithdraw, getStatusColor }) => (
-  <div style={styles.applicationCard}>
-    <div style={styles.cardHeader}>
+const StatCard = ({ label, value, tone = 'text-zinc-100' }) => (
+  <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
+    <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
+    <p className={`text-2xl font-semibold mt-1 ${tone}`}>{value}</p>
+  </div>
+);
+
+const ApplicationCard = ({ application, onViewTimeline, onWithdraw, getStatusTone }) => (
+  <article className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+    <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <h3 style={styles.companyName}>{application.company_name}</h3>
-        <p style={styles.jobRole}>{application.job_role}</p>
+        <h3 className="text-xl font-semibold text-zinc-100">{application.company_name}</h3>
+        <p className="text-sm text-zinc-400">{application.job_role}</p>
       </div>
-
-      <div
-        style={{
-          ...styles.statusBadge,
-          backgroundColor: getStatusColor(application.current_status),
-        }}
-      >
+      <span className={`px-2.5 py-1 rounded-full text-xs border ${getStatusTone(application.current_status)}`}>
         {application.current_status}
-      </div>
+      </span>
     </div>
 
-    <div style={styles.cardBody}>
-      <div style={styles.detailRow}>
-        <span style={styles.label}>Package:</span>
-        <span style={styles.value}>{application.package || 'Not disclosed'}</span>
-      </div>
-
-      <div style={styles.detailRow}>
-        <span style={styles.label}>Applied On:</span>
-        <span style={styles.value}>
-          {new Date(application.applied_at).toLocaleDateString()}
-        </span>
-      </div>
-
-      <div style={styles.detailRow}>
-        <span style={styles.label}>Drive Date:</span>
-        <span style={styles.value}>
-          {new Date(application.drive_date).toLocaleDateString()}
-        </span>
-      </div>
+    <div className="space-y-2 mb-4 text-sm">
+      <Row label="Package" value={application.package || 'Not disclosed'} />
+      <Row label="Applied On" value={new Date(application.applied_at).toLocaleDateString()} />
+      <Row label="Drive Date" value={new Date(application.drive_date).toLocaleDateString()} />
     </div>
 
-    <div style={styles.cardActions}>
-      <button onClick={() => onViewTimeline(application)} style={styles.timelineButton}>
-        View Timeline →
+    <div className="border-t border-[#2c2c33] pt-4 flex gap-3">
+      <button
+        onClick={() => onViewTimeline(application)}
+        className="flex-1 rounded-lg border border-[#363640] bg-[#24242b] px-4 py-2 text-sm text-zinc-200 cursor-pointer hover:bg-[#2d2d35]"
+      >
+        View Timeline
       </button>
-
       {application.can_withdraw && (
-        <button onClick={() => onWithdraw(application)} style={styles.withdrawButton}>
+        <button
+          onClick={() => onWithdraw(application)}
+          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300 cursor-pointer hover:bg-red-500/20"
+        >
           Withdraw
         </button>
       )}
     </div>
+  </article>
+);
+
+const Row = ({ label, value }) => (
+  <div className="flex items-center justify-between border-b border-[#27272f] pb-2">
+    <span className="text-zinc-500">{label}</span>
+    <span className="text-zinc-200">{value}</span>
   </div>
 );
 
-// Timeline Modal Component
-const TimelineModal = ({ application, onClose, getStatusColor }) => (
-  <div style={styles.modalOverlay} onClick={onClose}>
-    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <div style={styles.modalHeader}>
-        <h3 style={styles.modalTitle}>
-          Application Timeline - {application.company_name}
-        </h3>
-        <button onClick={onClose} style={styles.closeButton}>×</button>
-      </div>
-
-      <div style={styles.modalBody}>
-        <div style={styles.timelineContainer}>
-          {application.status_history?.map((item, index) => (
-            <div key={index} style={styles.timelineItem}>
-              <div
-                style={{
-                  ...styles.timelineDot,
-                  backgroundColor: getStatusColor(item.status),
-                }}
-              />
-
-              <div style={styles.timelineContent}>
-                <div style={styles.timelineStatus}>{item.status}</div>
-                <div style={styles.timelineDate}>
-                  {new Date(item.updated_at).toLocaleString()}
-                </div>
-                {item.remarks && (
-                  <div style={styles.timelineRemarks}>{item.remarks}</div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={styles.modalActions}>
-        <button onClick={onClose} style={styles.closeButtonAction}>
-          Close
+const TimelineModal = ({ application, onClose, getStatusTone }) => (
+  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+    <div className="w-full max-w-2xl max-h-[85vh] overflow-auto rounded-2xl border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[#2c2c33]">
+        <h3 className="text-lg font-semibold text-zinc-100">Application Timeline</h3>
+        <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 bg-transparent border-none cursor-pointer text-xl">
+          x
         </button>
+      </div>
+      <div className="p-5 space-y-4">
+        {application.status_history?.map((item, index) => (
+          <div key={index} className="rounded-lg border border-[#34343d] bg-[#23232a] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className={`px-2.5 py-1 rounded-full text-xs border ${getStatusTone(item.status)}`}>{item.status}</span>
+              <span className="text-xs text-zinc-500">{new Date(item.updated_at).toLocaleString()}</span>
+            </div>
+            {item.remarks && <p className="text-sm text-zinc-300 mt-2">{item.remarks}</p>}
+          </div>
+        ))}
       </div>
     </div>
   </div>
 );
 
-// Withdraw Modal Component
 const WithdrawModal = ({ application, onClose, onConfirm, withdrawing }) => (
-  <div style={styles.modalOverlay} onClick={onClose}>
-    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <div style={styles.modalHeader}>
-        <h3 style={styles.modalTitle}>Withdraw Application</h3>
-        <button onClick={onClose} style={styles.closeButton}>×</button>
+  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+    <div className="w-full max-w-lg rounded-2xl border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
+      <div className="px-5 py-4 border-b border-[#2c2c33]">
+        <h3 className="text-lg font-semibold text-zinc-100">Withdraw Application</h3>
       </div>
-
-      <div style={styles.modalBody}>
-        <div style={styles.warningBox}>
-          <strong>⚠️ Warning</strong>
-          <p>You are about to withdraw your application for:</p>
-          <p><strong>{application.company_name} - {application.job_role}</strong></p>
-          <p>This action cannot be undone. You may not be able to apply again for this drive.</p>
+      <div className="p-5">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-200 text-sm">
+          <p className="font-semibold mb-1">This action cannot be undone.</p>
+          <p>{application.company_name} - {application.job_role}</p>
         </div>
-
-        <p style={styles.confirmText}>Are you sure you want to proceed?</p>
       </div>
-
-      <div style={styles.modalActions}>
+      <div className="flex justify-end gap-3 px-5 py-4 border-t border-[#2c2c33]">
         <button
           onClick={onClose}
-          style={styles.cancelButton}
           disabled={withdrawing}
+          className="rounded-lg border border-[#3a3a43] bg-[#24242b] px-4 py-2 text-sm text-zinc-300 cursor-pointer"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          style={styles.confirmWithdrawButton}
           disabled={withdrawing}
+          className="rounded-lg border-none bg-red-500 px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:bg-red-600"
         >
           {withdrawing ? 'Withdrawing...' : 'Yes, Withdraw'}
         </button>
@@ -371,357 +293,5 @@ const WithdrawModal = ({ application, onClose, onConfirm, withdrawing }) => (
     </div>
   </div>
 );
-
-const styles = {
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '20px',
-  },
-  header: {
-    marginBottom: '30px',
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#333',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '1rem',
-    color: '#666',
-    margin: 0,
-  },
-  statsContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '16px',
-    marginBottom: '30px',
-  },
-  statCard: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    textAlign: 'center',
-  },
-  statValue: {
-    fontSize: '2.5rem',
-    fontWeight: '700',
-    color: '#333',
-    margin: '0 0 8px 0',
-  },
-  statLabel: {
-    fontSize: '0.9rem',
-    color: '#666',
-    fontWeight: '500',
-  },
-  filterContainer: {
-    display: 'flex',
-    gap: '12px',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-  },
-  filterButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    transition: 'all 0.3s',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  filterButtonActive: {
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    fontWeight: '600',
-  },
-  badge: {
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    padding: '2px 8px',
-    borderRadius: '10px',
-    fontSize: '0.8rem',
-    fontWeight: '600',
-  },
-  applicationsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '24px',
-  },
-  applicationCard: {
-    backgroundColor: '#fff',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    padding: '24px',
-    transition: 'all 0.3s ease',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '16px',
-    gap: '12px',
-  },
-  companyName: {
-    margin: '0 0 4px 0',
-    fontSize: '1.2rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  jobRole: {
-    margin: 0,
-    fontSize: '0.95rem',
-    color: '#666',
-  },
-  statusBadge: {
-    padding: '6px 14px',
-    borderRadius: '16px',
-    fontSize: '0.8rem',
-    fontWeight: '600',
-    color: '#fff',
-    whiteSpace: 'nowrap',
-  },
-  cardBody: {
-    marginBottom: '16px',
-  },
-  detailRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '8px 0',
-    borderBottom: '1px solid #f5f5f5',
-  },
-  label: {
-    fontSize: '0.85rem',
-    color: '#999',
-  },
-  value: {
-    fontSize: '0.95rem',
-    color: '#333',
-    fontWeight: '500',
-  },
-  cardActions: {
-    display: 'flex',
-    gap: '12px',
-    paddingTop: '16px',
-    borderTop: '1px solid #e0e0e0',
-  },
-  timelineButton: {
-    flex: 1,
-    padding: '10px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  withdrawButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f44336',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  loadingState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    fontSize: '1.1rem',
-    color: '#666',
-  },
-  errorState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    fontSize: '1rem',
-    color: '#f44336',
-  },
-  retryButton: {
-    marginTop: '20px',
-    padding: '10px 24px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  emptyIcon: {
-    fontSize: '4rem',
-    display: 'block',
-    marginBottom: '20px',
-  },
-  browseButton: {
-    marginTop: '20px',
-    padding: '12px 24px',
-    backgroundColor: '#4CAF50',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  noResults: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '8px',
-    color: '#666',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    maxWidth: '600px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflow: 'auto',
-  },
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '20px 24px',
-    borderBottom: '1px solid #e0e0e0',
-  },
-  modalTitle: {
-    margin: 0,
-    fontSize: '1.3rem',
-    fontWeight: '600',
-    color: '#333',
-  },
-  closeButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '2rem',
-    color: '#999',
-    cursor: 'pointer',
-    padding: 0,
-    width: '32px',
-    height: '32px',
-  },
-  modalBody: {
-    padding: '24px',
-  },
-  timelineContainer: {
-    position: 'relative',
-    paddingLeft: '40px',
-  },
-  timelineItem: {
-    position: 'relative',
-    paddingBottom: '32px',
-  },
-  timelineDot: {
-    position: 'absolute',
-    left: '-40px',
-    top: '4px',
-    width: '16px',
-    height: '16px',
-    borderRadius: '50%',
-    border: '3px solid #fff',
-    boxShadow: '0 0 0 2px currentColor',
-  },
-  timelineContent: {
-    backgroundColor: '#f9f9f9',
-    padding: '16px',
-    borderRadius: '6px',
-  },
-  timelineStatus: {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: '4px',
-  },
-  timelineDate: {
-    fontSize: '0.85rem',
-    color: '#999',
-    marginBottom: '8px',
-  },
-  timelineRemarks: {
-    fontSize: '0.9rem',
-    color: '#555',
-    lineHeight: '1.5',
-  },
-  warningBox: {
-    backgroundColor: '#ffebee',
-    border: '1px solid #f44336',
-    borderRadius: '6px',
-    padding: '16px',
-    marginBottom: '16px',
-    color: '#c62828',
-  },
-  confirmText: {
-    fontSize: '1rem',
-    fontWeight: '500',
-    margin: 0,
-  },
-  modalActions: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'flex-end',
-    padding: '20px 24px',
-    borderTop: '1px solid #e0e0e0',
-  },
-  closeButtonAction: {
-    padding: '10px 20px',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-  },
-  cancelButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-  },
-  confirmWithdrawButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f44336',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-  },
-};
 
 export default ApplicationsPage;

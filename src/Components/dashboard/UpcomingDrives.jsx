@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import driveService from '../../services/driveService';
 
@@ -75,7 +75,7 @@ function UpcomingDrives() {
       <div style={styles.container}>
         <h3 style={styles.title}>Upcoming Placement Drives</h3>
         <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>🏢</span>
+          <span style={styles.emptyIcon}>ðŸ¢</span>
           <p style={styles.emptyText}>No upcoming drives at this time</p>
           <p style={styles.emptySubtext}>Check back later for new opportunities</p>
         </div>
@@ -88,10 +88,10 @@ function UpcomingDrives() {
       <div style={styles.header}>
         <h3 style={styles.title}>Upcoming Placement Drives</h3>
         <button
-          onClick={() => navigate('/drives')}
+          onClick={() => navigate('/dashboard/drives')}
           style={styles.viewAllLink}
         >
-          View All →
+          View All â†’
         </button>
       </div>
 
@@ -100,7 +100,7 @@ function UpcomingDrives() {
           <div
             key={drive.id}
             style={styles.driveCard}
-            onClick={() => navigate('/drives')}
+            onClick={() => navigate('/dashboard/drives')}
           >
             <div style={styles.driveHeader}>
               <div>
@@ -114,7 +114,7 @@ function UpcomingDrives() {
                   color: drive.eligible ? '#2e7d32' : '#c62828',
                 }}
               >
-                {drive.eligible ? '✓ Eligible' : '✗ Ineligible'}
+                {drive.eligible ? 'âœ“ Eligible' : 'âœ— Ineligible'}
               </div>
             </div>
 
@@ -145,7 +145,7 @@ function UpcomingDrives() {
       </div>
 
       <button
-        onClick={() => navigate('/drives')}
+        onClick={() => navigate('/dashboard/drives')}
         style={styles.viewAllButton}
       >
         View All Drives
@@ -292,3 +292,4 @@ const styles = {
 };
 
 export default UpcomingDrives;
+
