@@ -185,6 +185,54 @@ export const StudentProvider = ({ children }) => {
     }
   };
 
+  const addPortfolio = async (data) => {
+    try {
+      const response = await profileService.addPortfolio(data);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const updatePortfolio = async (id, data) => {
+    try {
+      const response = await profileService.updatePortfolio(id, data);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const deletePortfolio = async (id) => {
+    try {
+      const response = await profileService.deletePortfolio(id);
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const deleteResume = async () => {
+    try {
+      const response = await profileService.deleteResume();
+      if (response.success) {
+        await fetchProfile();
+        return true;
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const updateBasicInfo = async (data) => {
     try {
       const response = await profileService.updateBasicInfo(data);
@@ -250,8 +298,12 @@ export const StudentProvider = ({ children }) => {
     addAchievement,
     deleteAchievement,
     uploadAchievementCertificate,
+    addPortfolio,
+    updatePortfolio,
+    deletePortfolio,
     uploadPhoto,
     uploadResume,
+    deleteResume,
     addInternship,
     updateInternship,
     deleteInternship,

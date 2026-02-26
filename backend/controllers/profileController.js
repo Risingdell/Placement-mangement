@@ -1,19 +1,49 @@
 const { promisePool } = require('../config/database');
 const path = require('path');
 
+const ensurePortfoliosTable = async () => {
+  await promisePool.query(
+    `CREATE TABLE IF NOT EXISTS portfolios (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      user_id INT NOT NULL,
+      title VARCHAR(150) NOT NULL,
+      portfolio_url VARCHAR(500) NOT NULL,
+      description TEXT NULL,
+      built_with VARCHAR(500) NULL,
+      build_details TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_portfolios_user_id (user_id),
+      CONSTRAINT fk_portfolios_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
+  );
+};
+
 // @desc    Get student profile with all details
 // @route   GET /api/profile
 // @access  Private
 const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
+    await ensurePortfoliosTable();
+
+    const [academicColumns] = await promisePool.query(
+      `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'student_academics'`
+    );
+    const academicColSet = new Set(academicColumns.map((c) => c.COLUMN_NAME));
+    const diplomaSelect = academicColSet.has('diploma_percentage')
+      ? ', sa.diploma_percentage'
+      : '';
 
     // Get basic info and academics
     const [profile] = await promisePool.query(
       `SELECT u.id, u.usn, u.email, u.full_name, u.phone, u.is_placed,
               sa.branch, sa.batch_year, sa.current_semester, sa.cgpa, sa.sgpa,
               sa.total_backlogs, sa.active_backlogs, sa.tenth_percentage, sa.twelfth_percentage,
-              sa.photo_url, sa.resume_url
+              sa.photo_url, sa.resume_url${diplomaSelect}
        FROM users u
        LEFT JOIN student_academics sa ON u.id = sa.user_id
        WHERE u.id = ?`,
@@ -57,6 +87,15 @@ const getProfile = async (req, res) => {
       [userId]
     );
 
+    // Get portfolio links
+    const [portfolios] = await promisePool.query(
+      `SELECT id, title, portfolio_url, description, built_with, build_details, created_at, updated_at
+       FROM portfolios
+       WHERE user_id = ?
+       ORDER BY updated_at DESC`,
+      [userId]
+    );
+
     res.json({
       success: true,
       data: {
@@ -65,7 +104,8 @@ const getProfile = async (req, res) => {
         projects,
         internships,
         achievements,
-        semesterMarks
+        semesterMarks,
+        portfolios
       }
     });
   } catch (error) {
@@ -83,31 +123,48 @@ const getProfile = async (req, res) => {
 const updateAcademics = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {
-      branch,
-      batchYear,
-      currentSemester,
-      cgpa,
-      sgpa,
-      totalBacklogs,
-      activeBacklogs,
-      tenthPercentage,
-      twelfthPercentage
-    } = req.body;
+    // Accept both camelCase and snake_case payloads from frontend.
+    const incomingUpdates = {
+      branch: req.body.branch,
+      batch_year: req.body.batchYear ?? req.body.batch_year,
+      current_semester: req.body.currentSemester ?? req.body.current_semester,
+      cgpa: req.body.cgpa,
+      sgpa: req.body.sgpa,
+      total_backlogs: req.body.totalBacklogs ?? req.body.total_backlogs,
+      active_backlogs: req.body.activeBacklogs ?? req.body.active_backlogs,
+      tenth_percentage: req.body.tenthPercentage ?? req.body.tenth_percentage,
+      twelfth_percentage: req.body.twelfthPercentage ?? req.body.twelfth_percentage,
+      diploma_percentage: req.body.diplomaPercentage ?? req.body.diploma_percentage
+    };
+
+    // Read actual DB columns to avoid failures across schema variants.
+    const [cols] = await promisePool.query(
+      `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'student_academics'`
+    );
+    const availableCols = new Set(cols.map((c) => c.COLUMN_NAME));
+
+    const updateEntries = Object.entries(incomingUpdates).filter(([column, value]) => {
+      return availableCols.has(column) && value !== undefined;
+    });
+
+    if (updateEntries.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No academic fields provided to update'
+      });
+    }
+
+    const setClause = updateEntries.map(([column]) => `${column} = ?`).join(', ');
+    const values = updateEntries.map(([, value]) => (value === '' ? null : value));
 
     await promisePool.query(
       `UPDATE student_academics
-       SET branch = COALESCE(?, branch),
-           batch_year = COALESCE(?, batch_year),
-           current_semester = COALESCE(?, current_semester),
-           cgpa = COALESCE(?, cgpa),
-           sgpa = COALESCE(?, sgpa),
-           total_backlogs = COALESCE(?, total_backlogs),
-           active_backlogs = COALESCE(?, active_backlogs),
-           tenth_percentage = COALESCE(?, tenth_percentage),
-           twelfth_percentage = COALESCE(?, twelfth_percentage)
+       SET ${setClause}
        WHERE user_id = ?`,
-      [branch, batchYear, currentSemester, cgpa, sgpa, totalBacklogs, activeBacklogs, tenthPercentage, twelfthPercentage, userId]
+      [...values, userId]
     );
 
     res.json({
@@ -189,6 +246,31 @@ const uploadResume = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to upload resume'
+    });
+  }
+};
+
+// @desc    Delete resume
+// @route   DELETE /api/profile/resume
+// @access  Private
+const deleteResume = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await promisePool.query(
+      'UPDATE student_academics SET resume_url = NULL WHERE user_id = ?',
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Resume deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete resume error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete resume'
     });
   }
 };
@@ -605,12 +687,145 @@ const uploadAchievementCertificate = async (req, res) => {
   }
 };
 
+// @desc    Add portfolio link
+// @route   POST /api/profile/portfolios
+// @access  Private
+const addPortfolio = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { title, portfolio_url, description, built_with, build_details } = req.body;
+
+    if (!title || !title.trim() || !portfolio_url || !portfolio_url.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and portfolio URL are required'
+      });
+    }
+
+    await ensurePortfoliosTable();
+
+    const [result] = await promisePool.query(
+      `INSERT INTO portfolios (user_id, title, portfolio_url, description, built_with, build_details)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        title.trim(),
+        portfolio_url.trim(),
+        description || null,
+        built_with || null,
+        build_details || null
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Portfolio link added successfully',
+      data: { id: result.insertId }
+    });
+  } catch (error) {
+    console.error('Add portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add portfolio link'
+    });
+  }
+};
+
+// @desc    Update portfolio link
+// @route   PUT /api/profile/portfolios/:id
+// @access  Private
+const updatePortfolio = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const portfolioId = req.params.id;
+    const { title, portfolio_url, description, built_with, build_details } = req.body;
+
+    if (!title || !title.trim() || !portfolio_url || !portfolio_url.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and portfolio URL are required'
+      });
+    }
+
+    await ensurePortfoliosTable();
+
+    const [result] = await promisePool.query(
+      `UPDATE portfolios
+       SET title = ?, portfolio_url = ?, description = ?, built_with = ?, build_details = ?
+       WHERE id = ? AND user_id = ?`,
+      [
+        title.trim(),
+        portfolio_url.trim(),
+        description || null,
+        built_with || null,
+        build_details || null,
+        portfolioId,
+        userId
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Portfolio entry not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Portfolio link updated successfully'
+    });
+  } catch (error) {
+    console.error('Update portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update portfolio link'
+    });
+  }
+};
+
+// @desc    Delete portfolio link
+// @route   DELETE /api/profile/portfolios/:id
+// @access  Private
+const deletePortfolio = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const portfolioId = req.params.id;
+
+    await ensurePortfoliosTable();
+
+    const [result] = await promisePool.query(
+      'DELETE FROM portfolios WHERE id = ? AND user_id = ?',
+      [portfolioId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Portfolio entry not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Portfolio link deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete portfolio link'
+    });
+  }
+};
+
 module.exports = {
   getProfile,
   updateBasicInfo,
   updateAcademics,
   uploadPhoto,
   uploadResume,
+  deleteResume,
   addSkill,
   deleteSkill,
   addProject,
@@ -619,6 +834,9 @@ module.exports = {
   addAchievement,
   deleteAchievement,
   uploadAchievementCertificate,
+  addPortfolio,
+  updatePortfolio,
+  deletePortfolio,
   addInternship,
   updateInternship,
   deleteInternship,

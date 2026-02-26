@@ -1,31 +1,36 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
 
+const resolveMediaUrl = (url) => {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const apiOrigin = apiBase.replace(/\/api\/?$/, '');
+  return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 function ProfessionalProfile() {
-  const { profile, uploadResume, fetchProfile } = useStudent();
+  const { profile, uploadResume, deleteResume } = useStudent();
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  const resumeUrl = useMemo(() => resolveMediaUrl(profile?.resume_url), [profile?.resume_url]);
+  const hasResume = Boolean(resumeUrl);
+  const isPdfResume = resumeUrl.toLowerCase().endsWith('.pdf');
 
   const handleResumeChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (file.type !== 'application/pdf') {
-      setMessage({
-        type: 'error',
-        text: 'Only PDF files are allowed'
-      });
+      setMessage({ type: 'error', text: 'Only PDF files are allowed.' });
       return;
     }
 
-    // Validate file size (5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      setMessage({
-        type: 'error',
-        text: 'File size must be less than 5MB'
-      });
+      setMessage({ type: 'error', text: 'File size must be less than 5MB.' });
       return;
     }
 
@@ -34,51 +39,46 @@ function ProfessionalProfile() {
       setMessage({ type: '', text: '' });
 
       const success = await uploadResume(file);
-
-      if (success) {
-        setMessage({
-          type: 'success',
-          text: 'Resume uploaded successfully!'
-        });
-        // Profile is refreshed automatically by context
-      } else {
-        setMessage({
-          type: 'error',
-          text: 'Failed to upload resume'
-        });
-      }
-    } catch (error) {
       setMessage({
-        type: 'error',
-        text: 'Error uploading resume. Please try again.'
+        type: success ? 'success' : 'error',
+        text: success ? 'Resume uploaded successfully.' : 'Failed to upload resume.',
       });
+    } catch (error) {
+      console.error('Resume upload error:', error);
+      setMessage({ type: 'error', text: 'Error uploading resume. Please try again.' });
     } finally {
       setIsUploading(false);
-      // Reset file input
       if (e.target) e.target.value = '';
     }
   };
 
-  const handleDownloadResume = () => {
-    if (profile?.resume_url) {
-      const link = document.createElement('a');
-      link.href = profile.resume_url;
-      link.download = `resume_${profile.usn || 'student'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const handleDeleteResume = async () => {
+    if (!hasResume) return;
+    if (!window.confirm('Delete your current resume?')) return;
+
+    try {
+      setIsDeleting(true);
+      setMessage({ type: '', text: '' });
+      const success = await deleteResume();
+      setMessage({
+        type: success ? 'success' : 'error',
+        text: success ? 'Resume deleted successfully.' : 'Failed to delete resume.',
+      });
+    } catch (error) {
+      console.error('Resume delete error:', error);
+      setMessage({ type: 'error', text: 'Error deleting resume. Please try again.' });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Professional Profile</h3>
-        <p className="text-sm text-gray-600 mt-1">Manage your resume and professional documents</p>
+        <p className="text-sm text-gray-600 mt-1">Manage your resume with preview, replace, and delete actions</p>
       </div>
 
-      {/* Message Alert */}
       {message.text && (
         <div
           className={`p-4 rounded-lg ${
@@ -97,98 +97,67 @@ function ProfessionalProfile() {
         </div>
       )}
 
-      {/* Resume Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h4 className="font-semibold text-gray-900 mb-2">Resume</h4>
-            <p className="text-sm text-gray-600 mb-4">
-              Upload your PDF resume for companies to review during placements
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div>
+            <h4 className="font-semibold text-gray-900">Resume Content</h4>
+            <p className="text-sm text-gray-600">
+              Your uploaded resume is shown below. You can replace or delete it anytime.
             </p>
+          </div>
 
-            {/* Current Resume */}
-            {profile?.resume_url ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <svg
-                      className="w-8 h-8 text-blue-600 mr-3"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M8 16.5a1 1 0 11-2 0 1 1 0 012 0zM15 7H4v5h11V7z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm font-medium text-blue-900">
-                        Resume uploaded
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        {profile.resume_url.split('/').pop()}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleDownloadResume}
-                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
-                  >
-                    Download
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-yellow-800">
-                  ⚠️ No resume uploaded yet. Companies may reject applications without a resume.
-                </p>
-              </div>
-            )}
-
-            {/* File Upload */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition">
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleResumeChange}
-                disabled={isUploading}
-                className="hidden"
-                id="resume-input"
-              />
-              <label
-                htmlFor="resume-input"
-                className="cursor-pointer flex flex-col items-center"
-              >
-                <svg
-                  className="w-10 h-10 text-gray-400 mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <p className="text-gray-700 font-medium mb-1">
-                  {isUploading ? 'Uploading...' : 'Click to upload or drag and drop'}
-                </p>
-                <p className="text-xs text-gray-500">PDF files only • Max 5MB</p>
-              </label>
-            </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handleResumeChange}
+              disabled={isUploading || isDeleting}
+              className="hidden"
+              id="resume-input"
+            />
+            <label
+              htmlFor="resume-input"
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition cursor-pointer"
+            >
+              {hasResume ? (isUploading ? 'Uploading...' : 'Upload Another') : (isUploading ? 'Uploading...' : 'Upload Resume')}
+            </label>
+            <button
+              onClick={handleDeleteResume}
+              disabled={!hasResume || isDeleting || isUploading}
+              className="px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Requirements Info */}
-      <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-        <h5 className="font-semibold text-blue-900 mb-2">Resume Tips:</h5>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Keep your resume updated with latest skills and projects</li>
-          <li>• Use a clear, professional format (PDF)</li>
-          <li>• Include relevant projects, internships, and achievements</li>
-          <li>• Companies review resumes during shortlisting process</li>
-        </ul>
+        {hasResume ? (
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            {isPdfResume ? (
+              <iframe
+                title="Resume Preview"
+                src={resumeUrl}
+                className="w-full h-[520px] bg-white"
+              />
+            ) : (
+              <div className="p-6 bg-gray-50 text-sm text-gray-700">
+                This file type cannot be previewed inline. Open it using this link:
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ml-2 text-blue-600 underline"
+                >
+                  Open Resume
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center text-gray-600">
+            No resume uploaded yet. Upload a PDF to preview it here.
+          </div>
+        )}
       </div>
     </div>
   );

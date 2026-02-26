@@ -6,6 +6,7 @@ import AcademicInfo from '../Components/profile/AcademicInfo';
 import ProfileRightSidebar from '../Components/profile/ProfileRightSidebar';
 import Skills from '../Components/profile/Skills';
 import Projects from '../Components/profile/Projects';
+import PortfolioLinks from '../Components/profile/PortfolioLinks';
 import Internships from '../Components/profile/Internships';
 import Achievements from '../Components/profile/Achievements';
 import ProfessionalProfile from '../Components/profile/ProfessionalProfile';
@@ -32,6 +33,7 @@ function ProfilePage() {
     { id: 'academic', label: 'Academic', component: AcademicInfo },
     { id: 'skills', label: 'Skills', component: Skills },
     { id: 'projects', label: 'Projects', component: Projects },
+    { id: 'portfolio', label: 'Portfolio', component: PortfolioLinks },
     { id: 'internships', label: 'Internships', component: Internships },
     { id: 'achievements', label: 'Achievements', component: Achievements },
     { id: 'resume', label: 'Resume', component: ProfessionalProfile },
@@ -48,29 +50,29 @@ function ProfilePage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-500 text-[#e4e4e7]">
       {/* 1. Profile Summary Strip */}
       <ProfileHeader profile={profile} completion={completion} />
 
       {/* 2. Quick Stats Cards */}
-      <StatsCards stats={stats} />
+      {/* <StatsCards stats={stats} />ignoring to test the space  */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column (Content) */}
         <div className="lg:col-span-2 space-y-6">
 
           {/* 3. Profile Tabs + Content — unified card, no sticky */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-[#1f1f1f] rounded-xl border border-[#2f2f2f]">
             {/* Tab nav bar */}
-            <div className="overflow-x-auto border-b border-gray-100">
+            <div className="overflow-x-auto border-b border-[#2f2f2f]">
               <div className="flex px-2 min-w-max">
                 {tabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${activeTab === tab.id
-                        ? 'border-indigo-500 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-[#ffa116] text-[#ffa116]'
+                        : 'border-transparent text-[#9ca3af] hover:text-[#f4f4f5] hover:border-[#52525b]'
                       }`}
                   >
                     {tab.label}
@@ -80,7 +82,7 @@ function ProfilePage() {
             </div>
 
             {/* Tab content inside same card */}
-            <div className="p-6 min-h-[400px]">
+            <div className="p-6 min-h-[400px] bg-[#1f1f1f]">
               {ActiveComponent && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <ActiveComponent academic={profile} />

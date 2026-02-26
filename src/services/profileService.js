@@ -28,6 +28,10 @@ export const uploadResume = async (file) => {
   return await apiUpload('/profile/resume', formData);
 };
 
+export const deleteResume = async () => {
+  return await apiRequest('/profile/resume', { method: 'DELETE' });
+};
+
 // Skills
 export const addSkill = async (data) => {
   return await apiRequest('/profile/skills', {
@@ -77,6 +81,25 @@ export const uploadAchievementCertificate = async (id, file) => {
   return await apiUpload(`/profile/achievements/${id}/certificate`, formData);
 };
 
+// Portfolios
+export const addPortfolio = async (data) => {
+  return await apiRequest('/profile/portfolios', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updatePortfolio = async (id, data) => {
+  return await apiRequest(`/profile/portfolios/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deletePortfolio = async (id) => {
+  return await apiRequest(`/profile/portfolios/${id}`, { method: 'DELETE' });
+};
+
 // Basic Info
 export const updateBasicInfo = async (data) => {
   return await apiRequest('/profile/basic', {
@@ -112,6 +135,7 @@ export default {
   updateAcademics,
   uploadPhoto,
   uploadResume,
+  deleteResume,
   addSkill,
   deleteSkill,
   addProject,
@@ -119,6 +143,9 @@ export default {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  addPortfolio,
+  updatePortfolio,
+  deletePortfolio,
   addInternship,
   updateInternship,
   deleteInternship,

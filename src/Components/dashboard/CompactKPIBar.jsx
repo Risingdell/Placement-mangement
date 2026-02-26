@@ -71,7 +71,7 @@ function CompactKPIBar() {
             ...styles.badge,
             backgroundColor: isEligible ? '#4CAF50' : '#f44336',
           }}>
-            {isEligible ? '✓ Eligible' : '✗ Not Eligible'}
+            {isEligible ? 'Eligible' : 'Not Eligible'}
           </div>
         </div>
 
@@ -93,12 +93,12 @@ function CompactKPIBar() {
 
 const styles = {
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(31, 31, 31, 0.95)',
     backdropFilter: 'blur(10px)',
-    borderBottom: '1px solid #e0e0e0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    borderBottom: '1px solid #323232',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
     position: 'sticky',
-    top: '73px', // Below the navbar
+    top: '56px', // Below the navbar
     zIndex: 99,
   },
   content: {
@@ -121,19 +121,19 @@ const styles = {
   label: {
     fontSize: '0.75rem',
     fontWeight: '600',
-    color: '#666',
+    color: '#9ca3af',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
   },
   value: {
     fontSize: '1.25rem',
     fontWeight: 'bold',
-    color: '#333',
+    color: '#f4f4f5',
   },
   divider: {
     width: '1px',
     height: '40px',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#323232',
   },
   badge: {
     padding: '6px 16px',

@@ -5,6 +5,7 @@ const {
   updateAcademics,
   uploadPhoto,
   uploadResume,
+  deleteResume,
   addSkill,
   deleteSkill,
   addProject,
@@ -13,6 +14,9 @@ const {
   addAchievement,
   deleteAchievement,
   uploadAchievementCertificate,
+  addPortfolio,
+  updatePortfolio,
+  deletePortfolio,
   addInternship,
   updateInternship,
   deleteInternship,
@@ -40,6 +44,7 @@ router.put('/academics', updateAcademics);
 // File uploads
 router.post('/photo', photoUpload.single('photo'), handleUploadError, uploadPhoto);
 router.post('/resume', resumeUpload.single('resume'), handleUploadError, uploadResume);
+router.delete('/resume', deleteResume);
 
 // Skills
 router.post('/skills', addSkill);
@@ -54,6 +59,11 @@ router.delete('/projects/:id', deleteProject);
 router.post('/achievements', addAchievement);
 router.delete('/achievements/:id', deleteAchievement);
 router.post('/achievements/:id/certificate', certUpload.single('certificate'), handleUploadError, uploadAchievementCertificate);
+
+// Portfolio links
+router.post('/portfolios', addPortfolio);
+router.put('/portfolios/:id', updatePortfolio);
+router.delete('/portfolios/:id', deletePortfolio);
 
 // Internships
 router.post('/internships', addInternship);
