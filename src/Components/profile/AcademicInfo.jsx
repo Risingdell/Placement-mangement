@@ -100,7 +100,12 @@ function AcademicInfo() {
     }
     setSaving(true);
     try {
-      await updateAcademics(formData);
+      const payload = {
+        ...formData,
+        // Keep compatibility with schemas/controllers that still use `backlogs`.
+        backlogs: formData.active_backlogs
+      };
+      await updateAcademics(payload);
       await fetchProfile();
       setIsEditing(false);
       setErrors({});

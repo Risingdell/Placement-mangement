@@ -1,0 +1,47 @@
+/* Student light theme overrides for existing dark utility classes */
+
+.student-theme-light {
+  color: #111827;
+}
+
+.student-theme-light [class*="text-zinc-100"] { color: #111827 !important; }
+.student-theme-light [class*="text-zinc-200"] { color: #1f2937 !important; }
+.student-theme-light [class*="text-zinc-300"] { color: #374151 !important; }
+.student-theme-light [class*="text-zinc-400"] { color: #4b5563 !important; }
+.student-theme-light [class*="text-zinc-500"] { color: #6b7280 !important; }
+
+.student-theme-light [class*="bg-[#1d1d22]"],
+.student-theme-light [class*="bg-[#1f1f24]"],
+.student-theme-light [class*="bg-[#23232a]"],
+.student-theme-light [class*="bg-[#24242b]"],
+.student-theme-light [class*="bg-[#25252d]"],
+.student-theme-light [class*="bg-[#2a2a31]"],
+.student-theme-light [class*="bg-[#2b2b33]"],
+.student-theme-light [class*="bg-[#1a1a1e]"],
+.student-theme-light [class*="bg-[#17171b]"],
+.student-theme-light [class*="bg-[#202026]"],
+.student-theme-light [class*="bg-[#26262d]"] {
+  background-color: #ffffff !important;
+}
+
+.student-theme-light [class*="border-[#2f2f36]"],
+.student-theme-light [class*="border-[#33333a]"],
+.student-theme-light [class*="border-[#34343d]"],
+.student-theme-light [class*="border-[#34343e]"],
+.student-theme-light [class*="border-[#35353f]"],
+.student-theme-light [class*="border-[#363640]"],
+.student-theme-light [class*="border-[#3a3a43]"],
+.student-theme-light [class*="border-[#3a3a44]"] {
+  border-color: #d1d5db !important;
+}
+
+.student-theme-light [class*="hover:bg-[#26262d]"]:hover,
+.student-theme-light [class*="hover:bg-[#2d2d35]"]:hover,
+.student-theme-light [class*="hover:bg-[#2a2a33]"]:hover,
+.student-theme-light [class*="hover:bg-[#282830]"]:hover {
+  background-color: #f3f4f6 !important;
+}
+
+.student-theme-light [class*="shadow-[0_8px_24px_rgba(0,0,0,0.25)]"] {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08) !important;
+}

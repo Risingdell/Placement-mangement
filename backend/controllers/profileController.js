@@ -124,6 +124,7 @@ const updateAcademics = async (req, res) => {
   try {
     const userId = req.user.id;
     // Accept both camelCase and snake_case payloads from frontend.
+    const activeBacklogsValue = req.body.activeBacklogs ?? req.body.active_backlogs;
     const incomingUpdates = {
       branch: req.body.branch,
       batch_year: req.body.batchYear ?? req.body.batch_year,
@@ -131,7 +132,9 @@ const updateAcademics = async (req, res) => {
       cgpa: req.body.cgpa,
       sgpa: req.body.sgpa,
       total_backlogs: req.body.totalBacklogs ?? req.body.total_backlogs,
-      active_backlogs: req.body.activeBacklogs ?? req.body.active_backlogs,
+      active_backlogs: activeBacklogsValue,
+      // Keep compatibility with schemas/features that still read `backlogs`.
+      backlogs: req.body.backlogs ?? activeBacklogsValue,
       tenth_percentage: req.body.tenthPercentage ?? req.body.tenth_percentage,
       twelfth_percentage: req.body.twelfthPercentage ?? req.body.twelfth_percentage,
       diploma_percentage: req.body.diplomaPercentage ?? req.body.diploma_percentage
@@ -157,15 +160,70 @@ const updateAcademics = async (req, res) => {
       });
     }
 
-    const setClause = updateEntries.map(([column]) => `${column} = ?`).join(', ');
-    const values = updateEntries.map(([, value]) => (value === '' ? null : value));
+    const normalizeValue = (column, value) => {
+      if (value === '') return null;
 
-    await promisePool.query(
+      const intColumns = new Set([
+        'batch_year',
+        'current_semester',
+        'total_backlogs',
+        'active_backlogs',
+        'backlogs'
+      ]);
+      const decimalColumns = new Set(['cgpa', 'sgpa', 'tenth_percentage', 'twelfth_percentage', 'diploma_percentage']);
+
+      if (intColumns.has(column) && value !== null) {
+        const parsed = parseInt(value, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+      }
+      if (decimalColumns.has(column) && value !== null) {
+        const parsed = parseFloat(value);
+        return Number.isNaN(parsed) ? null : parsed;
+      }
+      return value;
+    };
+
+    const setClause = updateEntries.map(([column]) => `${column} = ?`).join(', ');
+    const values = updateEntries.map(([column, value]) => normalizeValue(column, value));
+
+    const [updateResult] = await promisePool.query(
       `UPDATE student_academics
        SET ${setClause}
        WHERE user_id = ?`,
       [...values, userId]
     );
+
+    // If row is missing for this user, initialize and apply updates in one insert.
+    if (updateResult.affectedRows === 0) {
+      const insertColumns = ['user_id'];
+      const insertValues = [userId];
+      const insertPlaceholders = ['?'];
+
+      // Some schemas keep these fields as NOT NULL.
+      if (availableCols.has('branch')) {
+        insertColumns.push('branch');
+        insertValues.push(incomingUpdates.branch || 'Unknown');
+        insertPlaceholders.push('?');
+      }
+      if (availableCols.has('batch_year')) {
+        insertColumns.push('batch_year');
+        insertValues.push(parseInt(incomingUpdates.batch_year, 10) || new Date().getFullYear());
+        insertPlaceholders.push('?');
+      }
+
+      for (const [column, value] of updateEntries) {
+        if (column === 'branch' || column === 'batch_year') continue;
+        insertColumns.push(column);
+        insertValues.push(normalizeValue(column, value));
+        insertPlaceholders.push('?');
+      }
+
+      await promisePool.query(
+        `INSERT INTO student_academics (${insertColumns.join(', ')})
+         VALUES (${insertPlaceholders.join(', ')})`,
+        insertValues
+      );
+    }
 
     res.json({
       success: true,

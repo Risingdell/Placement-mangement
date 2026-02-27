@@ -1,31 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as authorizedEmailService from '../../services/authorizedEmailService';
-import '../../styles/components/neo-brutalism.css';
+
+const PAGE_SIZE = 10;
 
 function AuthorizedEmailsPage() {
-  // State management
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
-  const [selectedEmail, setSelectedEmail] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('DESC');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    limit: PAGE_SIZE,
+    offset: 0,
+    totalPages: 1
+  });
+
+  const [showEntryModal, setShowEntryModal] = useState(false);
+  const [entryMode, setEntryMode] = useState('add');
+  const [editingEmailId, setEditingEmailId] = useState(null);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+
   const [csvFile, setCsvFile] = useState(null);
   const [csvPreview, setCsvPreview] = useState([]);
   const [csvErrors, setCsvErrors] = useState([]);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [branchFilter, setBranchFilter] = useState('');
-  const [batchYearFilter, setBatchYearFilter] = useState('');
-
   const [statistics, setStatistics] = useState({
     total: 0,
     active_count: 0,
     used_count: 0,
     available_count: 0
   });
-
+  const [banner, setBanner] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
     student_name: '',
@@ -34,18 +43,20 @@ function AuthorizedEmailsPage() {
     batch_year: '',
     notes: ''
   });
-
   const [formErrors, setFormErrors] = useState({});
 
-  // Constants
-  const branchOptions = ['CSE', 'ISE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'AI&ML', 'DS'];
-  const batchYearOptions = ['2021', '2022', '2023', '2024', '2025', '2026', '2027'];
-
-  // Fetch data on mount and when filters change
   useEffect(() => {
     fetchEmails();
+  }, [searchTerm, statusFilter, sortBy, sortOrder, currentPage]);
+
+  useEffect(() => {
     fetchStatistics();
-  }, [searchTerm, statusFilter, branchFilter, batchYearFilter]);
+  }, []);
+
+  const flashMessage = (type, message) => {
+    setBanner({ type, message });
+    setTimeout(() => setBanner(null), 3500);
+  };
 
   const fetchEmails = async () => {
     try {
@@ -53,18 +64,22 @@ function AuthorizedEmailsPage() {
       const response = await authorizedEmailService.getAllAuthorizedEmails({
         search: searchTerm,
         status: statusFilter,
-        batch_year: batchYearFilter,
-        branch: branchFilter,
-        limit: 50
+        sortBy,
+        order: sortOrder,
+        limit: PAGE_SIZE,
+        offset: (currentPage - 1) * PAGE_SIZE
       });
-
-      setEmails(response.data);
-      if (response.statistics) {
-        setStatistics(response.statistics);
-      }
+      setEmails(response.data || []);
+      setPagination(
+        response.pagination || {
+          total: 0,
+          limit: PAGE_SIZE,
+          offset: 0,
+          totalPages: 1
+        }
+      );
     } catch (error) {
-      alert('Error fetching emails: ' + error.message);
-      console.error(error);
+      flashMessage('error', error.message || 'Failed to fetch authorized emails.');
     } finally {
       setLoading(false);
     }
@@ -77,104 +92,7 @@ function AuthorizedEmailsPage() {
         setStatistics(response.data.overall);
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  // Form handlers
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error for this field
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const errors = {};
-
-    if (!formData.email || formData.email.trim() === '') {
-      errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Invalid email format';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      if (modalMode === 'add') {
-        await authorizedEmailService.createAuthorizedEmail(formData);
-        alert('Email authorized successfully!');
-      } else {
-        await authorizedEmailService.updateAuthorizedEmail(selectedEmail.id, formData);
-        alert('Email updated successfully!');
-      }
-
-      setShowModal(false);
-      resetForm();
-      fetchEmails();
-    } catch (error) {
-      alert('Error: ' + error.message);
-      console.error(error);
-    }
-  };
-
-  const handleAddEmail = () => {
-    resetForm();
-    setModalMode('add');
-    setShowModal(true);
-  };
-
-  const handleEditEmail = (email) => {
-    setSelectedEmail(email);
-    setFormData({
-      email: email.email,
-      student_name: email.student_name || '',
-      usn: email.usn || '',
-      branch: email.branch || '',
-      batch_year: email.batch_year || '',
-      notes: email.notes || ''
-    });
-    setModalMode('edit');
-    setShowModal(true);
-  };
-
-  const handleDeleteEmail = async (id, email) => {
-    if (window.confirm(`Are you sure you want to delete ${email}?`)) {
-      try {
-        await authorizedEmailService.deleteAuthorizedEmail(id);
-        alert('Email deleted successfully!');
-        fetchEmails();
-      } catch (error) {
-        alert('Error deleting email: ' + error.message);
-        console.error(error);
-      }
-    }
-  };
-
-  const handleToggleStatus = async (id) => {
-    try {
-      await authorizedEmailService.toggleEmailStatus(id);
-      fetchEmails();
-    } catch (error) {
-      alert('Error toggling status: ' + error.message);
-      console.error(error);
+      flashMessage('error', error.message || 'Failed to fetch statistics.');
     }
   };
 
@@ -188,161 +106,362 @@ function AuthorizedEmailsPage() {
       notes: ''
     });
     setFormErrors({});
-    setSelectedEmail(null);
+    setEditingEmailId(null);
+    setEntryMode('add');
   };
 
-  // CSV Upload handlers
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setCsvFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const content = event.target.result;
-          const parsed = authorizedEmailService.parseCSV(content);
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.email || !formData.email.trim()) {
+      errors.email = 'Email is required.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Invalid email format.';
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-          if (parsed.length === 0) {
-            setCsvErrors(['No valid emails found in CSV']);
-            setCsvPreview([]);
-          } else {
-            const preview = parsed.slice(0, 5);
-            setCsvPreview(preview);
-            setCsvErrors([]);
-          }
-        } catch (error) {
-          setCsvErrors(['Error parsing CSV: ' + error.message]);
-          setCsvPreview([]);
-        }
-      };
-      reader.readAsText(file);
+  const openAddModal = () => {
+    resetForm();
+    setEntryMode('add');
+    setShowEntryModal(true);
+  };
+
+  const openEditModal = (email) => {
+    setFormData({
+      email: email.email || '',
+      student_name: email.student_name || '',
+      usn: email.usn || '',
+      branch: email.branch || '',
+      batch_year: email.batch_year || '',
+      notes: email.notes || ''
+    });
+    setEntryMode('edit');
+    setEditingEmailId(email.id);
+    setFormErrors({});
+    setShowEntryModal(true);
+  };
+
+  const handleSubmitEntry = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      if (entryMode === 'edit' && editingEmailId) {
+        await authorizedEmailService.updateAuthorizedEmail(editingEmailId, formData);
+        flashMessage('success', 'Authorization entry updated successfully.');
+      } else {
+        await authorizedEmailService.createAuthorizedEmail(formData);
+        flashMessage('success', 'Email added to authorization list.');
+      }
+      setShowEntryModal(false);
+      resetForm();
+      fetchEmails();
+      fetchStatistics();
+    } catch (error) {
+      flashMessage('error', error.message || 'Failed to save entry.');
     }
   };
 
-  const handleBulkUpload = async () => {
-    if (!csvFile) {
-      alert('Please select a CSV file');
+  const askDisableOrEnable = (email) => {
+    setConfirmAction({
+      type: 'toggle',
+      id: email.id,
+      title: `${email.is_active ? 'Disable' : 'Enable'} Access`,
+      message: `Are you sure you want to ${email.is_active ? 'disable' : 'enable'} access for ${email.email}?`
+    });
+    setShowConfirmModal(true);
+  };
+
+  const askDelete = (email) => {
+    setConfirmAction({
+      type: 'delete',
+      id: email.id,
+      title: 'Delete Authorization Entry',
+      message: `Are you sure you want to permanently delete ${email.email} from the whitelist?`
+    });
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+    try {
+      if (confirmAction.type === 'toggle') {
+        await authorizedEmailService.toggleEmailStatus(confirmAction.id);
+        flashMessage('success', 'Access status updated successfully.');
+      } else if (confirmAction.type === 'delete') {
+        await authorizedEmailService.deleteAuthorizedEmail(confirmAction.id);
+        flashMessage('success', 'Authorization entry deleted successfully.');
+      }
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+      fetchEmails();
+      fetchStatistics();
+    } catch (error) {
+      flashMessage('error', error.message || 'Action failed.');
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setCsvFile(file);
+    setCsvPreview([]);
+    setCsvErrors([]);
+
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.csv')) {
+      setCsvErrors(['Only CSV is supported. Export your Excel sheet as CSV and upload.']);
       return;
     }
 
-    try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const content = event.target.result;
-        const parsed = authorizedEmailService.parseCSV(content);
-
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = authorizedEmailService.parseCSV(event.target.result);
         if (parsed.length === 0) {
-          alert('No valid emails found in CSV');
+          setCsvErrors(['No valid email rows found in file.']);
           return;
         }
+        setCsvPreview(parsed.slice(0, 8));
+      } catch (error) {
+        setCsvErrors([`CSV parse failed: ${error.message}`]);
+      }
+    };
+    reader.readAsText(file);
+  };
 
-        const response = await authorizedEmailService.bulkCreateAuthorizedEmails(parsed);
-        alert(`Upload complete: ${response.data.created} created, ${response.data.duplicates} duplicates skipped`);
+  const handleBulkUpload = async () => {
+    if (!csvFile || csvErrors.length > 0) return;
 
-        if (response.data.errors.length > 0) {
-          console.log('Errors:', response.data.errors);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const parsed = authorizedEmailService.parseCSV(event.target.result);
+        if (parsed.length === 0) {
+          flashMessage('error', 'No valid rows found in selected file.');
+          return;
         }
-
+        const response = await authorizedEmailService.bulkCreateAuthorizedEmails(parsed);
         setShowBulkModal(false);
         setCsvFile(null);
         setCsvPreview([]);
         setCsvErrors([]);
         fetchEmails();
-      };
-      reader.readAsText(csvFile);
-    } catch (error) {
-      alert('Error uploading: ' + error.message);
-      console.error(error);
-    }
+        fetchStatistics();
+        flashMessage(
+          'success',
+          `Bulk upload complete: ${response.data.created} created, ${response.data.duplicates} skipped.`
+        );
+      } catch (error) {
+        flashMessage('error', error.message || 'Bulk upload failed.');
+      }
+    };
+    reader.readAsText(csvFile);
   };
 
-  const handleExportCSV = () => {
-    if (emails.length === 0) {
-      alert('No emails to export');
-      return;
-    }
-
-    // Prepare CSV content
-    const headers = ['Email', 'Student Name', 'USN', 'Branch', 'Batch Year', 'Status', 'Used By', 'Added By', 'Created Date'];
-    const rows = emails.map(email => [
-      email.email,
+  const exportCurrentResults = () => {
+    const headers = ['Email', 'Student Name', 'USN', 'Branch', 'Batch', 'Status', 'Created'];
+    const rows = emails.map((email) => [
+      email.email || '',
       email.student_name || '',
       email.usn || '',
       email.branch || '',
       email.batch_year || '',
-      email.is_used ? 'Used' : (email.is_active ? 'Active' : 'Inactive'),
-      email.used_by_name || '',
-      email.added_by_name || '',
-      new Date(email.created_at).toLocaleDateString()
+      email.is_used ? 'Used' : email.is_active ? 'Active' : 'Disabled',
+      email.created_at ? new Date(email.created_at).toLocaleDateString() : ''
     ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
 
-    // Create CSV content
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    // Download
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `authorized-emails-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `authorized_emails_page_${currentPage}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
-  const getStatusBadge = (email) => {
-    if (email.is_used) {
-      return <span className="neo-badge neo-badge-success">Used</span>;
-    } else if (email.is_active) {
-      return <span className="neo-badge neo-badge-info">Active</span>;
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === 'ASC' ? 'DESC' : 'ASC'));
     } else {
-      return <span className="neo-badge neo-badge-warning">Inactive</span>;
+      setSortBy(column);
+      setSortOrder('ASC');
     }
+    setCurrentPage(1);
   };
+
+  const getSortMarker = (column) => {
+    if (sortBy !== column) return <span className="text-xs text-gray-500 ml-1">+-</span>;
+    return (
+      <span className="text-xs text-black ml-1">{sortOrder === 'ASC' ? '?' : '?'}</span>
+    );
+  };
+
+  const statusBadge = (email) => {
+    if (!email.is_active) {
+      return 'bg-gray-100 text-gray-700 border border-gray-300';
+    }
+    if (email.is_used) {
+      return 'bg-blue-100 text-blue-700 border border-blue-300';
+    }
+    return 'bg-green-100 text-green-700 border border-green-300';
+  };
+
+  const statusLabel = (email) => {
+    if (!email.is_active) return 'Disabled';
+    if (email.is_used) return 'Used';
+    return 'Active';
+  };
+
+  const totalPages = Math.max(pagination.totalPages || 1, 1);
+  const startEntry = pagination.total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const endEntry = Math.min(currentPage * PAGE_SIZE, pagination.total || 0);
+
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, currentPage + 2);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }, [currentPage, totalPages]);
+
+  const metricCards = [
+    {
+      title: 'Total Whitelisted',
+      value: statistics.total || 0,
+      sub: 'All authorized emails',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-700'
+    },
+    {
+      title: 'Active Access',
+      value: statistics.active_count || 0,
+      sub: 'Available for registration',
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-700'
+    },
+    {
+      title: 'Registered',
+      value: statistics.used_count || 0,
+      sub: 'Already used',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-700'
+    },
+    {
+      title: 'Pending',
+      value: statistics.available_count || 0,
+      sub: 'Awaiting registration',
+      iconBg: 'bg-yellow-100',
+      iconColor: 'text-yellow-700'
+    }
+  ];
 
   return (
-    <div className="neo-page">
-      <div className="neo-container">
-        {/* Header */}
-        <div className="neo-header">
-          <h1 className="neo-title">📧 Authorized Emails</h1>
-          <p className="neo-subtitle">Manage student email whitelist for registration</p>
+    <div className="space-y-6 text-black">
+      {banner && (
+        <div
+          className={`rounded-xl border px-4 py-3 text-sm ${
+            banner.type === 'error'
+              ? 'bg-red-50 border-red-300 text-red-700'
+              : 'bg-green-50 border-green-300 text-green-700'
+          }`}
+        >
+          {banner.message}
         </div>
+      )}
 
-        {/* Statistics Cards */}
-        <div className="neo-grid-4">
-          <div className="neo-card">
-            <div className="neo-card-value">{statistics.total || 0}</div>
-            <div className="neo-card-label">Total Authorized</div>
+      <section className="bg-gray-50 border border-black rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="h-11 w-11 rounded-xl border border-black bg-white flex items-center justify-center">
+              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2l7 4v6c0 5-3.5 9-7 10-3.5-1-7-5-7-10V6l7-4z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-black">Registration Access Control</h1>
+              <p className="text-sm text-gray-700 mt-1">
+                Manage who can register by adding emails manually or importing from CSV.
+              </p>
+            </div>
           </div>
-          <div className="neo-card">
-            <div className="neo-card-value">{statistics.active_count || 0}</div>
-            <div className="neo-card-label">Active</div>
-          </div>
-          <div className="neo-card">
-            <div className="neo-card-value">{statistics.used_count || 0}</div>
-            <div className="neo-card-label">Used</div>
-          </div>
-          <div className="neo-card">
-            <div className="neo-card-value">{statistics.available_count || 0}</div>
-            <div className="neo-card-label">Available</div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={openAddModal}
+              className="h-11 px-4 rounded-xl bg-black text-white border border-black hover:bg-gray-800 text-sm font-semibold"
+            >
+              + Add Email
+            </button>
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="h-11 px-4 rounded-xl bg-white text-black border border-black hover:bg-gray-100 text-sm font-semibold"
+            >
+              Upload CSV
+            </button>
+            <button
+              onClick={exportCurrentResults}
+              className="h-11 px-4 rounded-xl bg-transparent text-black border border-black hover:bg-gray-100 text-sm font-semibold"
+            >
+              Export CSV
+            </button>
           </div>
         </div>
+      </section>
 
-        {/* Filter Controls */}
-        <div className="neo-filter-bar">
-          <input
-            type="text"
-            placeholder="Search email, name, or USN..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="neo-input"
-          />
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {metricCards.map((card) => (
+          <div
+            key={card.title}
+            className="bg-white border border-black rounded-xl p-5 shadow-sm min-h-[148px] hover:shadow-md transition-shadow"
+          >
+            <div className={`h-10 w-10 rounded-lg border border-black ${card.iconBg} flex items-center justify-center`}>
+              <svg className={`w-5 h-5 ${card.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M12 3v18" />
+              </svg>
+            </div>
+            <p className="text-[32px] leading-none font-bold text-black mt-4">{card.value}</p>
+            <p className="text-sm font-semibold text-black mt-2">{card.title}</p>
+            <p className="text-xs text-gray-600 mt-1">{card.sub}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="bg-white border border-black rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="relative flex-1">
+            <svg className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 100-14.4 7.2 7.2 0 000 14.4z" />
+            </svg>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by email, student name, or USN"
+              className="w-full h-11 pl-10 pr-4 rounded-xl border border-black bg-white text-black text-sm"
+            />
+          </div>
+
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="neo-input"
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="h-11 px-4 rounded-xl border border-black bg-white text-black text-sm min-w-[160px]"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -350,288 +469,333 @@ function AuthorizedEmailsPage() {
             <option value="unused">Unused</option>
             <option value="inactive">Inactive</option>
           </select>
-          <select
-            value={branchFilter}
-            onChange={(e) => setBranchFilter(e.target.value)}
-            className="neo-input"
-          >
-            <option value="">All Branches</option>
-            {branchOptions.map(b => (
-              <option key={b} value={b}>{b}</option>
-            ))}
-          </select>
-          <select
-            value={batchYearFilter}
-            onChange={(e) => setBatchYearFilter(e.target.value)}
-            className="neo-input"
-          >
-            <option value="">All Batches</option>
-            {batchYearOptions.map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+
+          <div className="hidden lg:flex items-center h-11 px-2 text-gray-500">|</div>
+
+          <div className="flex gap-2">
+            <button onClick={openAddModal} className="h-11 px-4 rounded-xl bg-black text-white border border-black hover:bg-gray-800 text-sm font-semibold">
+              + Add Email
+            </button>
+            <button onClick={() => setShowBulkModal(true)} className="h-11 px-4 rounded-xl bg-white text-black border border-black hover:bg-gray-100 text-sm font-semibold">
+              Bulk Upload
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="neo-button-group">
-          <button onClick={handleAddEmail} className="neo-button neo-button-primary">
-            ➕ Add Email
-          </button>
-          <button onClick={() => setShowBulkModal(true)} className="neo-button neo-button-secondary">
-            📤 Bulk Upload CSV
-          </button>
-          <button onClick={handleExportCSV} className="neo-button neo-button-secondary">
-            ⬇️ Export CSV
-          </button>
-        </div>
-
-        {/* Data Table */}
-        {loading ? (
-          <div className="neo-loading">Loading...</div>
-        ) : emails.length === 0 ? (
-          <div className="neo-empty">No authorized emails found</div>
-        ) : (
-          <div className="neo-table-wrapper">
-            <table className="neo-table">
-              <thead>
+        <div className="hidden md:block overflow-x-auto border border-black rounded-xl">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-black sticky top-0 z-10">
+              <tr>
+                <SortableHeader label="Email" column="email" onSort={handleSort} marker={getSortMarker('email')} />
+                <SortableHeader label="Student" column="student_name" onSort={handleSort} marker={getSortMarker('student_name')} />
+                <SortableHeader label="USN" column="usn" onSort={handleSort} marker={getSortMarker('usn')} />
+                <SortableHeader label="Branch" column="branch" onSort={handleSort} marker={getSortMarker('branch')} />
+                <SortableHeader label="Batch" column="batch_year" onSort={handleSort} marker={getSortMarker('batch_year')} />
+                <SortableHeader label="Status" column="is_active" onSort={handleSort} marker={getSortMarker('is_active')} />
+                <SortableHeader label="Created" column="created_at" onSort={handleSort} marker={getSortMarker('created_at')} />
+                <th className="px-4 py-3 text-right font-semibold text-black">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {loading ? (
                 <tr>
-                  <th>Email</th>
-                  <th>Student Name</th>
-                  <th>USN</th>
-                  <th>Branch</th>
-                  <th>Batch</th>
-                  <th>Status</th>
-                  <th>Used By</th>
-                  <th>Added By</th>
-                  <th>Created</th>
-                  <th>Actions</th>
+                  <td colSpan="8" className="px-4 py-10 text-center text-gray-600">Loading authorized emails...</td>
                 </tr>
-              </thead>
-              <tbody>
-                {emails.map(email => (
-                  <tr key={email.id}>
-                    <td className="neo-email">{email.email}</td>
-                    <td>{email.student_name || '-'}</td>
-                    <td>{email.usn || '-'}</td>
-                    <td>{email.branch || '-'}</td>
-                    <td>{email.batch_year || '-'}</td>
-                    <td>{getStatusBadge(email)}</td>
-                    <td>{email.used_by_name || '-'}</td>
-                    <td>{email.added_by_name || '-'}</td>
-                    <td className="neo-date">
-                      {new Date(email.created_at).toLocaleDateString()}
+              ) : emails.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="px-4 py-10 text-center text-gray-600">No records found.</td>
+                </tr>
+              ) : (
+                emails.map((email, index) => (
+                  <tr key={email.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100`}>
+                    <td className="px-4 py-3 text-black font-medium min-h-[48px]">{email.email}</td>
+                    <td className="px-4 py-3 text-black">{email.student_name || '-'}</td>
+                    <td className="px-4 py-3 text-black">{email.usn || '-'}</td>
+                    <td className="px-4 py-3 text-black">{email.branch || '-'}</td>
+                    <td className="px-4 py-3 text-black">{email.batch_year || '-'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge(email)}`}>
+                        {statusLabel(email)}
+                      </span>
                     </td>
-                    <td className="neo-actions">
-                      <button
-                        onClick={() => handleToggleStatus(email.id)}
-                        className="neo-button-small neo-button-info"
-                        title={email.is_active ? 'Deactivate' : 'Activate'}
-                      >
-                        {email.is_active ? '⏸️' : '▶️'}
-                      </button>
-                      <button
-                        onClick={() => handleEditEmail(email)}
-                        className="neo-button-small neo-button-warning"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEmail(email.id, email.email)}
-                        className="neo-button-small neo-button-danger"
-                        disabled={email.is_used}
-                        title={email.is_used ? 'Cannot delete used email' : 'Delete'}
-                      >
-                        🗑️
-                      </button>
+                    <td className="px-4 py-3 text-black">
+                      {email.created_at ? new Date(email.created_at).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => openEditModal(email)} className="h-8 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-xs font-semibold">
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => askDisableOrEnable(email)}
+                          className="h-8 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-xs font-semibold"
+                        >
+                          {email.is_active ? 'Disable' : 'Enable'}
+                        </button>
+                        <button onClick={() => askDelete(email)} className="h-8 px-3 rounded-lg border border-red-500 text-red-700 bg-red-50 hover:bg-red-100 text-xs font-semibold">
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Add/Edit Modal */}
-        {showModal && (
-          <div className="neo-modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="neo-modal" onClick={e => e.stopPropagation()}>
-              <div className="neo-modal-header">
-                <h2>{modalMode === 'add' ? 'Add Authorized Email' : 'Edit Email'}</h2>
-                <button onClick={() => setShowModal(false)} className="neo-modal-close">×</button>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="md:hidden space-y-3">
+          {loading ? (
+            <div className="p-6 text-center border border-black rounded-xl text-gray-600">Loading authorized emails...</div>
+          ) : emails.length === 0 ? (
+            <div className="p-6 text-center border border-black rounded-xl text-gray-600">No records found.</div>
+          ) : (
+            emails.map((email) => (
+              <div key={email.id} className="border border-black rounded-xl p-4 bg-white space-y-2">
+                <p className="text-sm"><span className="font-semibold">Email:</span> {email.email}</p>
+                <p className="text-sm"><span className="font-semibold">Student:</span> {email.student_name || '-'}</p>
+                <p className="text-sm"><span className="font-semibold">USN:</span> {email.usn || '-'}</p>
+                <p className="text-sm"><span className="font-semibold">Branch:</span> {email.branch || '-'}</p>
+                <p className="text-sm"><span className="font-semibold">Batch:</span> {email.batch_year || '-'}</p>
+                <p className="text-sm">
+                  <span className="font-semibold">Status:</span>{' '}
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${statusBadge(email)}`}>
+                    {statusLabel(email)}
+                  </span>
+                </p>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => openEditModal(email)} className="h-9 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-xs font-semibold">
+                    Edit
+                  </button>
+                  <button onClick={() => askDisableOrEnable(email)} className="h-9 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-xs font-semibold">
+                    {email.is_active ? 'Disable' : 'Enable'}
+                  </button>
+                  <button onClick={() => askDelete(email)} className="h-9 px-3 rounded-lg border border-red-500 text-red-700 bg-red-50 hover:bg-red-100 text-xs font-semibold">
+                    Delete
+                  </button>
+                </div>
               </div>
+            ))
+          )}
+        </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="neo-form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={modalMode === 'edit'}
-                    className={`neo-input ${formErrors.email ? 'neo-error' : ''}`}
-                    placeholder="student@college.edu"
-                  />
-                  {formErrors.email && <div className="neo-error-text">{formErrors.email}</div>}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-black pt-4">
+          <p className="text-sm text-gray-700">
+            Showing {startEntry}-{endEntry} of {pagination.total || 0} entries
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-9 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            {pageNumbers.map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`h-9 min-w-[36px] px-2 rounded-lg border text-sm ${
+                  currentPage === page
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-black border-black hover:bg-gray-100'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-9 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {showEntryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowEntryModal(false)} />
+          <div className="relative w-full max-w-xl bg-white border border-black rounded-2xl shadow-xl p-6">
+            <h2 className="text-xl font-bold text-black">
+              {entryMode === 'edit' ? 'Edit Authorization Entry' : 'Add Authorization Entry'}
+            </h2>
+            <p className="text-sm text-gray-700 mt-1">Only whitelisted emails can register on the platform.</p>
+
+            <form onSubmit={handleSubmitEntry} className="mt-5 space-y-3">
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="student@college.edu"
+                className="w-full h-11 px-4 rounded-xl border border-black bg-white text-black text-sm"
+              />
+              {formErrors.email && <p className="text-xs text-red-700">{formErrors.email}</p>}
+              <input
+                type="text"
+                value={formData.student_name}
+                onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
+                placeholder="Student Name"
+                className="w-full h-11 px-4 rounded-xl border border-black bg-white text-black text-sm"
+              />
+              <input
+                type="text"
+                value={formData.usn}
+                onChange={(e) => setFormData({ ...formData, usn: e.target.value })}
+                placeholder="USN"
+                className="w-full h-11 px-4 rounded-xl border border-black bg-white text-black text-sm"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={formData.branch}
+                  onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                  placeholder="Branch"
+                  className="w-full h-11 px-4 rounded-xl border border-black bg-white text-black text-sm"
+                />
+                <input
+                  type="number"
+                  value={formData.batch_year}
+                  onChange={(e) => setFormData({ ...formData, batch_year: e.target.value })}
+                  placeholder="Batch Year"
+                  className="w-full h-11 px-4 rounded-xl border border-black bg-white text-black text-sm"
+                />
+              </div>
+              <textarea
+                rows={3}
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Notes (optional)"
+                className="w-full px-4 py-2 rounded-xl border border-black bg-white text-black text-sm"
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEntryModal(false)}
+                  className="h-10 px-4 rounded-xl border border-black bg-white hover:bg-gray-100 text-sm font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-10 px-4 rounded-xl border border-black bg-black text-white hover:bg-gray-800 text-sm font-semibold"
+                >
+                  {entryMode === 'edit' ? 'Save Changes' : 'Add Entry'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showBulkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBulkModal(false)} />
+          <div className="relative w-full max-w-2xl bg-white border border-black rounded-2xl shadow-xl p-6">
+            <h2 className="text-xl font-bold text-black">Bulk Upload Whitelist</h2>
+            <p className="text-sm text-gray-700 mt-1">Upload a CSV exported from Excel. Required field: email.</p>
+
+            <div className="mt-4 space-y-3">
+              <input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileSelect}
+                className="w-full h-11 px-3 py-2 rounded-xl border border-black bg-white text-black text-sm"
+              />
+
+              {csvErrors.length > 0 && (
+                <div className="rounded-xl border border-red-400 bg-red-50 p-3 text-sm text-red-700">
+                  {csvErrors.map((error, idx) => (
+                    <p key={idx}>{error}</p>
+                  ))}
                 </div>
+              )}
 
-                <div className="neo-form-group">
-                  <label>Student Name</label>
-                  <input
-                    type="text"
-                    name="student_name"
-                    value={formData.student_name}
-                    onChange={handleInputChange}
-                    className="neo-input"
-                    placeholder="Optional"
-                  />
-                </div>
-
-                <div className="neo-form-group">
-                  <label>USN</label>
-                  <input
-                    type="text"
-                    name="usn"
-                    value={formData.usn}
-                    onChange={handleInputChange}
-                    className="neo-input"
-                    placeholder="Optional"
-                  />
-                </div>
-
-                <div className="neo-form-row">
-                  <div className="neo-form-group">
-                    <label>Branch</label>
-                    <select
-                      name="branch"
-                      value={formData.branch}
-                      onChange={handleInputChange}
-                      className="neo-input"
-                    >
-                      <option value="">Select Branch</option>
-                      {branchOptions.map(b => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                    </select>
+              {csvPreview.length > 0 && (
+                <div className="rounded-xl border border-black overflow-hidden">
+                  <div className="px-3 py-2 border-b border-black bg-gray-50 text-xs font-semibold text-black">
+                    Preview ({csvPreview.length} rows shown)
                   </div>
-
-                  <div className="neo-form-group">
-                    <label>Batch Year</label>
-                    <select
-                      name="batch_year"
-                      value={formData.batch_year}
-                      onChange={handleInputChange}
-                      className="neo-input"
-                    >
-                      <option value="">Select Batch</option>
-                      {batchYearOptions.map(y => (
-                        <option key={y} value={y}>{y}</option>
+                  <table className="w-full text-sm">
+                    <thead className="bg-white border-b border-black text-black">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Email</th>
+                        <th className="px-3 py-2 text-left">Student Name</th>
+                        <th className="px-3 py-2 text-left">USN</th>
+                        <th className="px-3 py-2 text-left">Branch</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {csvPreview.map((row, idx) => (
+                        <tr key={idx}>
+                          <td className="px-3 py-2">{row.email || '-'}</td>
+                          <td className="px-3 py-2">{row.student_name || '-'}</td>
+                          <td className="px-3 py-2">{row.usn || '-'}</td>
+                          <td className="px-3 py-2">{row.branch || '-'}</td>
+                        </tr>
                       ))}
-                    </select>
-                  </div>
+                    </tbody>
+                  </table>
                 </div>
+              )}
+            </div>
 
-                <div className="neo-form-group">
-                  <label>Notes</label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    className="neo-input neo-textarea"
-                    placeholder="Optional admin notes"
-                    rows="3"
-                  />
-                </div>
-
-                <div className="neo-modal-actions">
-                  <button type="button" onClick={() => setShowModal(false)} className="neo-button neo-button-secondary">
-                    Cancel
-                  </button>
-                  <button type="submit" className="neo-button neo-button-primary">
-                    {modalMode === 'add' ? 'Add Email' : 'Update Email'}
-                  </button>
-                </div>
-              </form>
+            <div className="flex justify-end gap-2 pt-5">
+              <button
+                type="button"
+                onClick={() => setShowBulkModal(false)}
+                className="h-10 px-4 rounded-xl border border-black bg-white hover:bg-gray-100 text-sm font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkUpload}
+                disabled={!csvFile || csvErrors.length > 0}
+                className="h-10 px-4 rounded-xl border border-black bg-black text-white hover:bg-gray-800 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Upload
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Bulk Upload Modal */}
-        {showBulkModal && (
-          <div className="neo-modal-overlay" onClick={() => setShowBulkModal(false)}>
-            <div className="neo-modal" onClick={e => e.stopPropagation()}>
-              <div className="neo-modal-header">
-                <h2>Bulk Upload CSV</h2>
-                <button onClick={() => setShowBulkModal(false)} className="neo-modal-close">×</button>
-              </div>
-
-              <div className="neo-modal-content">
-                <p className="neo-text-muted">CSV Format: email, student_name, usn, branch, batch_year, notes</p>
-
-                <div className="neo-form-group">
-                  <label>Select CSV File</label>
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileSelect}
-                    className="neo-input"
-                  />
-                </div>
-
-                {csvErrors.length > 0 && (
-                  <div className="neo-error">
-                    {csvErrors.map((error, i) => (
-                      <div key={i}>{error}</div>
-                    ))}
-                  </div>
-                )}
-
-                {csvPreview.length > 0 && (
-                  <div>
-                    <p className="neo-text-muted">Preview (showing {csvPreview.length} of {csvPreview.length} emails):</p>
-                    <div className="neo-table-wrapper">
-                      <table className="neo-table neo-table-small">
-                        <thead>
-                          <tr>
-                            <th>Email</th>
-                            <th>Name</th>
-                            <th>USN</th>
-                            <th>Branch</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {csvPreview.map((email, i) => (
-                            <tr key={i}>
-                              <td>{email.email}</td>
-                              <td>{email.student_name || '-'}</td>
-                              <td>{email.usn || '-'}</td>
-                              <td>{email.branch || '-'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                <div className="neo-modal-actions">
-                  <button onClick={() => setShowBulkModal(false)} className="neo-button neo-button-secondary">
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleBulkUpload}
-                    disabled={!csvFile || csvErrors.length > 0}
-                    className="neo-button neo-button-primary"
-                  >
-                    Upload
-                  </button>
-                </div>
-              </div>
+      {showConfirmModal && confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowConfirmModal(false)} />
+          <div className="relative w-full max-w-md bg-white border border-black rounded-2xl shadow-xl p-6">
+            <h3 className="text-lg font-bold text-black">{confirmAction.title}</h3>
+            <p className="text-sm text-gray-700 mt-2">{confirmAction.message}</p>
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="h-10 px-4 rounded-xl border border-black bg-white hover:bg-gray-100 text-sm font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                className="h-10 px-4 rounded-xl border border-black bg-black text-white hover:bg-gray-800 text-sm font-semibold"
+              >
+                Confirm
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function SortableHeader({ label, column, onSort, marker }) {
+  return (
+    <th className="px-4 py-3 text-left font-semibold text-black">
+      <button onClick={() => onSort(column)} className="inline-flex items-center bg-transparent border-none p-0 cursor-pointer text-black font-semibold">
+        {label}
+        {marker}
+      </button>
+    </th>
   );
 }
 

@@ -27,7 +27,15 @@ export const getAllAuthorizedEmails = async (filters = {}) => {
   });
 
   if (!res.ok) {
-    throw new Error('Failed to fetch authorized emails');
+    let message = 'Failed to fetch authorized emails';
+    try {
+      const error = await res.json();
+      if (error?.message) message = error.message;
+      if (error?.error) message = `${message}: ${error.error}`;
+    } catch (_) {
+      // Keep default message when response is not JSON
+    }
+    throw new Error(message);
   }
 
   return res.json();

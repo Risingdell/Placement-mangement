@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 function AdminDashboardLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -11,6 +11,19 @@ function AdminDashboardLayout() {
     logout();
     navigate('/admin/login');
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: (
@@ -68,11 +81,18 @@ function AdminDashboardLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
+        className={`fixed top-0 left-0 z-40 h-screen transition-transform duration-300 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } bg-gradient-to-b from-purple-900 to-indigo-900 w-64 shadow-xl`}
+        } lg:translate-x-0 bg-gradient-to-b from-purple-900 to-indigo-900 w-64 shadow-xl`}
       >
         <div className="h-full px-3 py-4 overflow-y-auto flex flex-col">
           {/* Logo */}
@@ -95,6 +115,9 @@ function AdminDashboardLayout() {
                 key={item.path}
                 to={item.path}
                 end={item.path === '/admin/dashboard'}
+                onClick={() => {
+                  if (window.innerWidth < 1024) setSidebarOpen(false);
+                }}
                 className={({ isActive }) =>
                   `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
@@ -130,7 +153,7 @@ function AdminDashboardLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className={`${sidebarOpen ? 'ml-64' : 'ml-0'} transition-all duration-300`}>
+      <div className="lg:ml-64 transition-all duration-300">
         {/* Top Bar */}
         <header className="bg-white shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-6 py-4">

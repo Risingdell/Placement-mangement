@@ -14,12 +14,29 @@ exports.getAllAuthorizedEmails = async (req, res) => {
       offset = 0
     } = req.query;
 
+    const allowedSortColumns = new Set([
+      'id',
+      'email',
+      'student_name',
+      'usn',
+      'branch',
+      'batch_year',
+      'is_active',
+      'is_used',
+      'created_at',
+      'updated_at'
+    ]);
+    const safeSortBy = allowedSortColumns.has(sortBy) ? sortBy : 'created_at';
+    const safeOrder = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    const safeLimit = Number.isFinite(parseInt(limit, 10)) ? Math.max(1, parseInt(limit, 10)) : 20;
+    const safeOffset = Number.isFinite(parseInt(offset, 10)) ? Math.max(0, parseInt(offset, 10)) : 0;
+
     let whereClause = '1=1';
     const params = [];
 
     // Search filter (email, student_name, usn)
     if (search) {
-      whereClause += ' AND (email LIKE ? OR student_name LIKE ? OR usn LIKE ?)';
+      whereClause += ' AND (ae.email LIKE ? OR ae.student_name LIKE ? OR ae.usn LIKE ?)';
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
@@ -36,19 +53,19 @@ exports.getAllAuthorizedEmails = async (req, res) => {
 
     // Batch year filter
     if (batch_year) {
-      whereClause += ' AND batch_year = ?';
+      whereClause += ' AND ae.batch_year = ?';
       params.push(batch_year);
     }
 
     // Branch filter
     if (branch) {
-      whereClause += ' AND branch = ?';
+      whereClause += ' AND ae.branch = ?';
       params.push(branch);
     }
 
     // Get total count
     const [countResult] = await promisePool.query(
-      `SELECT COUNT(*) as total FROM authorized_emails WHERE ${whereClause}`,
+      `SELECT COUNT(*) as total FROM authorized_emails ae WHERE ${whereClause}`,
       params
     );
     const total = countResult[0].total;
@@ -62,9 +79,9 @@ exports.getAllAuthorizedEmails = async (req, res) => {
        LEFT JOIN users u1 ON ae.added_by = u1.id
        LEFT JOIN users u2 ON ae.used_by_user_id = u2.id
        WHERE ${whereClause}
-       ORDER BY ae.${sortBy} ${order}
+       ORDER BY ae.${safeSortBy} ${safeOrder}
        LIMIT ? OFFSET ?`,
-      [...params, parseInt(limit), parseInt(offset)]
+      [...params, safeLimit, safeOffset]
     );
 
     // Get statistics
@@ -82,9 +99,9 @@ exports.getAllAuthorizedEmails = async (req, res) => {
       data: emails,
       pagination: {
         total,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        totalPages: Math.ceil(total / parseInt(limit))
+        limit: safeLimit,
+        offset: safeOffset,
+        totalPages: Math.ceil(total / safeLimit)
       },
       statistics: stats[0]
     });
