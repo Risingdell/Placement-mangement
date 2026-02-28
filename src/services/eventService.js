@@ -30,10 +30,23 @@ export const getCalendarEvents = async (year, month) => {
   });
 };
 
+// Admin-only event services
+export const createEvent = async (data) =>
+  apiRequest('/events', { method: 'POST', body: JSON.stringify(data) });
+
+export const updateEvent = async (id, data) =>
+  apiRequest(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+
+export const deleteEvent = async (id) =>
+  apiRequest(`/events/${id}`, { method: 'DELETE' });
+
 export default {
   getAllEvents,
   getEventById,
   getUpcomingEvents,
   getEventsByDateRange,
   getCalendarEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent,
 };

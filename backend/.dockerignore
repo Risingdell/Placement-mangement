@@ -1,0 +1,17 @@
+# Dependencies — reinstalled inside container via npm ci
+node_modules
+
+# Environment secrets — injected at runtime via docker-compose env vars
+.env
+
+# Uploaded files — stored in a named Docker volume, not baked into image
+uploads
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dev tools
+.git
+.gitignore
+README.md
