@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://placement-mangement-system-w83k.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://placement-mangement-system-w83k.onrender.com/uploads/:path*"
     }
   ]
 }

@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/admin/authorized-emails';
+const API_URL = '/api/admin/authorized-emails';
 
 // Get authorization token
 const getAuthHeaders = () => ({
@@ -149,7 +149,7 @@ export const getStatistics = async () => {
 export const checkEmailAuthorization = async (email) => {
   try {
     // Uses the auth route - completely public, no admin middleware
-    const res = await fetch(`http://localhost:5000/api/auth/check-email/${encodeURIComponent(email)}`);
+    const res = await fetch(`/api/auth/check-email/${encodeURIComponent(email)}`);
     const data = await res.json();
     return data;
   } catch (error) {

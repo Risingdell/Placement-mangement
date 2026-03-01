@@ -7,8 +7,7 @@ import inboxService from '../../services/inboxService';
 const resolveMediaUrl = (url) => {
   if (!url) return '';
   if (/^https?:\/\//i.test(url)) return url;
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const apiOrigin = apiBase.replace(/\/api\/?$/, '');
+  const apiOrigin = '';
   return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
