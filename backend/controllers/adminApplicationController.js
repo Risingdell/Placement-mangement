@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const { promisePool: db } = require('../config/database');
 
 // Get all applications with filters
 exports.getAllApplications = async (req, res) => {

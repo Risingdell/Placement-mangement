@@ -693,7 +693,23 @@ function AuthorizedEmailsPage() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBulkModal(false)} />
           <div className="relative w-full max-w-2xl bg-white border border-black rounded-2xl shadow-xl p-6">
             <h2 className="text-xl font-bold text-black">Bulk Upload Whitelist</h2>
-            <p className="text-sm text-gray-700 mt-1">Upload a CSV exported from Excel. Required field: email.</p>
+            <p className="text-sm text-gray-700 mt-1">Upload a CSV file with student emails. Required column: <code className="bg-gray-100 px-1 rounded text-xs font-mono">email</code></p>
+
+            {/* Column format guide */}
+            <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 space-y-1">
+              <p className="font-semibold text-black">Required column order in your CSV / Excel:</p>
+              <div className="font-mono bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 overflow-x-auto whitespace-nowrap">
+                email &nbsp;|&nbsp; student_name &nbsp;|&nbsp; usn &nbsp;|&nbsp; branch &nbsp;|&nbsp; batch_year
+              </div>
+              <p className="text-gray-500">Columns are case-insensitive. Only <span className="font-semibold text-black">email</span> is required — others are optional but recommended.</p>
+              <a
+                href="/templates/authorized_emails_template.csv"
+                download="authorized_emails_template.csv"
+                className="inline-flex items-center gap-1 mt-1 text-black font-semibold underline underline-offset-2 hover:text-gray-600"
+              >
+                ↓ Download pre-filled template (25 students)
+              </a>
+            </div>
 
             <div className="mt-4 space-y-3">
               <input

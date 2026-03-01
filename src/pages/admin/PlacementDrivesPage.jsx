@@ -91,12 +91,24 @@ function PlacementDrivesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
+    // Map frontend snake_case form fields to backend camelCase field names
+    const payload = {
+      companyName:          formData.company_name,
+      role:                 formData.role,
+      ctc:                  formData.ctc || null,
+      driveDate:            formData.drive_date,
+      registrationDeadline: formData.application_deadline || null,
+      minCgpa:              formData.min_cgpa || null,
+      maxBacklogs:          formData.max_backlogs !== '' ? formData.max_backlogs : null,
+      jobDescription:       formData.description || null,
+      status:               formData.status,
+    };
     try {
       setSaving(true);
       if (modalMode === 'add') {
-        await createDrive(formData);
+        await createDrive(payload);
       } else {
-        await updateDrive(selectedDrive.id, formData);
+        await updateDrive(selectedDrive.id, payload);
       }
       setShowModal(false);
       fetchDrives();

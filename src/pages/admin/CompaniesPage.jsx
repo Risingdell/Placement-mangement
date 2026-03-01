@@ -29,8 +29,8 @@ function CompaniesPage() {
     allowedBatchYears: []
   });
 
-  const branchOptions = ['CSE', 'ISE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'AI&ML', 'DS'];
-  const batchYearOptions = ['2024', '2025', '2026', '2027'];
+  const branchOptions = ['CSE', 'ISE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'AI&ML', 'AIDS', 'DS'];
+  const batchYearOptions = ['2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027'];
 
   // Fetch companies on mount
   useEffect(() => {
@@ -506,7 +506,7 @@ function CompaniesPage() {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
                       placeholder="e.g., Google"
                     />
                   </div>
@@ -519,7 +519,7 @@ function CompaniesPage() {
                       required
                       value={formData.company_type}
                       onChange={(e) => setFormData({ ...formData, company_type: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
                     >
                       <option value="Product">Product Based</option>
                       <option value="Service">Service Based</option>
@@ -536,7 +536,7 @@ function CompaniesPage() {
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
                     placeholder="e.g., Bangalore"
                   />
                 </div>
@@ -549,7 +549,7 @@ function CompaniesPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
                     placeholder="Brief description about the role and company"
                   />
                 </div>
@@ -570,7 +570,7 @@ function CompaniesPage() {
                         max="10"
                         value={formData.minCgpa}
                         onChange={(e) => setFormData({ ...formData, minCgpa: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
                         placeholder="e.g., 7.0"
                       />
                     </div>
@@ -584,7 +584,7 @@ function CompaniesPage() {
                         min="0"
                         value={formData.maxBacklogs}
                         onChange={(e) => setFormData({ ...formData, maxBacklogs: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
                         placeholder="e.g., 0"
                       />
                     </div>

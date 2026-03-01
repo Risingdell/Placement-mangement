@@ -82,12 +82,20 @@ function EventsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
+    // Map frontend snake_case form fields to backend camelCase field names
+    const payload = {
+      title: formData.title,
+      eventType: formData.type,
+      eventDate: formData.event_date,
+      location: formData.location,
+      description: formData.description,
+    };
     try {
       setSaving(true);
       if (modalMode === 'add') {
-        await createEvent(formData);
+        await createEvent(payload);
       } else {
-        await updateEvent(selectedEvent.id, formData);
+        await updateEvent(selectedEvent.id, payload);
       }
       setShowModal(false);
       fetchEvents();

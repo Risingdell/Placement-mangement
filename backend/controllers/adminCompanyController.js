@@ -102,6 +102,9 @@ exports.createCompany = async (req, res) => {
       company_size, is_active
     } = req.body;
 
+    // mysql2 rejects undefined — convert every optional field to null
+    const toNull = (v) => (v === undefined || v === '') ? null : v;
+
     const [result] = await promisePool.query(
       `INSERT INTO companies (
         name, company_type, industry, location, website, description,
@@ -109,9 +112,17 @@ exports.createCompany = async (req, res) => {
         company_size, is_active, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
-        name, company_type, industry, location, website, description,
-        contact_email, contact_phone, hr_name,
-        company_size, is_active !== undefined ? is_active : 1
+        name,
+        toNull(company_type) || 'Other',
+        toNull(industry),
+        toNull(location),
+        toNull(website),
+        toNull(description),
+        toNull(contact_email),
+        toNull(contact_phone),
+        toNull(hr_name),
+        toNull(company_size),
+        is_active !== undefined ? is_active : 1
       ]
     );
 
@@ -142,7 +153,12 @@ exports.createCompany = async (req, res) => {
 exports.updateCompany = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateFields = req.body;
+    // Strip undefined values so mysql2 doesn't throw; convert '' to null
+    const updateFields = Object.fromEntries(
+      Object.entries(req.body)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, v === '' ? null : v])
+    );
 
     const setClause = Object.keys(updateFields)
       .map(key => `${key} = ?`)

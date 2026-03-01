@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const { promisePool: db } = require('../config/database');
 
 // Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
