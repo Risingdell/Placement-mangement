@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec placement_backend wget -qO- --post-data='{\"\"email\"\":\"\"dhanush718718m@gmail.com\"\",\"\"password\"\":\"\"password123\"\"}' --header='Content-Type: application/json' http://localhost:5000/api/auth/login)"
+    ]
+  }
+}
