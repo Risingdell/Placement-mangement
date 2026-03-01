@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import authService from "../../services/authService";
+import authorizedEmailService from "../../services/authorizedEmailService";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,9 @@ function Register() {
     branch: "",
     batchYear: ""
   });
+  const [emailError, setEmailError] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -19,13 +23,42 @@ function Register() {
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear errors when user starts typing
+    if (e.target.name === 'email') {
+      setEmailError("");
+    }
+    setError("");
+  };
+
+  const handleEmailBlur = async () => {
+    if (!formData.email) return;
+
+    try {
+      setChecking(true);
+      const result = await authorizedEmailService.checkEmailAuthorization(formData.email);
+      if (!result.authorized) {
+        setEmailError("This email is not authorized for registration. Please contact the placement office.");
+      } else {
+        setEmailError("");
+      }
+    } catch (err) {
+      // Silent fail - will be caught during registration
+      console.error('Email check failed:', err);
+    } finally {
+      setChecking(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.usn || !formData.email || !formData.password || !formData.fullName || !formData.branch || !formData.batchYear) {
-      alert("All fields are required");
+      setError("All fields are required");
+      return;
+    }
+
+    if (emailError) {
+      setError("Please fix the email error before proceeding");
       return;
     }
 
@@ -34,87 +67,151 @@ function Register() {
       alert("Registration successful! Please login.");
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      const errorMessage = err.response?.data?.message || "Registration failed";
+
+      // Highlight email authorization errors
+      if (errorMessage.includes('not authorized') || errorMessage.includes('already been used')) {
+        setEmailError(errorMessage);
+        setError("Email Authorization Error - " + errorMessage);
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 
   return (
-    <div style={{ maxWidth: '500px', margin: '50px auto', padding: '20px' }}>
-      <form onSubmit={handleSubmit}>
-        <h2>Student Registration</h2>
+    <div className="neo-page-container">
+      <div className="max-w-xl w-full relative">
+        <div className="neo-form">
+          <div className="text-center mb-4">
+            <p className="neo-title">
+              STUDENT<span>REGISTRATION</span>
+            </p>
+            <div className="neo-subtitle mt-2">Join the placement management system</div>
+          </div>
 
-        <input
-          type="text"
-          name="usn"
-          placeholder="USN (e.g., 1MS21CS001)"
-          value={formData.usn}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+          {error && (
+            <div className="neo-error mb-4">
+              {error}
+            </div>
+          )}
 
-        <input
-          type="text"
-          name="fullName"
-          placeholder="Full Name"
-          value={formData.fullName}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">USN</label>
+              <input
+                type="text"
+                name="usn"
+                placeholder="e.g., 1MS21CS001"
+                value={formData.usn}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">Full Name</label>
+              <input
+                type="text"
+                name="fullName"
+                placeholder="Your Full Name"
+                value={formData.fullName}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password (min 6 characters)"
-          value={formData.password}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">Email</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="student@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleEmailBlur}
+                className={`neo-input ${emailError ? 'border-red-500' : ''}`}
+              />
+              {emailError && (
+                <div className="neo-error-text text-red-600 text-sm">
+                  {emailError}
+                </div>
+              )}
+              {checking && (
+                <div className="text-blue-600 text-sm">
+                  ✓ Checking email...
+                </div>
+              )}
+            </div>
 
-        <input
-          type="tel"
-          name="phone"
-          placeholder="Phone Number"
-          value={formData.phone}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="6+ characters"
+                value={formData.password}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
 
-        <input
-          type="text"
-          name="branch"
-          placeholder="Branch (e.g., Computer Science)"
-          value={formData.branch}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
 
-        <input
-          type="number"
-          name="batchYear"
-          placeholder="Batch Year (e.g., 2021)"
-          value={formData.batchYear}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-        />
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">Branch</label>
+              <input
+                type="text"
+                name="branch"
+                placeholder="e.g., Computer Science"
+                value={formData.branch}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
 
-        <button type="submit" style={{ width: '100%', padding: '10px', margin: '10px 0', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px' }}>
-          Register
-        </button>
-      </form>
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">Batch Year</label>
+              <input
+                type="number"
+                name="batchYear"
+                placeholder="e.g., 2021"
+                value={formData.batchYear}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
 
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <p>
-          Already have an account? <Link to="/login">Login here</Link>
-        </p>
+            <div className="md:col-span-2 mt-4">
+              <button type="submit" className="neo-button bg-[#4CAF50] !text-white hover:!text-white">
+                Register
+              </button>
+            </div>
+          </form>
+
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="neo-separator">
+              <div></div>
+              <span>OR</span>
+              <div></div>
+            </div>
+            <div className="text-center">
+              <p className="neo-subtitle">
+                Already have an account? <Link to="/login" className="font-bold underline">Login here</Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -49,8 +49,8 @@ function KPIBar() {
         {/* CGPA */}
         <div style={styles.kpiCard}>
           <div style={styles.kpiLabel}>CGPA</div>
-          <div style={{...styles.kpiValue, color: eligibility.cgpa >= 6.0 ? '#4CAF50' : '#f44336'}}>
-            {eligibility.cgpa ? eligibility.cgpa.toFixed(2) : 'N/A'}
+          <div style={{...styles.kpiValue, color: parseFloat(eligibility.cgpa) >= 6.0 ? '#4CAF50' : '#f44336'}}>
+            {eligibility.cgpa ? parseFloat(eligibility.cgpa).toFixed(2) : 'N/A'}
           </div>
           <div style={styles.kpiSubtext}>
             Min Required: {eligibility.criteria?.minCgpa || 6.0}
@@ -61,7 +61,7 @@ function KPIBar() {
         <div style={styles.kpiCard}>
           <div style={styles.kpiLabel}>Current SGPA</div>
           <div style={styles.kpiValue}>
-            {profile.sgpa ? profile.sgpa.toFixed(2) : 'N/A'}
+            {profile.sgpa ? parseFloat(profile.sgpa).toFixed(2) : 'N/A'}
           </div>
           <div style={styles.kpiSubtext}>Semester {profile.current_semester || '-'}</div>
         </div>

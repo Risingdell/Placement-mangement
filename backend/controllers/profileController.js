@@ -1,19 +1,49 @@
 const { promisePool } = require('../config/database');
 const path = require('path');
 
+const ensurePortfoliosTable = async () => {
+  await promisePool.query(
+    `CREATE TABLE IF NOT EXISTS portfolios (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      user_id INT NOT NULL,
+      title VARCHAR(150) NOT NULL,
+      portfolio_url VARCHAR(500) NOT NULL,
+      description TEXT NULL,
+      built_with VARCHAR(500) NULL,
+      build_details TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_portfolios_user_id (user_id),
+      CONSTRAINT fk_portfolios_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
+  );
+};
+
 // @desc    Get student profile with all details
 // @route   GET /api/profile
 // @access  Private
 const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
+    await ensurePortfoliosTable();
+
+    const [academicColumns] = await promisePool.query(
+      `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'student_academics'`
+    );
+    const academicColSet = new Set(academicColumns.map((c) => c.COLUMN_NAME));
+    const diplomaSelect = academicColSet.has('diploma_percentage')
+      ? ', sa.diploma_percentage'
+      : '';
 
     // Get basic info and academics
     const [profile] = await promisePool.query(
       `SELECT u.id, u.usn, u.email, u.full_name, u.phone, u.is_placed,
               sa.branch, sa.batch_year, sa.current_semester, sa.cgpa, sa.sgpa,
               sa.total_backlogs, sa.active_backlogs, sa.tenth_percentage, sa.twelfth_percentage,
-              sa.photo_url, sa.resume_url
+              sa.photo_url, sa.resume_url${diplomaSelect}
        FROM users u
        LEFT JOIN student_academics sa ON u.id = sa.user_id
        WHERE u.id = ?`,
@@ -57,6 +87,15 @@ const getProfile = async (req, res) => {
       [userId]
     );
 
+    // Get portfolio links
+    const [portfolios] = await promisePool.query(
+      `SELECT id, title, portfolio_url, description, built_with, build_details, created_at, updated_at
+       FROM portfolios
+       WHERE user_id = ?
+       ORDER BY updated_at DESC`,
+      [userId]
+    );
+
     res.json({
       success: true,
       data: {
@@ -65,7 +104,8 @@ const getProfile = async (req, res) => {
         projects,
         internships,
         achievements,
-        semesterMarks
+        semesterMarks,
+        portfolios
       }
     });
   } catch (error) {
@@ -83,32 +123,107 @@ const getProfile = async (req, res) => {
 const updateAcademics = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {
-      branch,
-      batchYear,
-      currentSemester,
-      cgpa,
-      sgpa,
-      totalBacklogs,
-      activeBacklogs,
-      tenthPercentage,
-      twelfthPercentage
-    } = req.body;
+    // Accept both camelCase and snake_case payloads from frontend.
+    const activeBacklogsValue = req.body.activeBacklogs ?? req.body.active_backlogs;
+    const incomingUpdates = {
+      branch: req.body.branch,
+      batch_year: req.body.batchYear ?? req.body.batch_year,
+      current_semester: req.body.currentSemester ?? req.body.current_semester,
+      cgpa: req.body.cgpa,
+      sgpa: req.body.sgpa,
+      total_backlogs: req.body.totalBacklogs ?? req.body.total_backlogs,
+      active_backlogs: activeBacklogsValue,
+      // Keep compatibility with schemas/features that still read `backlogs`.
+      backlogs: req.body.backlogs ?? activeBacklogsValue,
+      tenth_percentage: req.body.tenthPercentage ?? req.body.tenth_percentage,
+      twelfth_percentage: req.body.twelfthPercentage ?? req.body.twelfth_percentage,
+      diploma_percentage: req.body.diplomaPercentage ?? req.body.diploma_percentage
+    };
 
-    await promisePool.query(
-      `UPDATE student_academics
-       SET branch = COALESCE(?, branch),
-           batch_year = COALESCE(?, batch_year),
-           current_semester = COALESCE(?, current_semester),
-           cgpa = COALESCE(?, cgpa),
-           sgpa = COALESCE(?, sgpa),
-           total_backlogs = COALESCE(?, total_backlogs),
-           active_backlogs = COALESCE(?, active_backlogs),
-           tenth_percentage = COALESCE(?, tenth_percentage),
-           twelfth_percentage = COALESCE(?, twelfth_percentage)
-       WHERE user_id = ?`,
-      [branch, batchYear, currentSemester, cgpa, sgpa, totalBacklogs, activeBacklogs, tenthPercentage, twelfthPercentage, userId]
+    // Read actual DB columns to avoid failures across schema variants.
+    const [cols] = await promisePool.query(
+      `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'student_academics'`
     );
+    const availableCols = new Set(cols.map((c) => c.COLUMN_NAME));
+
+    const updateEntries = Object.entries(incomingUpdates).filter(([column, value]) => {
+      return availableCols.has(column) && value !== undefined;
+    });
+
+    if (updateEntries.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No academic fields provided to update'
+      });
+    }
+
+    const normalizeValue = (column, value) => {
+      if (value === '') return null;
+
+      const intColumns = new Set([
+        'batch_year',
+        'current_semester',
+        'total_backlogs',
+        'active_backlogs',
+        'backlogs'
+      ]);
+      const decimalColumns = new Set(['cgpa', 'sgpa', 'tenth_percentage', 'twelfth_percentage', 'diploma_percentage']);
+
+      if (intColumns.has(column) && value !== null) {
+        const parsed = parseInt(value, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+      }
+      if (decimalColumns.has(column) && value !== null) {
+        const parsed = parseFloat(value);
+        return Number.isNaN(parsed) ? null : parsed;
+      }
+      return value;
+    };
+
+    const setClause = updateEntries.map(([column]) => `${column} = ?`).join(', ');
+    const values = updateEntries.map(([column, value]) => normalizeValue(column, value));
+
+    const [updateResult] = await promisePool.query(
+      `UPDATE student_academics
+       SET ${setClause}
+       WHERE user_id = ?`,
+      [...values, userId]
+    );
+
+    // If row is missing for this user, initialize and apply updates in one insert.
+    if (updateResult.affectedRows === 0) {
+      const insertColumns = ['user_id'];
+      const insertValues = [userId];
+      const insertPlaceholders = ['?'];
+
+      // Some schemas keep these fields as NOT NULL.
+      if (availableCols.has('branch')) {
+        insertColumns.push('branch');
+        insertValues.push(incomingUpdates.branch || 'Unknown');
+        insertPlaceholders.push('?');
+      }
+      if (availableCols.has('batch_year')) {
+        insertColumns.push('batch_year');
+        insertValues.push(parseInt(incomingUpdates.batch_year, 10) || new Date().getFullYear());
+        insertPlaceholders.push('?');
+      }
+
+      for (const [column, value] of updateEntries) {
+        if (column === 'branch' || column === 'batch_year') continue;
+        insertColumns.push(column);
+        insertValues.push(normalizeValue(column, value));
+        insertPlaceholders.push('?');
+      }
+
+      await promisePool.query(
+        `INSERT INTO student_academics (${insertColumns.join(', ')})
+         VALUES (${insertPlaceholders.join(', ')})`,
+        insertValues
+      );
+    }
 
     res.json({
       success: true,
@@ -193,15 +308,41 @@ const uploadResume = async (req, res) => {
   }
 };
 
+// @desc    Delete resume
+// @route   DELETE /api/profile/resume
+// @access  Private
+const deleteResume = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await promisePool.query(
+      'UPDATE student_academics SET resume_url = NULL WHERE user_id = ?',
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Resume deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete resume error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete resume'
+    });
+  }
+};
+
 // @desc    Add skill
 // @route   POST /api/profile/skills
 // @access  Private
 const addSkill = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { skillName, category, proficiency } = req.body;
+    const { skill_name, skillName, category, proficiency } = req.body;
+    const name = skill_name || skillName;
 
-    if (!skillName) {
+    if (!name) {
       return res.status(400).json({
         success: false,
         message: 'Skill name is required'
@@ -210,7 +351,7 @@ const addSkill = async (req, res) => {
 
     const [result] = await promisePool.query(
       'INSERT INTO skills (user_id, skill_name, category, proficiency) VALUES (?, ?, ?, ?)',
-      [userId, skillName, category || 'Other', proficiency || 'Intermediate']
+      [userId, name, category || 'Other', proficiency || 'Intermediate']
     );
 
     res.status(201).json({
@@ -471,11 +612,388 @@ const getEligibilityStatus = async (req, res) => {
   }
 };
 
+// @desc    Update basic profile info (name, phone)
+// @route   PUT /api/profile/basic
+// @access  Private
+const updateBasicInfo = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { full_name, phone } = req.body;
+
+    if (!full_name || !full_name.trim()) {
+      return res.status(400).json({ success: false, message: 'Full name is required' });
+    }
+
+    await promisePool.query(
+      'UPDATE users SET full_name = ?, phone = ?, updated_at = NOW() WHERE id = ?',
+      [full_name.trim(), phone || null, userId]
+    );
+
+    res.json({ success: true, message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Update basic info error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update profile' });
+  }
+};
+
+// @desc    Add internship
+// @route   POST /api/profile/internships
+// @access  Private
+const addInternship = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { company_name, role, duration_months, start_date, end_date, description } = req.body;
+
+    if (!company_name || !role) {
+      return res.status(400).json({ success: false, message: 'Company name and role are required' });
+    }
+
+    const [result] = await promisePool.query(
+      'INSERT INTO internships (user_id, company_name, role, duration_months, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, company_name, role, duration_months || null, start_date || null, end_date || null, description || null]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Internship added successfully',
+      data: { id: result.insertId }
+    });
+  } catch (error) {
+    console.error('Add internship error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add internship' });
+  }
+};
+
+// @desc    Update internship
+// @route   PUT /api/profile/internships/:id
+// @access  Private
+const updateInternship = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const internshipId = req.params.id;
+    const { company_name, role, duration_months, start_date, end_date, description } = req.body;
+
+    if (!company_name || !role) {
+      return res.status(400).json({ success: false, message: 'Company name and role are required' });
+    }
+
+    const [result] = await promisePool.query(
+      `UPDATE internships SET company_name = ?, role = ?, duration_months = ?,
+       start_date = ?, end_date = ?, description = ?
+       WHERE id = ? AND user_id = ?`,
+      [company_name, role, duration_months || null, start_date || null, end_date || null, description || null, internshipId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Internship not found' });
+    }
+
+    res.json({ success: true, message: 'Internship updated successfully' });
+  } catch (error) {
+    console.error('Update internship error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update internship' });
+  }
+};
+
+// @desc    Delete internship
+// @route   DELETE /api/profile/internships/:id
+// @access  Private
+const deleteInternship = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const internshipId = req.params.id;
+
+    await promisePool.query(
+      'DELETE FROM internships WHERE id = ? AND user_id = ?',
+      [internshipId, userId]
+    );
+
+    res.json({ success: true, message: 'Internship deleted successfully' });
+  } catch (error) {
+    console.error('Delete internship error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete internship' });
+  }
+};
+
+// @desc    Upload certificate for an achievement
+// @route   POST /api/profile/achievements/:id/certificate
+// @access  Private
+const uploadAchievementCertificate = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const achievementId = req.params.id;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload a certificate file' });
+    }
+
+    const certificateUrl = `/uploads/certificates/${req.file.filename}`;
+
+    const [result] = await promisePool.query(
+      'UPDATE achievements SET certificate_url = ? WHERE id = ? AND user_id = ?',
+      [certificateUrl, achievementId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Achievement not found' });
+    }
+
+    res.json({ success: true, message: 'Certificate uploaded successfully', data: { certificateUrl } });
+  } catch (error) {
+    console.error('Upload certificate error:', error);
+    res.status(500).json({ success: false, message: 'Failed to upload certificate' });
+  }
+};
+
+// @desc    Get student's placement rank among all students
+// @route   GET /api/profile/ranking
+// @access  Private
+const getRankingInsights = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [students] = await promisePool.query(
+      `SELECT u.id,
+              u.full_name,
+              u.usn,
+              COALESCE(sa.cgpa, 0) AS cgpa,
+              COALESCE(skills.skill_count, 0) AS skill_count,
+              COALESCE(ints.total_months, 0) AS internship_months
+       FROM users u
+       LEFT JOIN student_academics sa ON sa.user_id = u.id
+       LEFT JOIN (
+         SELECT user_id, COUNT(*) AS skill_count
+         FROM skills
+         GROUP BY user_id
+       ) skills ON skills.user_id = u.id
+       LEFT JOIN (
+         SELECT user_id,
+                SUM(
+                  CASE
+                    WHEN duration_months IS NOT NULL AND duration_months > 0 THEN duration_months
+                    ELSE 2
+                  END
+                ) AS total_months
+         FROM internships
+         GROUP BY user_id
+       ) ints ON ints.user_id = u.id
+       WHERE u.role = 'student' AND u.is_active = 1`
+    );
+
+    if (students.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No student records found'
+      });
+    }
+
+    const scoredStudents = students.map((student) => {
+      const cgpa = Number(student.cgpa) || 0;
+      const skills = Number(student.skill_count) || 0;
+      const internshipMonths = Number(student.internship_months) || 0;
+
+      // Weighted scoring: CGPA (60), Internship (30), Skills (10)
+      const cgpaPoints = Math.min(10, cgpa) * 6;
+      const internshipPoints = Math.min(12, internshipMonths) * 2.5;
+      const skillPoints = Math.min(10, skills) * 1;
+      const totalScore = Number((cgpaPoints + internshipPoints + skillPoints).toFixed(2));
+
+      return {
+        ...student,
+        cgpa,
+        skills,
+        internshipMonths,
+        points: {
+          cgpa: Number(cgpaPoints.toFixed(2)),
+          internships: Number(internshipPoints.toFixed(2)),
+          skills: Number(skillPoints.toFixed(2)),
+          total: totalScore
+        }
+      };
+    });
+
+    scoredStudents.sort((a, b) => {
+      if (b.points.total !== a.points.total) return b.points.total - a.points.total;
+      if (b.cgpa !== a.cgpa) return b.cgpa - a.cgpa;
+      if (b.internshipMonths !== a.internshipMonths) return b.internshipMonths - a.internshipMonths;
+      if (b.skills !== a.skills) return b.skills - a.skills;
+      return a.id - b.id;
+    });
+
+    const rankIndex = scoredStudents.findIndex((student) => student.id === userId);
+
+    if (rankIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Current student not found for ranking'
+      });
+    }
+
+    const me = scoredStudents[rankIndex];
+    const totalStudents = scoredStudents.length;
+
+    res.json({
+      success: true,
+      data: {
+        rank: rankIndex + 1,
+        totalStudents,
+        percentile: Number((((totalStudents - rankIndex - 1) / totalStudents) * 100).toFixed(2)),
+        score: me.points,
+        metrics: {
+          cgpa: me.cgpa,
+          skills: me.skills,
+          internshipMonths: me.internshipMonths
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get ranking insights error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ranking insights'
+    });
+  }
+};
+
+// @desc    Add portfolio link
+// @route   POST /api/profile/portfolios
+// @access  Private
+const addPortfolio = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { title, portfolio_url, description, built_with, build_details } = req.body;
+
+    if (!title || !title.trim() || !portfolio_url || !portfolio_url.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and portfolio URL are required'
+      });
+    }
+
+    await ensurePortfoliosTable();
+
+    const [result] = await promisePool.query(
+      `INSERT INTO portfolios (user_id, title, portfolio_url, description, built_with, build_details)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        title.trim(),
+        portfolio_url.trim(),
+        description || null,
+        built_with || null,
+        build_details || null
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Portfolio link added successfully',
+      data: { id: result.insertId }
+    });
+  } catch (error) {
+    console.error('Add portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add portfolio link'
+    });
+  }
+};
+
+// @desc    Update portfolio link
+// @route   PUT /api/profile/portfolios/:id
+// @access  Private
+const updatePortfolio = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const portfolioId = req.params.id;
+    const { title, portfolio_url, description, built_with, build_details } = req.body;
+
+    if (!title || !title.trim() || !portfolio_url || !portfolio_url.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and portfolio URL are required'
+      });
+    }
+
+    await ensurePortfoliosTable();
+
+    const [result] = await promisePool.query(
+      `UPDATE portfolios
+       SET title = ?, portfolio_url = ?, description = ?, built_with = ?, build_details = ?
+       WHERE id = ? AND user_id = ?`,
+      [
+        title.trim(),
+        portfolio_url.trim(),
+        description || null,
+        built_with || null,
+        build_details || null,
+        portfolioId,
+        userId
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Portfolio entry not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Portfolio link updated successfully'
+    });
+  } catch (error) {
+    console.error('Update portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update portfolio link'
+    });
+  }
+};
+
+// @desc    Delete portfolio link
+// @route   DELETE /api/profile/portfolios/:id
+// @access  Private
+const deletePortfolio = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const portfolioId = req.params.id;
+
+    await ensurePortfoliosTable();
+
+    const [result] = await promisePool.query(
+      'DELETE FROM portfolios WHERE id = ? AND user_id = ?',
+      [portfolioId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Portfolio entry not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Portfolio link deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete portfolio link'
+    });
+  }
+};
+
 module.exports = {
   getProfile,
+  updateBasicInfo,
   updateAcademics,
   uploadPhoto,
   uploadResume,
+  deleteResume,
   addSkill,
   deleteSkill,
   addProject,
@@ -483,5 +1001,13 @@ module.exports = {
   deleteProject,
   addAchievement,
   deleteAchievement,
-  getEligibilityStatus
+  uploadAchievementCertificate,
+  addPortfolio,
+  updatePortfolio,
+  deletePortfolio,
+  addInternship,
+  updateInternship,
+  deleteInternship,
+  getEligibilityStatus,
+  getRankingInsights
 };

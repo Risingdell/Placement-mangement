@@ -1,0 +1,142 @@
+# =============================================================
+# docker-compose.yml — Orchestrates all 3 containers
+# =============================================================
+# Usage:
+#   First time:  docker-compose up --build
+#   Every time:  docker-compose up
+#   Stop:        docker-compose down
+#   Fresh DB:    docker-compose down -v   (wipes volumes too)
+#
+# Services:
+#   db        — MySQL 8 database
+#   backend   — Node.js / Express API
+#   frontend  — nginx serving React + proxying /api to backend
+#
+# Ports exposed to your machine:
+#   localhost:3000  → frontend (the app)
+#   localhost:3306  → MySQL   (for database clients like DBeaver)
+# =============================================================
+
+services:
+
+  # ─────────────────────────────────────────────────────────
+  # SERVICE 1: MySQL Database
+  # ─────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0          # Official MySQL 8 image (no build needed)
+    container_name: placement_db
+    restart: unless-stopped   # Auto-restart on crash, but not on manual stop
+
+    environment:
+      # These are read from your .env file (copy .env.example → .env)
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-testpass123}
+      MYSQL_DATABASE:      ${DB_NAME:-placement_management}
+      # Allow root login from any host (needed for backend container to connect)
+      MYSQL_ROOT_HOST:     '%'
+
+    volumes:
+      # Named volume: MySQL data persists across container restarts
+      # "docker-compose down" keeps the data; "docker-compose down -v" wipes it
+      - db_data:/var/lib/mysql
+
+      # Auto-seed on FIRST run only:
+      # MySQL runs every .sql file in /docker-entrypoint-initdb.d alphabetically.
+      # migrations/ contains table creation scripts, dummy_data.sql has test data.
+      # These only run when the db_data volume is empty (fresh start).
+      - ./backend/migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ./dummy_data.sql:/docker-entrypoint-initdb.d/zzz_dummy_data.sql:ro
+
+    ports:
+      # Expose MySQL on localhost:3306 so you can connect from DBeaver/TablePlus
+      - "3306:3306"
+
+    # Health check: backend won't start until MySQL is accepting connections
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "root", "-p${DB_PASSWORD:-testpass123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s   # Give MySQL extra time to initialize on first run
+
+
+  # ─────────────────────────────────────────────────────────
+  # SERVICE 2: Backend (Node.js / Express)
+  # ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend      # Dockerfile is inside the backend/ folder
+      dockerfile: Dockerfile
+    container_name: placement_backend
+    restart: unless-stopped
+
+    environment:
+      PORT:          5000
+      NODE_ENV:      production
+      # DB_HOST is "db" — Docker's internal DNS resolves container names
+      # so "db" maps to the MySQL container's IP automatically
+      DB_HOST:       db
+      DB_USER:       root
+      DB_PASSWORD:   ${DB_PASSWORD:-testpass123}
+      DB_NAME:       ${DB_NAME:-placement_management}
+      DB_PORT:       3306
+      JWT_SECRET:    ${JWT_SECRET:-change-this-secret-before-production}
+      JWT_EXPIRE:    7d
+      # nginx is on localhost:3000, backend uses this for CORS allow-list
+      FRONTEND_URL:  http://localhost:3000
+      MAX_FILE_SIZE: 5242880
+      UPLOAD_PATH:   ./uploads
+
+    # Backend port is NOT exposed to your machine — only nginx can reach it
+    # (through Docker's internal network). This is more secure.
+    # If you need to test the API directly, uncomment the lines below:
+    # ports:
+    #   - "5000:5000"
+
+    depends_on:
+      db:
+        condition: service_healthy   # Wait for MySQL health check to pass
+
+    volumes:
+      # Named volume for uploaded files (profile pics, resumes)
+      # Shared with frontend container so nginx can proxy /uploads requests
+      - uploads_data:/app/uploads
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+
+  # ─────────────────────────────────────────────────────────
+  # SERVICE 3: Frontend (nginx serving React)
+  # ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .                    # Dockerfile.frontend is in project root
+      dockerfile: Dockerfile.frontend
+      args:
+        # VITE_API_URL=/api means the JS bundle calls /api/...
+        # nginx intercepts /api/* and proxies to backend:5000
+        # This way browser → nginx → backend, all same origin, no CORS
+        VITE_API_URL: /api
+    container_name: placement_frontend
+    restart: unless-stopped
+
+    ports:
+      # Your machine's port 3000 → container's port 80 (nginx)
+      - "3000:80"
+
+    depends_on:
+      backend:
+        condition: service_healthy  # Wait for backend health check to pass
+
+
+# ─────────────────────────────────────────────────────────────
+# Named volumes (managed by Docker, survive container restarts)
+# ─────────────────────────────────────────────────────────────
+volumes:
+  db_data:       # MySQL database files
+  uploads_data:  # User-uploaded files (profile pictures, resumes)

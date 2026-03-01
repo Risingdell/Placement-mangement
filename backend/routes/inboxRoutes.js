@@ -8,7 +8,8 @@ const {
   getUnreadCount,
   getInboxPreview,
   sendMessage,
-  sendBulkMessage
+  sendBulkMessage,
+  getSentMessages
 } = require('../controllers/inboxController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
@@ -27,7 +28,8 @@ router.put('/:id/unread', markAsUnread);
 router.delete('/:id', deleteMessage);
 
 // Admin routes
-router.post('/send', restrictTo('admin'), sendMessage);
-router.post('/send-bulk', restrictTo('admin'), sendBulkMessage);
+router.get('/admin/sent', restrictTo('admin', 'tpo'), getSentMessages);
+router.post('/send', restrictTo('admin', 'tpo'), sendMessage);
+router.post('/send-bulk', restrictTo('admin', 'tpo'), sendBulkMessage);
 
 module.exports = router;

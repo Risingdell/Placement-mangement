@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Main styles entry point - Import order matters! */
+
+/* 1. Tailwind base styles */
+@import './base.css';
+
+/* 2. CSS Variables */
+@import './variables.css';
+
+/* 3. Custom utilities */
+@import './scrollbar.css';
+@import './animations.css';
+
+/* 4. Component-specific styles */
+@import './components/auth.css';
+@import './components/dashboard.css';
+@import './components/neo-brutalism.css';
+@import './components/student-theme.css';
+
+/* 5. Global overrides and custom styles can be added below */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}

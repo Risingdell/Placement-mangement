@@ -1,0 +1,28 @@
+# Frontend build .dockerignore
+# Only the React source + config files need to go into the build container
+
+# Dependencies — reinstalled via npm ci inside the builder stage
+node_modules
+
+# Backend folder — not needed for frontend build
+backend
+
+# Previous build output
+dist
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor configs
+.vscode
+.idea

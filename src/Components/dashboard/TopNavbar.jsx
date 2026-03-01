@@ -1,15 +1,43 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useStudent } from '../../context/StudentContext';
+import inboxService from '../../services/inboxService';
 
-function TopNavbar() {
+const resolveMediaUrl = (url) => {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const apiOrigin = apiBase.replace(/\/api\/?$/, '');
+  return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme = 'dark', onToggleTheme }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
+  const { profile } = useStudent();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Mock data - will be replaced with actual inbox count later
-  const unreadCount = 3;
-  const isOfficerAvailable = true;
+  const avatarUrl = resolveMediaUrl(profile?.photo_url);
+  const userName = profile?.full_name || 'Student';
+
+  useEffect(() => {
+    let mounted = true;
+    const loadUnread = async () => {
+      try {
+        const response = await inboxService.getUnreadCount();
+        if (mounted) setUnreadCount(response.data.count || 0);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+    loadUnread();
+    return () => {
+      mounted = false;
+    };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -17,69 +45,86 @@ function TopNavbar() {
   };
 
   return (
-    <header style={styles.navbar}>
-      <div style={styles.navbarContent}>
-        {/* Left section */}
-        <div style={styles.leftSection}>
-          <h3 style={styles.pageTitle}>Student Dashboard</h3>
+    <header className={`${theme === 'light' ? 'bg-white/95 border-[#d1d5db]' : 'bg-[#1a1a1e]/95 border-[#2f2f34]'} backdrop-blur border-b sticky top-0 z-30`}>
+      <div className="h-14 px-4 md:px-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          <button
+            onClick={onOpenMobileSidebar}
+            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} lg:hidden h-9 w-9 rounded-md bg-transparent`}
+            aria-label="Open sidebar"
+          >
+            =
+          </button>
+          <button
+            onClick={onToggleCollapse}
+            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} hidden lg:inline-flex h-9 w-9 rounded-md bg-transparent`}
+            aria-label="Toggle sidebar width"
+          >
+            {isCollapsed ? '>' : '<'}
+          </button>
+
         </div>
 
-        {/* Right section */}
-        <div style={styles.rightSection}>
-          {/* Inbox Icon */}
-          <div
-            style={styles.iconButton}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`${theme === 'light' ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]' : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'} hidden xl:flex items-center h-9 px-3 rounded-md border text-sm min-w-[220px]`}>
+            Search
+          </div>
+          <button
+            onClick={onToggleTheme}
+            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d1d5db] hover:bg-[#2a2a2e]'} h-9 px-3 rounded-md border bg-transparent text-[11px] font-semibold tracking-wider`}
+            title="Toggle theme"
+          >
+            {theme === 'light' ? 'DARK' : 'LIGHT'}
+          </button>
+          <button
+            className={`${theme === 'light' ? 'hover:bg-[#f3f4f6] border-[#d1d5db] text-[#374151]' : 'hover:bg-[#2a2a2e] border-[#3a3a40] text-[#d1d5db]'} relative h-9 px-3 rounded-md transition-colors border bg-transparent text-[11px] font-semibold tracking-wider`}
             onClick={() => navigate('/dashboard/inbox')}
             title="Inbox"
           >
-            <span style={styles.icon}>📬</span>
+            INBOX
             {unreadCount > 0 && (
-              <span style={styles.badge}>{unreadCount}</span>
+              <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
+                {unreadCount}
+              </span>
             )}
-          </div>
+          </button>
 
-          {/* Officer Availability */}
-          <div style={styles.availabilityIndicator} title={isOfficerAvailable ? 'Officer Available' : 'Officer Busy'}>
-            <span style={{
-              ...styles.dot,
-              backgroundColor: isOfficerAvailable ? '#4CAF50' : '#f44336',
-            }} />
-            <span style={styles.availabilityText}>
-              {isOfficerAvailable ? 'Officer Available' : 'Officer Busy'}
-            </span>
-          </div>
-
-          {/* User Menu */}
-          <div style={styles.userMenuContainer}>
+          <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              style={styles.userButton}
+              className={`${theme === 'light' ? 'border-[#d1d5db] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] hover:bg-[#2a2a2e]'} flex items-center gap-2 px-2 py-1.5 rounded-md border transition-all bg-transparent cursor-pointer`}
             >
-              <div style={styles.avatar}>
-                <span>👤</span>
+              <div className={`${theme === 'light' ? 'bg-[#f3f4f6] border-[#d1d5db]' : 'bg-[#2e2e34] border-[#444]'} w-7 h-7 rounded-md overflow-hidden border flex items-center justify-center text-sm`}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] text-[#a1a1aa]">USR</span>
+                )}
               </div>
-              <span style={styles.userName}>Student</span>
-              <span style={styles.dropdownIcon}>▼</span>
+              <span className={`hidden sm:inline text-sm ${theme === 'light' ? 'text-[#374151]' : 'text-[#d4d4d8]'} max-w-[140px] truncate`}>
+                {userName}
+              </span>
+              <span className="text-xs text-[#7c7c7c]">^</span>
             </button>
 
             {showUserMenu && (
-              <div style={styles.dropdown}>
+              <div className={`${theme === 'light' ? 'bg-white border-[#d1d5db]' : 'bg-[#232329] border-[#3a3a40]'} absolute top-full right-0 mt-2 w-48 border rounded-lg shadow-xl overflow-hidden z-50`}>
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
                     navigate('/dashboard/profile');
                   }}
-                  style={styles.dropdownItem}
+                  className={`${theme === 'light' ? 'hover:bg-[#f3f4f6] text-[#374151]' : 'hover:bg-[#2f2f35] text-[#d4d4d8]'} w-full text-left px-4 py-3 text-sm transition-colors border-none bg-transparent cursor-pointer`}
                 >
                   My Profile
                 </button>
-                <div style={styles.divider} />
+                <div className={`h-px ${theme === 'light' ? 'bg-[#e5e7eb]' : 'bg-[#323238]'}`} />
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
                     handleLogout();
                   }}
-                  style={{...styles.dropdownItem, color: '#f44336'}}
+                  className="w-full text-left px-4 py-3 hover:bg-[#3a2024] text-sm text-[#f87171] transition-colors border-none bg-transparent cursor-pointer"
                 >
                   Logout
                 </button>
@@ -91,142 +136,5 @@ function TopNavbar() {
     </header>
   );
 }
-
-const styles = {
-  navbar: {
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #e0e0e0',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  navbarContent: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 24px',
-    maxWidth: '100%',
-  },
-  leftSection: {
-    flex: 1,
-  },
-  pageTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#333',
-    margin: 0,
-  },
-  rightSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '20px',
-  },
-  iconButton: {
-    position: 'relative',
-    padding: '8px 12px',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'background-color 0.3s',
-    backgroundColor: 'transparent',
-  },
-  icon: {
-    fontSize: '1.5rem',
-  },
-  badge: {
-    position: 'absolute',
-    top: '4px',
-    right: '4px',
-    backgroundColor: '#f44336',
-    color: '#fff',
-    fontSize: '0.7rem',
-    fontWeight: 'bold',
-    padding: '2px 6px',
-    borderRadius: '10px',
-    minWidth: '18px',
-    textAlign: 'center',
-  },
-  availabilityIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 12px',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '20px',
-    fontSize: '0.85rem',
-  },
-  dot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    animation: 'pulse 2s infinite',
-  },
-  availabilityText: {
-    color: '#666',
-    fontWeight: '500',
-  },
-  userMenuContainer: {
-    position: 'relative',
-  },
-  userButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '8px 12px',
-    backgroundColor: 'transparent',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-  },
-  avatar: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    backgroundColor: '#2196F3',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1rem',
-  },
-  userName: {
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    color: '#333',
-  },
-  dropdownIcon: {
-    fontSize: '0.7rem',
-    color: '#666',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    marginTop: '8px',
-    backgroundColor: '#fff',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    minWidth: '180px',
-    overflow: 'hidden',
-    zIndex: 1000,
-  },
-  dropdownItem: {
-    width: '100%',
-    padding: '12px 16px',
-    backgroundColor: 'transparent',
-    border: 'none',
-    textAlign: 'left',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    color: '#333',
-    transition: 'background-color 0.2s',
-  },
-  divider: {
-    height: '1px',
-    backgroundColor: '#e0e0e0',
-    margin: '4px 0',
-  },
-};
 
 export default TopNavbar;

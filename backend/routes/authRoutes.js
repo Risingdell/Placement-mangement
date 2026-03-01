@@ -6,6 +6,7 @@ const {
   resetPassword,
   getMe
 } = require('../controllers/authController');
+const { checkEmailAuthorization } = require('../controllers/authorizedEmailController');
 const { protect } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -15,6 +16,9 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+
+// Public: Check if email is authorized for registration (used on register page)
+router.get('/check-email/:email', checkEmailAuthorization);
 
 // Protected routes
 router.get('/me', protect, getMe);

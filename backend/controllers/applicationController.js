@@ -345,6 +345,36 @@ const updateApplicationStatus = async (req, res) => {
 
     const { status: oldStatus, user_id: studentId, drive_id: driveId, company_name } = applications[0];
 
+    // ATTENDANCE VERIFICATION: Check if student attended the drive before shortlisting
+    if (status === 'Shortlisted') {
+      const [attendance] = await connection.query(
+        'SELECT attendance_key FROM drive_attendees WHERE drive_id = ? AND user_id = ?',
+        [driveId, studentId]
+      );
+
+      if (attendance.length === 0) {
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot shortlist student - this student was not marked as present at the drive. Please verify attendance first.'
+        });
+      }
+    }
+
+    // Get student placement and resume info
+    const [studentInfo] = await connection.query(
+      `SELECT u.is_placed, pd.role, sa.resume_url
+       FROM users u
+       LEFT JOIN student_academics sa ON u.id = sa.user_id
+       LEFT JOIN placement_drives pd ON ? = pd.id
+       WHERE u.id = ?`,
+      [driveId, studentId]
+    );
+
+    const isPlaced = studentInfo[0]?.is_placed || false;
+    const hasResume = !!studentInfo[0]?.resume_url;
+    const role = studentInfo[0]?.role || 'the position';
+
     // Update application status
     await connection.query(
       'UPDATE applications SET status = ? WHERE id = ?',
@@ -362,14 +392,29 @@ const updateApplicationStatus = async (req, res) => {
       await connection.query('UPDATE users SET is_placed = TRUE WHERE id = ?', [studentId]);
     }
 
+    // Skip shortlist message if student is already placed
+    if (status === 'Shortlisted' && isPlaced) {
+      await connection.commit();
+      return res.json({
+        success: true,
+        message: 'Application status updated successfully (student already placed, notification skipped)'
+      });
+    }
+
     // Send notification to student
     let messageSubject = '';
     let messageBody = '';
 
     switch (status) {
       case 'Shortlisted':
-        messageSubject = `Shortlisted - ${company_name}`;
-        messageBody = `Congratulations! You have been shortlisted for ${company_name}. ${remarks || 'Further details will be shared soon.'}`;
+        messageSubject = `Shortlisted for ${role} at ${company_name}`;
+
+        // Build message based on resume status
+        let resumeInstruction = hasResume
+          ? 'Your resume is on file. Please ensure it is up to date before the next round.'
+          : '⚠️ IMPORTANT: Please upload your resume immediately from your Profile page to proceed with the application process.';
+
+        messageBody = `Congratulations! You have been shortlisted for the ${role} position at ${company_name}.\n\n${resumeInstruction}\n\nNext Steps:\n1. Review the job description and company details\n2. Prepare for the next round (${remarks || 'details will be shared soon'})\n3. Keep checking your inbox for updates\n\nGood luck! 🎯`;
         break;
       case 'Exam Scheduled':
         messageSubject = `Exam Scheduled - ${company_name}`;

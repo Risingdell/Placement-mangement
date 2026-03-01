@@ -69,6 +69,7 @@ const protect = async (req, res, next) => {
 const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
+      console.log(`[AUTH DEBUG] 403 Forbidden: User role '${req.user.role}' not in allowed roles: [${roles.join(', ')}]`);
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to perform this action'

@@ -7,8 +7,30 @@ const getAllDrives = async (req, res) => {
   try {
     const userId = req.user.id;
     const { status } = req.query;
+    const isAdmin = ['admin', 'tpo'].includes(req.user.role);
 
-    // Get student's academic info for eligibility
+    // ── Admin / TPO: return all drives with applicant count, no eligibility check ──
+    if (isAdmin) {
+      let query = `
+        SELECT pd.id, pd.company_name, pd.role, pd.company_type, pd.ctc,
+               pd.job_description, pd.eligibility_criteria, pd.min_cgpa, pd.max_backlogs,
+               pd.allowed_branches, pd.drive_date, pd.registration_deadline, pd.status,
+               pd.created_at,
+               (SELECT COUNT(*) FROM applications a WHERE a.drive_id = pd.id) as total_applicants
+        FROM placement_drives pd
+        WHERE 1=1
+      `;
+      const queryParams = [];
+      if (status) {
+        query += ' AND pd.status = ?';
+        queryParams.push(status);
+      }
+      query += ' ORDER BY pd.drive_date DESC';
+      const [drives] = await promisePool.query(query, queryParams);
+      return res.json({ success: true, data: drives });
+    }
+
+    // ── Student: include eligibility check ────────────────────────────────────────
     const [studentData] = await promisePool.query(
       `SELECT cgpa, active_backlogs, branch FROM student_academics WHERE user_id = ?`,
       [userId]
@@ -23,18 +45,19 @@ const getAllDrives = async (req, res) => {
 
     const student = studentData[0];
 
-    // Build query based on status filter
     let query = `
       SELECT pd.id, pd.company_name, pd.role, pd.company_type, pd.ctc,
              pd.job_description, pd.eligibility_criteria, pd.min_cgpa, pd.max_backlogs,
              pd.allowed_branches, pd.drive_date, pd.registration_deadline, pd.status,
              pd.created_at,
+             da.attendance_key, da.attended_at,
              EXISTS(SELECT 1 FROM applications a WHERE a.drive_id = pd.id AND a.user_id = ?) as has_applied
       FROM placement_drives pd
+      LEFT JOIN drive_attendees da ON pd.id = da.drive_id AND da.user_id = ?
       WHERE 1=1
     `;
 
-    const queryParams = [userId];
+    const queryParams = [userId, userId];
 
     if (status) {
       query += ' AND pd.status = ?';
@@ -45,30 +68,25 @@ const getAllDrives = async (req, res) => {
 
     const [drives] = await promisePool.query(query, queryParams);
 
-    // Check eligibility for each drive
     const drivesWithEligibility = drives.map(drive => {
       let eligible = true;
       let eligibilityReasons = [];
 
-      // Check if already placed
       if (req.user.is_placed) {
         eligible = false;
         eligibilityReasons.push('Already placed');
       }
 
-      // Check CGPA
       if (drive.min_cgpa && student.cgpa < drive.min_cgpa) {
         eligible = false;
         eligibilityReasons.push(`CGPA below minimum (${drive.min_cgpa})`);
       }
 
-      // Check backlogs
       if (drive.max_backlogs !== null && student.active_backlogs > drive.max_backlogs) {
         eligible = false;
         eligibilityReasons.push(`Active backlogs exceed limit (${drive.max_backlogs})`);
       }
 
-      // Check branch
       if (drive.allowed_branches) {
         try {
           const allowedBranches = JSON.parse(drive.allowed_branches);
@@ -77,11 +95,10 @@ const getAllDrives = async (req, res) => {
             eligibilityReasons.push('Branch not eligible');
           }
         } catch (e) {
-          // If JSON parsing fails, ignore branch check
+          // ignore branch check if JSON parsing fails
         }
       }
 
-      // Check if already applied
       if (drive.has_applied) {
         eligible = false;
         eligibilityReasons.push('Already applied');
@@ -226,6 +243,9 @@ const updateDrive = async (req, res) => {
       status
     } = req.body;
 
+    // mysql2 rejects undefined — convert to null so COALESCE keeps existing DB value
+    const n = (v) => (v === undefined || v === '') ? null : v;
+
     await promisePool.query(
       `UPDATE placement_drives
        SET company_name = COALESCE(?, company_name),
@@ -242,18 +262,18 @@ const updateDrive = async (req, res) => {
            status = COALESCE(?, status)
        WHERE id = ?`,
       [
-        companyName,
-        role,
-        companyType,
-        ctc,
-        jobDescription,
+        n(companyName),
+        n(role),
+        n(companyType),
+        n(ctc),
+        n(jobDescription),
         eligibilityCriteria ? JSON.stringify(eligibilityCriteria) : null,
-        minCgpa,
-        maxBacklogs,
+        n(minCgpa),
+        n(maxBacklogs),
         allowedBranches ? JSON.stringify(allowedBranches) : null,
-        driveDate,
-        registrationDeadline,
-        status,
+        n(driveDate),
+        n(registrationDeadline),
+        n(status),
         driveId
       ]
     );

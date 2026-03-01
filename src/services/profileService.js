@@ -9,6 +9,10 @@ export const getEligibility = async () => {
   return await apiRequest('/profile/eligibility', { method: 'GET' });
 };
 
+export const getRanking = async () => {
+  return await apiRequest('/profile/ranking', { method: 'GET' });
+};
+
 export const updateAcademics = async (data) => {
   return await apiRequest('/profile/academics', {
     method: 'PUT',
@@ -26,6 +30,10 @@ export const uploadResume = async (file) => {
   const formData = new FormData();
   formData.append('resume', file);
   return await apiUpload('/profile/resume', formData);
+};
+
+export const deleteResume = async () => {
+  return await apiRequest('/profile/resume', { method: 'DELETE' });
 };
 
 // Skills
@@ -71,12 +79,68 @@ export const deleteAchievement = async (id) => {
   return await apiRequest(`/profile/achievements/${id}`, { method: 'DELETE' });
 };
 
+export const uploadAchievementCertificate = async (id, file) => {
+  const formData = new FormData();
+  formData.append('certificate', file);
+  return await apiUpload(`/profile/achievements/${id}/certificate`, formData);
+};
+
+// Portfolios
+export const addPortfolio = async (data) => {
+  return await apiRequest('/profile/portfolios', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updatePortfolio = async (id, data) => {
+  return await apiRequest(`/profile/portfolios/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deletePortfolio = async (id) => {
+  return await apiRequest(`/profile/portfolios/${id}`, { method: 'DELETE' });
+};
+
+// Basic Info
+export const updateBasicInfo = async (data) => {
+  return await apiRequest('/profile/basic', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+// Internships
+export const addInternship = async (data) => {
+  return await apiRequest('/profile/internships', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateInternship = async (id, data) => {
+  return await apiRequest(`/profile/internships/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteInternship = async (id) => {
+  return await apiRequest(`/profile/internships/${id}`, { method: 'DELETE' });
+};
+
 export default {
   getProfile,
   getEligibility,
+  getRanking,
+  updateBasicInfo,
+  uploadAchievementCertificate,
   updateAcademics,
   uploadPhoto,
   uploadResume,
+  deleteResume,
   addSkill,
   deleteSkill,
   addProject,
@@ -84,4 +148,10 @@ export default {
   deleteProject,
   addAchievement,
   deleteAchievement,
+  addPortfolio,
+  updatePortfolio,
+  deletePortfolio,
+  addInternship,
+  updateInternship,
+  deleteInternship,
 };

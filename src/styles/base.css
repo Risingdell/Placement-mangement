@@ -1,0 +1,18 @@
+/* Tailwind CSS base imports */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure all form inputs always show visible text regardless of theme */
+@layer base {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  textarea,
+  select {
+    color: rgb(17 24 39);       /* gray-900 */
+    background-color: #ffffff;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file'])::placeholder,
+  textarea::placeholder {
+    color: rgb(156 163 175);    /* gray-400 */
+  }
+}

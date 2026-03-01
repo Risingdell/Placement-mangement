@@ -1,122 +1,69 @@
 import { NavLink } from 'react-router-dom';
 
-function Sidebar() {
+function Sidebar({ isCollapsed, isMobileOpen, onCloseMobile, theme = 'dark' }) {
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
-    { path: '/dashboard/profile', label: 'My Profile', icon: '👤' },
-    { path: '/dashboard/drives', label: 'Placement Drives', icon: '🏢' },
-    { path: '/dashboard/applications', label: 'My Applications', icon: '📝' },
-    { path: '/dashboard/inbox', label: 'Inbox', icon: '📬' },
-    { path: '/dashboard/events', label: 'Events', icon: '📅' },
+    { path: '/dashboard', label: 'Dashboard', icon: 'DA', exact: true },
+    { path: '/dashboard/profile', label: 'Profile', icon: 'PR' },
+    { path: '/dashboard/drives', label: 'Drives', icon: 'DR' },
+    { path: '/dashboard/applications', label: 'Applications', icon: 'AP' },
+    { path: '/dashboard/inbox', label: 'Inbox', icon: 'IN' },
+    { path: '/dashboard/events', label: 'Events', icon: 'EV' },
   ];
 
   return (
-    <aside style={styles.sidebar}>
-      <div style={styles.sidebarHeader}>
-        <h2 style={styles.logo}>PlacementHub</h2>
-      </div>
+    <>
+      {isMobileOpen && (
+        <button
+          onClick={onCloseMobile}
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden border-none"
+          aria-label="Close sidebar backdrop"
+        />
+      )}
 
-      <nav style={styles.nav}>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.exact}
-            style={({ isActive }) => ({
-              ...styles.navItem,
-              ...(isActive ? styles.navItemActive : {}),
-            })}
-          >
-            <span style={styles.icon}>{item.icon}</span>
-            <span style={styles.label}>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-
-      <div style={styles.sidebarFooter}>
-        <div style={styles.footerText}>
-          <small>Placement Management</small>
-          <small style={styles.version}>v1.0.0</small>
+      <aside
+        className={`fixed lg:static top-0 left-0 z-40 h-screen ${
+          theme === 'light' ? 'bg-white border-r border-[#d1d5db]' : 'bg-[#17171a] border-r border-[#2e2e33]'
+        } transition-all duration-200
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isCollapsed ? 'lg:w-[84px]' : 'w-64'}`}
+      >
+        <div className={`h-14 px-4 flex items-center ${theme === 'light' ? 'border-b border-[#d1d5db]' : 'border-b border-[#2e2e33]'}`}>
+          <h2 className={`text-sm font-semibold text-[#f7b545] tracking-wide ${isCollapsed ? 'hidden' : 'block'}`}>
+            PLACEMENT
+          </h2>
+          <div className={`text-xs font-semibold text-[#f7b545] ${isCollapsed ? 'block mx-auto' : 'hidden'}`}>
+            PM
+          </div>
         </div>
-      </div>
-    </aside>
+
+        <nav className="p-3 flex flex-col gap-2 overflow-y-auto h-[calc(100%-56px)]">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.exact}
+              onClick={onCloseMobile}
+              className={({ isActive }) =>
+                `group relative h-12 flex items-center rounded-md transition-all ${
+                  isActive
+                    ? `${theme === 'light' ? 'bg-[rgba(59,130,246,0.12)] text-[#111827]' : 'bg-[rgba(247,181,69,0.1)] text-white'} border-l-[3px] ${theme === 'light' ? 'border-[#3b82f6]' : 'border-[#f7b545]'}`
+                    : `${theme === 'light' ? 'text-[#4b5563] hover:bg-[#f3f4f6] hover:text-[#111827]' : 'text-[#a1a1aa] hover:bg-[#232328] hover:text-white'} border-l-[3px] border-transparent`
+                } ${isCollapsed ? 'justify-center px-2' : 'px-3'}`
+              }
+              title={isCollapsed ? item.label : ''}
+            >
+              <span className={`text-[10px] font-bold tracking-wide w-7 h-7 rounded-md border grid place-items-center ${
+                theme === 'light' ? 'text-[#1f2937] bg-[#f3f4f6] border-[#d1d5db]' : 'text-[#d4d4d8] bg-[#26262d] border-[#34343a]'
+              }`}>
+                {item.icon}
+              </span>
+              {!isCollapsed && <span className="ml-3 text-sm font-medium">{item.label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }
-
-const styles = {
-  sidebar: {
-    width: '260px',
-    backgroundColor: '#1e293b',
-    color: '#fff',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-    position: 'sticky',
-    top: 0,
-    boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
-  },
-  sidebarHeader: {
-    padding: '24px 20px',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-  },
-  logo: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    margin: 0,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-  nav: {
-    flex: 1,
-    padding: '20px 10px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    overflowY: 'auto',
-  },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 16px',
-    borderRadius: '8px',
-    textDecoration: 'none',
-    color: '#cbd5e1',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-    transition: 'all 0.3s ease',
-    cursor: 'pointer',
-  },
-  navItemActive: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    color: '#fff',
-    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
-  },
-  icon: {
-    fontSize: '1.2rem',
-    width: '24px',
-    textAlign: 'center',
-  },
-  label: {
-    flex: 1,
-  },
-  sidebarFooter: {
-    padding: '20px',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
-  },
-  footerText: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    fontSize: '0.75rem',
-    color: '#94a3b8',
-    textAlign: 'center',
-  },
-  version: {
-    color: '#64748b',
-  },
-};
 
 export default Sidebar;

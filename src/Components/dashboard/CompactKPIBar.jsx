@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { useStudent } from '../../context/StudentContext';
 import { useNavigate } from 'react-router-dom';
 
-function CompactKPIBar() {
+function CompactKPIBar({ theme = 'dark' }) {
   const { profile, eligibility, fetchProfile, fetchEligibility } = useStudent();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (profile && eligibility) return;
+
     const loadData = async () => {
       try {
         await Promise.all([fetchProfile(), fetchEligibility()]);
@@ -16,133 +18,54 @@ function CompactKPIBar() {
     };
 
     loadData();
-  }, []);
+  }, [profile, eligibility, fetchProfile, fetchEligibility]);
 
-  if (!profile || !eligibility) {
-    return null; // Don't show if data not loaded
-  }
+  if (!profile || !eligibility) return null;
 
   const ongoingProjectsCount = eligibility.ongoingProject ? 1 : 0;
-  const isEligible = eligibility.eligible;
+  const cgpaValue = eligibility.cgpa ? parseFloat(eligibility.cgpa).toFixed(2) : 'N/A';
+  const sgpaValue = profile.sgpa ? parseFloat(profile.sgpa).toFixed(2) : 'N/A';
+
+  const stats = [
+    { label: 'CGPA', value: cgpaValue, tone: parseFloat(eligibility.cgpa) >= 6 ? 'text-emerald-400' : 'text-red-400' },
+    { label: 'SGPA', value: sgpaValue, tone: 'text-zinc-100' },
+    { label: 'Projects', value: `${ongoingProjectsCount} Ongoing`, tone: 'text-zinc-100', action: () => navigate('/dashboard/profile') },
+    { label: 'Eligibility', value: eligibility.eligible ? 'Eligible' : 'Not Eligible', tone: eligibility.eligible ? 'text-emerald-400' : 'text-red-400' },
+  ];
 
   return (
-    <div style={styles.container}>
-      <div style={styles.content}>
-        {/* CGPA */}
-        <div style={styles.kpiItem}>
-          <span style={styles.label}>CGPA</span>
-          <span style={{
-            ...styles.value,
-            color: eligibility.cgpa >= 6.0 ? '#4CAF50' : '#f44336'
-          }}>
-            {eligibility.cgpa ? eligibility.cgpa.toFixed(2) : 'N/A'}
-          </span>
-        </div>
-
-        <div style={styles.divider} />
-
-        {/* SGPA */}
-        <div style={styles.kpiItem}>
-          <span style={styles.label}>SGPA</span>
-          <span style={styles.value}>
-            {profile.sgpa ? profile.sgpa.toFixed(2) : 'N/A'}
-          </span>
-        </div>
-
-        <div style={styles.divider} />
-
-        {/* Ongoing Projects */}
-        <div
-          style={{...styles.kpiItem, cursor: 'pointer'}}
-          onClick={() => navigate('/dashboard/profile')}
-          title="Click to view profile"
-        >
-          <span style={styles.label}>Projects</span>
-          <span style={styles.value}>
-            {ongoingProjectsCount} Ongoing
-          </span>
-        </div>
-
-        <div style={styles.divider} />
-
-        {/* Eligibility Badge */}
-        <div style={styles.kpiItem}>
-          <div style={{
-            ...styles.badge,
-            backgroundColor: isEligible ? '#4CAF50' : '#f44336',
-          }}>
-            {isEligible ? '✓ Eligible' : '✗ Not Eligible'}
-          </div>
-        </div>
-
-        <div style={styles.divider} />
-
-        {/* Placement Status */}
-        <div style={styles.kpiItem}>
-          <div style={{
-            ...styles.badge,
-            backgroundColor: eligibility.isPlaced ? '#2196F3' : '#FF9800',
-          }}>
-            {eligibility.isPlaced ? 'Placed' : 'Active'}
-          </div>
+    <section className={`sticky top-14 z-20 backdrop-blur ${
+      theme === 'light' ? 'border-b border-[#d1d5db] bg-white/95' : 'border-b border-[#2f2f34] bg-[#17171b]/95'
+    }`}>
+      <div className="mx-auto w-full max-w-[1400px] px-4 py-3 md:px-6">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {stats.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={item.action}
+              className={`rounded-xl px-4 py-3 text-left ${
+                theme === 'light'
+                  ? 'border border-[#d1d5db] bg-white'
+                  : 'border border-[#2f2f34] bg-[#1f1f24]'
+              } ${
+                item.action
+                  ? theme === 'light'
+                    ? 'cursor-pointer hover:bg-[#f9fafb]'
+                    : 'cursor-pointer hover:bg-[#26262d]'
+                  : 'cursor-default'
+              }`}
+            >
+              <p className={`text-[11px] uppercase tracking-[0.08em] ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>{item.label}</p>
+              <p className={`mt-1 text-lg font-semibold ${
+                theme === 'light' && (item.tone === 'text-zinc-100') ? 'text-zinc-900' : item.tone
+              }`}>{item.value}</p>
+            </button>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
-
-const styles = {
-  container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(10px)',
-    borderBottom: '1px solid #e0e0e0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    position: 'sticky',
-    top: '73px', // Below the navbar
-    zIndex: 99,
-  },
-  content: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '12px 24px',
-    gap: '20px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-    flexWrap: 'wrap',
-  },
-  kpiItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    minWidth: '100px',
-  },
-  label: {
-    fontSize: '0.75rem',
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  value: {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  divider: {
-    width: '1px',
-    height: '40px',
-    backgroundColor: '#e0e0e0',
-  },
-  badge: {
-    padding: '6px 16px',
-    borderRadius: '16px',
-    fontSize: '0.85rem',
-    fontWeight: '600',
-    color: '#fff',
-    whiteSpace: 'nowrap',
-  },
-};
 
 export default CompactKPIBar;
