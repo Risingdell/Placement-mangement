@@ -1,6 +1,6 @@
 // Base API configuration and helper functions
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 const inFlightGetRequests = new Map();
 const recentGetResponses = new Map();
 const GET_CACHE_TTL_MS = 1500;

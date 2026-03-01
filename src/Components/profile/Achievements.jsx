@@ -528,7 +528,7 @@ export default function Achievements() {
                 ) : ach.certificate_url ? (
                   <>
                     <a
-                      href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${ach.certificate_url}`}
+                      href={ach.certificate_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={styles.certLink}
