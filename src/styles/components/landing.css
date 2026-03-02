@@ -33,6 +33,7 @@
     border: 2px solid var(--main-color);
     box-shadow: 4px 4px var(--main-color);
     width: 320px;
+    min-height: 380px;
     transition: transform 0.2s;
 }
 
@@ -41,21 +42,29 @@
     box-shadow: 6px 6px var(--main-color);
 }
 
+@media (max-width: 400px) {
+    .neo-card {
+        width: 90vw;
+        min-height: 380px;
+    }
+}
+
 .neo-card-title {
-    font-family: var(--font-DelaGothicOne);
-    color: var(--font-color);
-    font-weight: 700;
-    font-size: 24px;
-    margin-bottom: 5px;
+    font-family: var(--font-DelaGothicOne), sans-serif;
+    color: #000000 !important;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 0.05em;
     text-align: center;
 }
 
 .neo-card-subtitle {
-    font-family: var(--font-SpaceMono);
-    color: var(--font-color-sub);
-    font-weight: 600;
-    font-size: 14px;
+    font-family: var(--font-SpaceMono), monospace;
+    color: #000000 !important;
+    font-weight: 700;
+    font-size: 13px;
     text-align: center;
+    line-height: 1.5;
 }
 
 .neo-button {
