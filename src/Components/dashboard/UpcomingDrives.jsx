@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import driveService from '../../services/driveService';
+import { Skeleton } from '../common/Skeleton';
 
 function UpcomingDrives() {
   const [drives, setDrives] = useState([]);
@@ -54,7 +55,18 @@ function UpcomingDrives() {
     return (
       <div style={styles.container}>
         <h3 style={styles.title}>Upcoming Placement Drives</h3>
-        <div style={styles.loadingText}>Loading upcoming drives...</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} style={{ border: '1px solid #e0e0e0', borderRadius: '6px', padding: '16px' }}>
+              <Skeleton className="h-5 w-3/4 mb-2" style={{ marginBottom: '8px' }} />
+              <Skeleton className="h-4 w-1/2 mb-3" style={{ marginBottom: '12px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-1/4" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

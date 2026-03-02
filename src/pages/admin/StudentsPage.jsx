@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import studentService from '../../services/studentService';
 import inboxService from '../../services/inboxService';
+import { Skeleton } from '../../Components/common/Skeleton';
 
 const BRANCHES = ['CSE', 'ISE', 'ECE', 'EEE', 'ME', 'CIVIL', 'AI&ML', 'DS'];
 
@@ -19,14 +20,6 @@ function Badge({ children, color = 'gray' }) {
   );
 }
 
-function Spinner() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 gap-3">
-      <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm text-gray-500">Loading students…</p>
-    </div>
-  );
-}
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -169,7 +162,19 @@ export default function StudentsPage() {
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {loading ? (
-          <Spinner />
+          <div className="p-4 space-y-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 py-2">
+                <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
+                <div className="flex-1 grid grid-cols-4 gap-4">
+                  <Skeleton className="h-4" />
+                  <Skeleton className="h-4" />
+                  <Skeleton className="h-4" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : students.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <svg className="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -343,6 +343,31 @@
   }
 }
 
+/* ===================================
+   SKELETON SHIMMER LOADING EFFECT
+   =================================== */
+
+@keyframes skeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Light skeleton — for admin pages (white/light backgrounds) */
+.skeleton {
+  background: linear-gradient(90deg, #e8e8e8 25%, #d0d0d0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+/* Dark skeleton — for student dashboard (dark backgrounds) */
+.skeleton-dark {
+  background: linear-gradient(90deg, #2f2f36 25%, #3d3d47 50%, #2f2f36 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+
 /* Accessibility: Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,

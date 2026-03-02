@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import eventService from '../../services/eventService';
+import { Skeleton } from '../common/Skeleton';
 
 function EventsBar() {
   const [events, setEvents] = useState([]);
@@ -58,7 +59,18 @@ function EventsBar() {
     return (
       <div style={styles.container}>
         <h3 style={styles.title}>Upcoming Events</h3>
-        <div style={styles.loadingText}>Loading upcoming events...</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} style={{ border: '1px solid #e0e0e0', borderRadius: '6px', padding: '16px', display: 'flex', gap: '12px' }}>
+              <div style={{ width: '4px', backgroundColor: '#e0e0e0', borderRadius: '2px', flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <Skeleton className="h-5 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2 mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

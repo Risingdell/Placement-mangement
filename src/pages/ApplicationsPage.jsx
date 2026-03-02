@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import applicationService from '../services/applicationService';
+import { SkeletonDark } from '../Components/common/Skeleton';
 
 function ApplicationsPage() {
   const navigate = useNavigate();
@@ -95,7 +96,20 @@ function ApplicationsPage() {
         <p className="text-zinc-400 mt-1">Track status and timeline of each drive you applied to.</p>
       </div>
 
-      {loading && <div className="py-20 text-center text-zinc-400">Loading your applications...</div>}
+      {loading && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5">
+              <SkeletonDark className="h-6 w-2/3 mb-2" />
+              <SkeletonDark className="h-4 w-1/3 mb-4" />
+              <SkeletonDark className="h-4 w-full mb-2" />
+              <SkeletonDark className="h-4 w-full mb-2" />
+              <SkeletonDark className="h-4 w-3/4 mb-4" />
+              <SkeletonDark className="h-10 w-full" />
+            </div>
+          ))}
+        </div>
+      )}
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
           Failed to load applications: {error}

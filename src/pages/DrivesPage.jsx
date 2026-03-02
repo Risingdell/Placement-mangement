@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStudent } from '../context/StudentContext';
 import driveService from '../services/driveService';
 import applicationService from '../services/applicationService';
+import { SkeletonDark } from '../Components/common/Skeleton';
 
 function DrivesPage() {
   const { profile } = useStudent();
@@ -126,7 +127,23 @@ function DrivesPage() {
         />
       </div>
 
-      {loading && <div className="py-20 text-center text-zinc-400">Loading placement drives...</div>}
+      {loading && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5">
+              <SkeletonDark className="h-6 w-2/3 mb-2" />
+              <SkeletonDark className="h-4 w-1/3 mb-4" />
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <SkeletonDark className="h-10" />
+                <SkeletonDark className="h-10" />
+                <SkeletonDark className="h-10" />
+                <SkeletonDark className="h-10" />
+              </div>
+              <SkeletonDark className="h-10 w-full" />
+            </div>
+          ))}
+        </div>
+      )}
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
           Failed to load drives: {error}
