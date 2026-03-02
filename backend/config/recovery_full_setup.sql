@@ -342,6 +342,8 @@ CREATE TABLE achievements (
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+
 CREATE TABLE portfolios (
  id INT PRIMARY KEY AUTO_INCREMENT,
  user_id INT NOT NULL,
@@ -478,6 +480,8 @@ INSERT INTO student_academics (user_id,branch,batch_year,year,current_semester,c
 (101,'CSE',2021,2021,8,8.45,8.60,0,0,0,92.50,88.75,'https://ui-avatars.com/api/?name=Rajesh+Kumar','/uploads/resumes/rajesh.pdf'),
 (102,'CSE',2021,2021,8,9.12,9.20,0,0,0,95.00,91.20,'https://ui-avatars.com/api/?name=Priya+Sharma','/uploads/resumes/priya.pdf'),
 (103,'ISE',2021,2021,8,7.85,8.00,1,0,1,88.00,85.50,'https://ui-avatars.com/api/?name=Amit+Patel','/uploads/resumes/amit.pdf');
+
+
 INSERT INTO authorized_emails (email,student_name,usn,branch,batch_year,notes,is_active,is_used,added_by) VALUES
 ('student@test.com','Rajesh Kumar','1MS21CS001','CSE',2021,'Imported recovery whitelist',1,1,2),
 ('priya.sharma@college.edu','Priya Sharma','1MS21CS002','CSE',2021,'Imported recovery whitelist',1,1,2),
@@ -541,35 +545,46 @@ INSERT INTO profile_change_requests (user_id,field_name,old_value,new_value,chan
 
 INSERT INTO skills (user_id,skill_name,category,proficiency) VALUES
 (101,'JavaScript','Programming','Advanced'),(101,'React','Framework','Advanced'),(102,'Java','Programming','Expert'),(103,'Python','Programming','Intermediate');
+
 INSERT INTO projects (user_id,title,description,tech_stack,status,is_ongoing,start_date,end_date,project_url,github_url) VALUES
 (101,'Placement Portal UI','Frontend dashboard for student placements','React, Tailwind, Axios','Completed',0,'2025-07-01','2025-12-01','https://example.com/placement-ui','https://github.com/example/placement-ui'),
 (103,'Interview Prep Tracker','Track interview practice progress','Node.js, MySQL, React','Ongoing',1,'2026-01-10',NULL,NULL,'https://github.com/example/interview-tracker');
+
 INSERT INTO internships (user_id,company_name,role,duration_months,start_date,end_date,description,certificate_url) VALUES
 (101,'TechNova','Frontend Intern',3,'2025-05-01','2025-07-31','Worked on internal dashboard components','https://example.com/certificates/rajesh-technova.pdf'),
 (102,'CloudStack','Backend Intern',4,'2025-04-01','2025-07-31','Built API endpoints and wrote tests','https://example.com/certificates/priya-cloudstack.pdf');
+
 INSERT INTO achievements (user_id,title,type,issuer,date_achieved,description,certificate_url) VALUES
 (101,'AWS Cloud Practitioner','Certification','AWS','2025-10-12','Entry-level AWS cloud certification','https://example.com/certificates/aws-rajesh.pdf'),
 (102,'Hackathon Winner','Hackathon','CodeFest','2025-09-15','Won first place in college hackathon','https://example.com/certificates/priya-hackathon.pdf');
+
 INSERT INTO portfolios (user_id,title,portfolio_url,description,built_with,build_details) VALUES
 (101,'Developer Portfolio','https://rajesh.dev','Main personal portfolio','React, Vite','Includes project case studies and resume'),
 (102,'Backend Portfolio','https://priya.dev','Service architecture case studies','Spring Boot, PostgreSQL','Focus on APIs and performance tuning');
+
 INSERT INTO semester_marks (user_id,semester,sgpa,marks_card_url) VALUES
 (101,7,8.55,'https://example.com/marks/rajesh-sem7.pdf'),(101,8,8.65,'https://example.com/marks/rajesh-sem8.pdf'),(103,8,7.95,'https://example.com/marks/amit-sem8.pdf');
 
 INSERT INTO admin_actions (admin_id,action_type,entity_type,entity_id,description,metadata,ip_address,user_agent) VALUES
 (1,'Create','Drive',1001,'Created Google drive','{"source":"seed"}','127.0.0.1','SeedScript/1.0'),
 (2,'Send','Message',NULL,'Sent drive instructions to shortlisted students','{"drive_id":1002}','127.0.0.1','SeedScript/1.0');
+
 INSERT INTO activity_logs (user_id,action,entity_type,entity_id,ip_address,user_agent) VALUES
 (101,'LOGIN_SUCCESS','Auth',101,'127.0.0.1','Mozilla/5.0'),(2,'SHORTLIST_UPDATED','Application',5002,'127.0.0.1','Mozilla/5.0');
+
 INSERT INTO bulk_operations (operation_type,target_entity,filter_criteria,total_count,success_count,failed_count,result_data,status,initiated_by,started_at,completed_at) VALUES
 ('BulkNotify','Students','{"drive_id":1002}',2,2,0,'{"message":"Notifications sent"}','Completed',2,'2026-02-18 13:55:00','2026-02-18 14:01:00');
+
 INSERT INTO export_logs (export_type,export_format,filter_applied,filter_criteria,file_name,file_path,file_size_kb,record_count,download_count,exported_by,exported_at,created_at,expires_at) VALUES
 ('placement','CSV','{"branch":"CSE"}','{"branch":"CSE"}','placement_report_20260227.csv','/exports/placement_report_20260227.csv',24,3,1,1,NOW(),NOW(),DATE_ADD(NOW(),INTERVAL 7 DAY));
+
 INSERT INTO placement_statistics (stat_date,total_students,placed_students,eligible_students,total_drives,total_companies,total_applications,avg_ctc,median_ctc,highest_ctc,lowest_ctc,branch_wise_stats,company_wise_stats,generated_at) VALUES
 ('2026-02-27',3,1,3,3,2,4,900000.00,900000.00,1800000.00,450000.00,'{"CSE":{"total":2,"placed":1},"ISE":{"total":1,"placed":0}}','{"Google":{"applications":1},"Infosys":{"applications":3}}',NOW());
+
 INSERT INTO system_settings (setting_key,setting_value,setting_type,category,description,is_public,updated_by) VALUES
 ('min_cgpa_default','6.0','Number','Placement','Default minimum CGPA for eligibility checks',1,1),
 ('allow_multiple_offers','false','Boolean','Placement','If false, placed students are blocked from new applications',0,1);
+
 INSERT INTO password_reset_tokens (user_id,token,expires_at,used,created_at) VALUES
 (101,SHA2('seed-reset-token',256),DATE_ADD(NOW(),INTERVAL 30 MINUTE),0,NOW());
 
