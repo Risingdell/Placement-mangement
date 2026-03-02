@@ -266,11 +266,14 @@ const sendMessage = async (req, res) => {
       });
     }
 
+    const validTypes = ['Notification','Shortlist','Exam','Interview','Announcement','Result','Offer','Reminder','General'];
+    const safeType = validTypes.includes(messageType) ? messageType : 'Notification';
+
     const [result] = await promisePool.query(
       `INSERT INTO inbox_messages
        (recipient_id, sender_id, subject, message, message_type, related_drive_id, action_url)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [recipientId, req.user.id, subject, message, messageType || 'Notification', relatedDriveId, actionUrl]
+      [recipientId, req.user.id, subject, message, safeType, relatedDriveId || null, actionUrl || null]
     );
 
     res.status(201).json({

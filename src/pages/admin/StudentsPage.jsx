@@ -69,7 +69,7 @@ export default function StudentsPage() {
         recipientId: selectedStudent.id,
         subject: msgSubject,
         message: msgBody,
-        messageType: 'Official',
+        messageType: 'Announcement',
       });
       setShowMessageModal(false);
       setMsgSubject('');
