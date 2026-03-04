@@ -441,8 +441,8 @@ exports.updateAuthorizedEmail = async (req, res) => {
     }
 
     if (updateFields.length > 0) {
-      updateValues.push(id);
       updateFields.push('updated_at = NOW()');
+      updateValues.push(id);
       await connection.query(
         `UPDATE authorized_emails SET ${updateFields.join(', ')} WHERE id = ?`,
         updateValues
