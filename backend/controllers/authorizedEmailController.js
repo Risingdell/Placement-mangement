@@ -498,14 +498,6 @@ exports.deleteAuthorizedEmail = async (req, res) => {
 
     const email = emails[0];
 
-    // Check if email is already used
-    if (email.is_used) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete email that has already been used for registration'
-      });
-    }
-
     await connection.beginTransaction();
 
     // Delete email

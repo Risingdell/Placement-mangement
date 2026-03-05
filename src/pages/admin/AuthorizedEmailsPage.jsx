@@ -24,6 +24,7 @@ function AuthorizedEmailsPage() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [deleteSnackbar, setDeleteSnackbar] = useState(null);
 
   const [csvFile, setCsvFile] = useState(null);
   const [csvPreview, setCsvPreview] = useState([]);
@@ -174,13 +175,10 @@ function AuthorizedEmailsPage() {
   };
 
   const askDelete = (email) => {
-    setConfirmAction({
-      type: 'delete',
+    setDeleteSnackbar({
       id: email.id,
-      title: 'Delete Authorization Entry',
-      message: `Are you sure you want to permanently delete ${email.email} from the whitelist?`
+      email: email.email
     });
-    setShowConfirmModal(true);
   };
 
   const handleConfirmAction = async () => {
@@ -189,9 +187,6 @@ function AuthorizedEmailsPage() {
       if (confirmAction.type === 'toggle') {
         await authorizedEmailService.toggleEmailStatus(confirmAction.id);
         flashMessage('success', 'Access status updated successfully.');
-      } else if (confirmAction.type === 'delete') {
-        await authorizedEmailService.deleteAuthorizedEmail(confirmAction.id);
-        flashMessage('success', 'Authorization entry deleted successfully.');
       }
       setShowConfirmModal(false);
       setConfirmAction(null);
@@ -201,6 +196,21 @@ function AuthorizedEmailsPage() {
       flashMessage('error', error.message || 'Action failed.');
       setShowConfirmModal(false);
       setConfirmAction(null);
+    }
+  };
+
+  const handleConfirmDeleteFromSnackbar = async () => {
+    if (!deleteSnackbar) return;
+
+    try {
+      await authorizedEmailService.deleteAuthorizedEmail(deleteSnackbar.id);
+      flashMessage('success', 'Authorization entry deleted successfully.');
+      fetchEmails();
+      fetchStatistics();
+    } catch (error) {
+      flashMessage('error', error.message || 'Failed to delete authorization entry.');
+    } finally {
+      setDeleteSnackbar(null);
     }
   };
 
@@ -795,6 +805,31 @@ function AuthorizedEmailsPage() {
                 className="h-10 px-4 rounded-xl border border-black bg-black text-white hover:bg-gray-800 text-sm font-semibold"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteSnackbar && (
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-md">
+          <div className="bg-white border border-black rounded-xl shadow-lg p-4">
+            <p className="text-sm font-semibold text-black">Delete Authorization Entry</p>
+            <p className="text-xs text-gray-700 mt-1 break-all">
+              Delete <span className="font-semibold">{deleteSnackbar.email}</span> from whitelist?
+            </p>
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                onClick={() => setDeleteSnackbar(null)}
+                className="h-9 px-3 rounded-lg border border-black bg-white hover:bg-gray-100 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeleteFromSnackbar}
+                className="h-9 px-3 rounded-lg border border-red-500 text-red-700 bg-red-50 hover:bg-red-100 text-xs font-semibold"
+              >
+                Confirm Delete
               </button>
             </div>
           </div>
