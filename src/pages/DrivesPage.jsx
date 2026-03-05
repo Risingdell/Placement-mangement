@@ -309,7 +309,7 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
           </div>
 
           {drive.criteriaList.length > 0 && (
-            <div className="mt-3 rounded-md border border-[#3a3a45] bg-[#202027] p-3">
+            <div className="mt-3 rounded-md border border-[#3a3a43] bg-[#2b2b33] p-3">
               <p className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">Additional Criteria</p>
               <ul className="space-y-1.5 text-sm text-zinc-300">
                 {drive.criteriaList.map((item, idx) => (
@@ -367,7 +367,7 @@ const Detail = ({ label, value, tone = 'text-zinc-200' }) => (
 );
 
 const EligibilityItem = ({ label, value }) => (
-  <div className="rounded-md border border-[#3a3a45] bg-[#202027] px-3 py-2">
+  <div className="rounded-md border border-[#3a3a43] bg-[#2b2b33] px-3 py-2">
     <p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
     <p className="mt-1 text-sm text-zinc-200">{value}</p>
   </div>
