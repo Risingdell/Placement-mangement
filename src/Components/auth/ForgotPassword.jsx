@@ -1,22 +1,31 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import authService from "../../services/authService";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setError("");
 
-    if (!email) {
-      alert("Email is required");
+    if (!email.trim()) {
+      setError("Email is required");
       return;
     }
 
     try {
-      await authService.forgotPassword(email);
-      alert("Password reset link sent to email");
+      setLoading(true);
+      const response = await authService.forgotPassword(email.trim());
+      setMessage(response?.message || "If an account exists, password reset instructions have been sent.");
     } catch (err) {
-      alert("Error sending reset link");
+      setError(err.message || "Error sending reset link");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,11 +49,19 @@ function ForgotPassword() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="neo-input"
+                disabled={loading}
               />
             </div>
 
-            <button type="submit" className="neo-button">
-              Send Reset Link
+            {error && <div className="neo-error">{error}</div>}
+            {message && (
+              <div className="p-3 border-2 border-[#323232] rounded bg-green-50 text-green-900 text-sm font-mono">
+                {message}
+              </div>
+            )}
+
+            <button type="submit" className="neo-button" disabled={loading}>
+              {loading ? "Sending..." : "Send Reset Link"}
               <svg className="neo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
