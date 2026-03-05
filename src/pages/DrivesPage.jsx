@@ -5,6 +5,71 @@ import driveService from '../services/driveService';
 import applicationService from '../services/applicationService';
 import { SkeletonDark } from '../Components/common/Skeleton';
 
+const parseJsonArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== 'string') return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const parseEligibilityCriteria = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean).map((item) => String(item));
+
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .filter(([, v]) => v !== null && v !== undefined && v !== '')
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return parseEligibilityCriteria(parsed);
+    } catch {
+      return value.trim() ? [value.trim()] : [];
+    }
+  }
+
+  return [];
+};
+
+const normalizeDrive = (drive) => {
+  const allowedBranches = parseJsonArray(drive.allowed_branches);
+  const allowedBatchYears = parseJsonArray(drive.allowed_batch_years || drive.batch_years);
+  const criteriaList = parseEligibilityCriteria(drive.eligibility_criteria);
+
+  return {
+    ...drive,
+    job_role: drive.job_role || drive.role || 'Role not specified',
+    package: drive.package || drive.ctc || null,
+    max_active_backlogs:
+      drive.max_active_backlogs !== undefined && drive.max_active_backlogs !== null
+        ? drive.max_active_backlogs
+        : drive.max_backlogs,
+    isEligible:
+      drive.isEligible !== undefined && drive.isEligible !== null
+        ? drive.isEligible
+        : Boolean(drive.eligible),
+    hasApplied:
+      drive.hasApplied !== undefined && drive.hasApplied !== null
+        ? drive.hasApplied
+        : Boolean(drive.has_applied),
+    applications_count:
+      drive.applications_count !== undefined && drive.applications_count !== null
+        ? drive.applications_count
+        : (drive.total_applicants || 0),
+    allowed_branches: allowedBranches,
+    allowed_batch_years: allowedBatchYears,
+    criteriaList,
+    eligibilityReasons: drive.eligibilityReasons || drive.eligibility_reasons || null,
+  };
+};
+
 function DrivesPage() {
   const { profile } = useStudent();
   const navigate = useNavigate();
@@ -27,7 +92,7 @@ function DrivesPage() {
     try {
       const response = await driveService.getAllDrives();
       if (response.success) {
-        setDrives(response.data || []);
+        setDrives((response.data || []).map(normalizeDrive));
       } else {
         setError(response.message || 'Failed to load drives');
       }
@@ -91,7 +156,7 @@ function DrivesPage() {
     .filter((d) => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return d.company_name.toLowerCase().includes(q) || d.job_role.toLowerCase().includes(q);
+      return (d.company_name || '').toLowerCase().includes(q) || (d.job_role || '').toLowerCase().includes(q);
     });
 
   return (
@@ -229,12 +294,44 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
       </button>
 
       {showEligibility && (
-        <ul className="mb-4 rounded-lg border border-[#34343d] bg-[#23232a] p-3 text-sm text-zinc-300 space-y-1">
-          <li>Minimum CGPA: {drive.min_cgpa || 'N/A'}</li>
-          <li>Maximum Active Backlogs: {drive.max_active_backlogs ?? 'N/A'}</li>
-          {drive.allowed_branches && <li>Allowed Branches: {drive.allowed_branches.join(', ')}</li>}
-          {drive.allowed_batch_years && <li>Batch Years: {drive.allowed_batch_years.join(', ')}</li>}
-        </ul>
+        <div className="mb-4 rounded-lg border border-[#34343d] bg-[#23232a] p-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <EligibilityItem label="Minimum CGPA" value={drive.min_cgpa ?? 'N/A'} />
+            <EligibilityItem label="Maximum Active Backlogs" value={drive.max_active_backlogs ?? 'N/A'} />
+            <EligibilityItem
+              label="Allowed Branches"
+              value={drive.allowed_branches.length > 0 ? drive.allowed_branches.join(', ') : 'All branches'}
+            />
+            <EligibilityItem
+              label="Batch Years"
+              value={drive.allowed_batch_years.length > 0 ? drive.allowed_batch_years.join(', ') : 'All batches'}
+            />
+          </div>
+
+          {drive.criteriaList.length > 0 && (
+            <div className="mt-3 rounded-md border border-[#3a3a45] bg-[#202027] p-3">
+              <p className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">Additional Criteria</p>
+              <ul className="space-y-1.5 text-sm text-zinc-300">
+                {drive.criteriaList.map((item, idx) => (
+                  <li key={`${drive.id}-criteria-${idx}`} className="leading-relaxed">
+                    • {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {Array.isArray(drive.eligibilityReasons) && drive.eligibilityReasons.length > 0 && (
+            <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-3">
+              <p className="text-[11px] uppercase tracking-wider text-red-300 mb-2">Why You Are Not Eligible</p>
+              <ul className="space-y-1.5 text-sm text-red-200">
+                {drive.eligibilityReasons.map((reason, idx) => (
+                  <li key={`${drive.id}-reason-${idx}`}>• {reason}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
 
       <div className="flex items-center justify-between border-t border-[#2c2c33] pt-4">
@@ -266,6 +363,13 @@ const Detail = ({ label, value, tone = 'text-zinc-200' }) => (
   <div>
     <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
     <p className={`mt-1 text-sm ${tone}`}>{value}</p>
+  </div>
+);
+
+const EligibilityItem = ({ label, value }) => (
+  <div className="rounded-md border border-[#3a3a45] bg-[#202027] px-3 py-2">
+    <p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
+    <p className="mt-1 text-sm text-zinc-200">{value}</p>
   </div>
 );
 
