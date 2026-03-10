@@ -1,56 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { getDashboardStats } from '../../services/adminStatsService';
+import { SkeletonDark } from '../../Components/common/Skeleton';
 
 const STAT_CONFIG = [
-  {
-    key: 'total_students', label: 'Total Students', color: 'blue',
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
-  },
-  {
-    key: 'placed_students', label: 'Placed', color: 'emerald',
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-  },
-  {
-    key: 'eligible_students', label: 'Eligible', color: 'teal',
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-  },
-  {
-    key: 'total_companies', label: 'Companies', color: 'violet',
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
-  },
-  {
-    key: 'total_drives', label: 'Drives', color: 'amber',
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
-  },
-  {
-    key: 'total_applications', label: 'Applications', color: 'indigo',
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-  },
+  { key: 'total_students', label: 'Students', tone: 'text-zinc-100' },
+  { key: 'placed_students', label: 'Placed', tone: 'text-emerald-300' },
+  { key: 'eligible_students', label: 'Eligible', tone: 'text-sky-300' },
+  { key: 'total_companies', label: 'Companies', tone: 'text-amber-300' },
+  { key: 'total_drives', label: 'Drives', tone: 'text-zinc-100' },
+  { key: 'total_applications', label: 'Applications', tone: 'text-zinc-100' },
 ];
-
-const COLORS = {
-  blue:    { bg: 'bg-blue-50',    text: 'text-blue-600' },
-  emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
-  teal:    { bg: 'bg-teal-50',    text: 'text-teal-600' },
-  violet:  { bg: 'bg-violet-50',  text: 'text-violet-600' },
-  amber:   { bg: 'bg-amber-50',   text: 'text-amber-600' },
-  indigo:  { bg: 'bg-indigo-50',  text: 'text-indigo-600' },
-};
 
 const QUICK_ACTIONS = [
-  { label: 'Add Company',   path: '/admin/dashboard/companies',   cls: 'bg-violet-600 hover:bg-violet-700' },
-  { label: 'Create Drive',  path: '/admin/dashboard/drives',      cls: 'bg-emerald-600 hover:bg-emerald-700' },
-  { label: 'Send Message',  path: '/admin/dashboard/messages',    cls: 'bg-blue-600 hover:bg-blue-700' },
-  { label: 'View Reports',  path: '/admin/dashboard/reports',     cls: 'bg-amber-600 hover:bg-amber-700' },
+  { label: 'Add Company', path: '/admin/dashboard/companies' },
+  { label: 'Create Drive', path: '/admin/dashboard/drives' },
+  { label: 'Send Message', path: '/admin/dashboard/messages' },
+  { label: 'View Reports', path: '/admin/dashboard/reports' },
 ];
-
-function Skeleton({ className }) {
-  return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
-}
 
 function AdminDashboardHome() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [overall, setOverall] = useState(null);
   const [recentPlacements, setRecentPlacements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,191 +39,237 @@ function AdminDashboardHome() {
       .finally(() => setLoading(false));
   }, []);
 
-  const val = (key) => (overall ? Number(overall[key] ?? 0) : 0);
+  const val = (key) => Number(overall?.[key] ?? 0);
+  const placementRate =
+    val('total_students') > 0
+      ? ((val('placed_students') / val('total_students')) * 100).toFixed(1)
+      : '--';
 
-  const placementRate = val('total_students') > 0
-    ? ((val('placed_students') / val('total_students')) * 100).toFixed(1)
-    : '—';
+  const avgCtc = overall?.avg_ctc ? `${Number(overall.avg_ctc).toFixed(2)} LPA` : 'Not available';
+  const highestCtc = overall?.highest_ctc ? `${Number(overall.highest_ctc).toFixed(2)} LPA` : 'Not available';
+  const adminName = user?.fullName || user?.full_name || 'Admin';
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
-    <div className="space-y-6">
-      {/* Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 p-7 text-white shadow-lg">
-        <div className="relative z-10">
-          <p className="text-indigo-200 text-sm font-medium mb-1">Admin Portal</p>
-          <h2 className="text-2xl font-bold tracking-tight">Placement Management Dashboard</h2>
-          <p className="text-indigo-300 text-sm mt-1">
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
-          {!loading && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/15 border border-white/20 rounded-full text-sm font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                {placementRate}% Placement Rate
-              </span>
-              {overall?.avg_ctc && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/15 border border-white/20 rounded-full text-sm font-semibold">
-                  Avg CTC: {Number(overall.avg_ctc).toFixed(1)} LPA
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.08] pointer-events-none select-none">
-          <svg className="w-44 h-44" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z" />
-          </svg>
-        </div>
-      </div>
-
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-        {loading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-                <div className="flex items-start justify-between mb-3">
-                  <Skeleton className="h-3.5 w-20" />
-                  <Skeleton className="w-9 h-9 rounded-lg" />
-                </div>
-                <Skeleton className="h-8 w-12 mt-1" />
-              </div>
-            ))
-          : STAT_CONFIG.map((cfg) => {
-              const c = COLORS[cfg.color];
-              return (
-                <div key={cfg.key} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider leading-tight">{cfg.label}</p>
-                    <div className={`${c.bg} ${c.text} p-2 rounded-lg flex-shrink-0`}>{cfg.icon}</div>
-                  </div>
-                  <p className="text-3xl font-bold text-gray-900 tabular-nums">{val(cfg.key).toLocaleString()}</p>
-                </div>
-              );
-            })}
-      </div>
-
-      {/* Bottom panels */}
-      <div className="grid lg:grid-cols-5 gap-5">
-        {/* Recent placements */}
-        <div className="lg:col-span-3 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">Recent Placements</h3>
-            <button onClick={() => navigate('/admin/dashboard/applications')} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
-              View all →
-            </button>
+    <div className="max-w-7xl space-y-8">
+      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.25)] md:p-8">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f7b545]">Admin Portal</p>
+            <h1 className="mt-2 text-2xl font-semibold text-zinc-100 md:text-3xl">
+              Welcome back, {adminName}
+            </h1>
+            <p className="mt-2 text-zinc-400">{today}</p>
           </div>
-          <div className="flex-1 divide-y divide-gray-50">
+
+          <div className="flex flex-wrap gap-2">
+            <SummaryPill label="Placement Rate" value={placementRate === '--' ? placementRate : `${placementRate}%`} tone="text-emerald-300" />
+            <SummaryPill label="Average CTC" value={avgCtc} tone="text-zinc-100" />
+            <SummaryPill label="Highest CTC" value={highestCtc} tone="text-[#f7b545]" />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-3 2xl:grid-cols-6">
+        {loading ? (
+          <>
+            <SkeletonDark className="h-20 rounded-xl" />
+            <SkeletonDark className="h-20 rounded-xl" />
+            <SkeletonDark className="h-20 rounded-xl" />
+            <SkeletonDark className="h-20 rounded-xl" />
+            <SkeletonDark className="h-20 rounded-xl" />
+            <SkeletonDark className="h-20 rounded-xl" />
+          </>
+        ) : (
+          STAT_CONFIG.map((item) => (
+            <StatCard key={item.key} label={item.label} value={val(item.key).toLocaleString()} tone={item.tone} />
+          ))
+        )}
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Placement Summary</p>
+              <h3 className="mt-1 text-lg font-semibold text-zinc-100">Outcome snapshot</h3>
+            </div>
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+              Live
+            </span>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-[#353540] bg-[#24242b] p-4">
             {loading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="px-5 py-3.5 flex items-center gap-3">
-                  <Skeleton className="w-8 h-8 rounded-full" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <Skeleton className="h-5 w-14 rounded-full" />
-                </div>
-              ))
-            ) : recentPlacements.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <svg className="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm font-medium text-gray-500">No placements yet</p>
-                <p className="text-xs text-gray-400 mt-0.5">Placed students will appear here</p>
+              <div className="space-y-3">
+                <SkeletonDark className="h-6 w-36 rounded-lg" />
+                <SkeletonDark className="h-3 w-full rounded-full" />
+                <SkeletonDark className="h-4 w-44 rounded-lg" />
               </div>
             ) : (
-              recentPlacements.map((p, i) => (
-                <div key={i} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-indigo-700 font-bold text-[11px]">{(p.student_name || 'S').charAt(0)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{p.student_name}</p>
-                    <p className="text-xs text-gray-500 truncate">{p.company_name} — {p.role}</p>
-                  </div>
-                  {p.ctc && (
-                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex-shrink-0">
-                      {typeof p.ctc === 'number' ? `${p.ctc} LPA` : p.ctc}
-                    </span>
-                  )}
+              <>
+                <p className="text-sm text-zinc-400">Current placement rate</p>
+                <p className="mt-1 text-3xl font-bold text-[#f7b545]">
+                  {placementRate}
+                  <span className="ml-2 text-base font-medium text-zinc-300">%</span>
+                </p>
+                <p className="mt-2 text-xs text-zinc-500">
+                  {val('placed_students')} placed out of {val('total_students')} registered students.
+                </p>
+                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-[#2e2e36]">
+                  <div
+                    className="h-full rounded-full bg-[#f7b545] transition-all"
+                    style={{ width: `${placementRate === '--' ? 0 : placementRate}%` }}
+                  />
                 </div>
-              ))
+              </>
             )}
           </div>
+
+          <div className="mt-4 space-y-3">
+            <SummaryRow label="Eligible Students" value={loading ? '...' : val('eligible_students').toLocaleString()} tone="text-sky-300" />
+            <SummaryRow label="Average CTC" value={loading ? '...' : avgCtc} tone="text-zinc-100" />
+            <SummaryRow label="Highest CTC" value={loading ? '...' : highestCtc} tone="text-[#f7b545]" />
+            <SummaryRow label="Active Operations" value={loading ? '...' : `${val('total_drives')} drives / ${val('total_companies')} companies`} tone="text-zinc-100" />
+          </div>
         </div>
 
-        {/* Right panel */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Quick Actions */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Quick Actions</h3>
+        <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Recent Placements</p>
+              <h3 className="mt-1 text-lg font-semibold text-zinc-100">Latest confirmed outcomes</h3>
             </div>
-            <div className="p-4 grid grid-cols-2 gap-3">
-              {QUICK_ACTIONS.map((a) => (
-                <button
-                  key={a.label}
-                  onClick={() => navigate(a.path)}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-white text-xs font-semibold shadow-sm hover:shadow-md transition-all ${a.cls}`}
-                >
-                  {a.label}
-                </button>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/dashboard/applications')}
+              className="rounded-lg border border-[#363640] bg-[#24242b] px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-[#2e2e37]"
+            >
+              View all
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {loading && (
+              <>
+                <SkeletonDark className="h-16 rounded-xl" />
+                <SkeletonDark className="h-16 rounded-xl" />
+                <SkeletonDark className="h-16 rounded-xl" />
+              </>
+            )}
+
+            {!loading && recentPlacements.length === 0 && (
+              <div className="rounded-xl border border-[#34343d] bg-[#23232a] px-4 py-10 text-center">
+                <p className="text-sm font-medium text-zinc-300">No placements yet</p>
+                <p className="mt-1 text-xs text-zinc-500">Confirmed placements will appear here.</p>
+              </div>
+            )}
+
+            {!loading &&
+              recentPlacements.slice(0, 5).map((placement, index) => (
+                <article key={`${placement.student_name}-${placement.company_name}-${index}`} className="flex items-center gap-3 rounded-xl border border-[#34343d] bg-[#23232a] px-4 py-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(247,181,69,0.14)] text-sm font-bold text-[#f7b545]">
+                    {(placement.student_name || 'S').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-zinc-100">{placement.student_name}</p>
+                    <p className="truncate text-xs text-zinc-400">
+                      {placement.company_name} - {placement.role}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
+                    {placement.ctc ? `${placement.ctc} LPA` : 'Placed'}
+                  </span>
+                </article>
               ))}
-            </div>
-          </div>
-
-          {/* Summary card */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Placement Summary</h3>
-            </div>
-            <div className="px-5 py-4 space-y-3">
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex justify-between items-center">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-12" />
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Placement Rate</span>
-                    <span className="font-semibold text-gray-900">{placementRate}%</span>
-                  </div>
-                  {overall?.avg_ctc && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Average CTC</span>
-                      <span className="font-semibold text-emerald-700">{Number(overall.avg_ctc).toFixed(2)} LPA</span>
-                    </div>
-                  )}
-                  {overall?.highest_ctc && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Highest CTC</span>
-                      <span className="font-semibold text-violet-700">{Number(overall.highest_ctc).toFixed(2)} LPA</span>
-                    </div>
-                  )}
-                  <div className="pt-2">
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                      <span>Placed</span>
-                      <span>{val('placed_students')} / {val('total_students')}</span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full transition-all"
-                        style={{ width: `${placementRate === '—' ? 0 : placementRate}%` }}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+        <h3 className="text-lg font-semibold text-zinc-100">Quick Actions</h3>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {QUICK_ACTIONS.map((action) => (
+            <ActionButton key={action.label} label={action.label} onClick={() => navigate(action.path)} />
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-zinc-100">Placement Activity Feed</h3>
+          <span className="text-xs text-zinc-500">Recent conversions</span>
+        </div>
+
+        <div className="mt-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max gap-3 pb-1">
+            {loading && (
+              <>
+                <SkeletonDark className="h-24 w-72 flex-shrink-0 rounded-xl" />
+                <SkeletonDark className="h-24 w-72 flex-shrink-0 rounded-xl" />
+                <SkeletonDark className="h-24 w-72 flex-shrink-0 rounded-xl" />
+              </>
+            )}
+
+            {!loading && recentPlacements.length === 0 && (
+              <p className="text-sm text-zinc-500">No placement activity available yet.</p>
+            )}
+
+            {!loading &&
+              recentPlacements.slice(0, 8).map((placement, index) => (
+                <article key={`${placement.student_name}-${placement.role}-${index}`} className="w-72 rounded-xl border border-[#34343d] bg-[#23232a] p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="rounded-full border border-[#3a3a44] bg-[#25252d] px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[#f7b545]">
+                      Placement
+                    </span>
+                    <span className="text-[11px] text-zinc-500">{placement.ctc ? `${placement.ctc} LPA` : 'Offer issued'}</span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-zinc-100">{placement.student_name}</h4>
+                  <p className="mt-1 text-xs text-zinc-400">{placement.company_name}</p>
+                  <p className="mt-2 text-xs text-zinc-500">{placement.role}</p>
+                </article>
+              ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
+
+const StatCard = ({ label, value, tone }) => (
+  <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
+    <p className="text-[11px] uppercase tracking-[0.08em] text-zinc-500">{label}</p>
+    <p className={`mt-1 text-lg font-semibold md:text-xl ${tone}`}>{value}</p>
+  </div>
+);
+
+const SummaryPill = ({ label, value, tone }) => (
+  <div className="rounded-full border border-[#34343d] bg-[#23232a] px-4 py-2">
+    <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+    <p className={`mt-1 text-sm font-semibold ${tone}`}>{value}</p>
+  </div>
+);
+
+const SummaryRow = ({ label, value, tone }) => (
+  <div className="flex items-center justify-between rounded-xl border border-[#34343d] bg-[#23232a] px-4 py-3 text-sm">
+    <span className="text-zinc-400">{label}</span>
+    <span className={`font-semibold ${tone}`}>{value}</span>
+  </div>
+);
+
+const ActionButton = ({ label, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="rounded-lg border border-[#363640] bg-[#24242b] px-4 py-3 text-sm text-zinc-200 transition-colors hover:bg-[#2e2e37]"
+  >
+    {label}
+  </button>
+);
 
 export default AdminDashboardHome;

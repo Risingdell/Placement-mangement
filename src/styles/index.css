@@ -18,6 +18,7 @@
 @import './components/neo-brutalism.css';
 @import './components/landing.css';
 @import './components/student-theme.css';
+@import './components/admin-theme.css';
 
 /* 5. Global overrides and custom styles can be added below */
 body {
