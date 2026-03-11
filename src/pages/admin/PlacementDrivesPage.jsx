@@ -68,10 +68,10 @@ function PlacementDrivesPage() {
       role: drive.role || '',
       ctc: drive.ctc || '',
       drive_date: (g(drive, 'drive_date', 'date') || '').split('T')[0],
-      application_deadline: (g(drive, 'application_deadline', 'deadline') || '').split('T')[0],
+      application_deadline: (g(drive, 'application_deadline', 'registration_deadline', 'deadline') || '').split('T')[0],
       min_cgpa: String(g(drive, 'min_cgpa', 'minCGPA') || ''),
       max_backlogs: String(g(drive, 'max_backlogs', 'maxBacklogs') || '0'),
-      description: drive.description || '',
+      description: g(drive, 'description', 'job_description') || '',
       status: drive.status || 'Upcoming',
     });
     setFormError('');
@@ -220,7 +220,7 @@ function PlacementDrivesPage() {
                 {filtered.map(drive => {
                   const company = g(drive, 'company_name', 'company');
                   const driveDate = g(drive, 'drive_date', 'date');
-                  const deadline = g(drive, 'application_deadline', 'deadline');
+                  const deadline = g(drive, 'application_deadline', 'registration_deadline', 'deadline');
                   const applicants = Number(g(drive, 'total_applicants', 'applicants') || 0);
                   const style = STATUS_STYLES[drive.status] || STATUS_STYLES.Completed;
 

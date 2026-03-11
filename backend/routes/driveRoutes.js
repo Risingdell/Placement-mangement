@@ -20,8 +20,8 @@ router.get('/upcoming/preview', getUpcomingDrives);
 router.get('/:id', getDriveById);
 
 // Admin only routes
-router.post('/', restrictTo('admin'), createDrive);
-router.put('/:id', restrictTo('admin'), updateDrive);
-router.delete('/:id', restrictTo('admin'), deleteDrive);
+router.post('/', restrictTo('admin', 'tpo'), createDrive);
+router.put('/:id', restrictTo('admin', 'tpo'), updateDrive);
+router.delete('/:id', restrictTo('admin', 'tpo'), deleteDrive);
 
 module.exports = router;

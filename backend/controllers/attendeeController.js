@@ -289,7 +289,6 @@ const sendMessageToAttendees = async (req, res) => {
     const { driveId } = req.params;
     const { subject, message, examLink, messageType } = req.body;
 
-    // Validate input
     if (!subject || !message) {
       return res.status(400).json({
         success: false,
@@ -304,7 +303,6 @@ const sendMessageToAttendees = async (req, res) => {
       });
     }
 
-    // Verify drive exists
     const [drive] = await promisePool.query(
       'SELECT id, company_name FROM placement_drives WHERE id = ?',
       [driveId]
@@ -319,7 +317,6 @@ const sendMessageToAttendees = async (req, res) => {
 
     await connection.beginTransaction();
 
-    // Get all attendees for this drive
     const [attendees] = await connection.query(
       'SELECT user_id FROM drive_attendees WHERE drive_id = ?',
       [driveId]
@@ -334,35 +331,36 @@ const sendMessageToAttendees = async (req, res) => {
       });
     }
 
-    // Prepare message content - include link if provided
+    const messageTypeMap = {
+      exam_link: 'Exam',
+      interview_link: 'Interview',
+      general: 'General'
+    };
+
     let messageContent = message;
     if (examLink) {
-      messageContent += `\n\n🔗 ${examLink}`;
+      messageContent += `
+
+Link: ${examLink}`;
     }
 
-    // Create messages for all attendees in bulk
-    const insertMessages = attendees.map(attendee => [
-      req.user.id,                    // from_admin_id
-      attendee.user_id,               // to_user_id
+    const inboxRows = attendees.map((attendee) => [
+      attendee.user_id,
+      req.user.id,
       subject,
       messageContent,
-      'Drive',                        // message_type
-      null,                           // parent_message_id
-      'PlacementDrive',               // related_entity_type
-      driveId,                        // related_entity_id
-      0                               // is_read (not read yet)
+      messageTypeMap[messageType] || 'General',
+      driveId,
+      examLink || null
     ]);
 
-    const insertQuery = `
-      INSERT INTO admin_messages
-      (from_admin_id, to_user_id, subject, message, message_type,
-       parent_message_id, related_entity_type, related_entity_id, is_read)
-      VALUES ?
-    `;
+    await connection.query(
+      `INSERT INTO inbox_messages
+       (recipient_id, sender_id, subject, message, message_type, related_drive_id, action_url)
+       VALUES ?`,
+      [inboxRows]
+    );
 
-    await connection.query(insertQuery, [insertMessages]);
-
-    // Log the action
     await connection.query(
       `INSERT INTO admin_actions
        (admin_id, action_type, entity_type, entity_id, description, metadata)
@@ -392,7 +390,6 @@ const sendMessageToAttendees = async (req, res) => {
       driveName: drive[0].company_name,
       messageType
     });
-
   } catch (error) {
     await connection.rollback();
     console.error('Send message to attendees error:', error);
