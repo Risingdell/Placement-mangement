@@ -1,33 +1,37 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Ensure upload directories exist
-const ensureDirectoryExists = (dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const sanitizeFilename = (originalName) => {
+  const ext = path.extname(originalName);
+  const nameWithoutExt = path.basename(originalName, ext);
+  return nameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
 };
 
-// Configure storage for different file types
-const createStorage = (folder) => {
-  return multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadPath = path.join(__dirname, '..', 'uploads', folder);
-      ensureDirectoryExists(uploadPath);
-      cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-      // Create unique filename: userId_timestamp_originalname
+const createStorage = ({ folder, resourceType }) =>
+  new CloudinaryStorage({
+    cloudinary,
+    params: async (req, file) => {
       const userId = req.user ? req.user.id : 'unknown';
       const timestamp = Date.now();
-      const ext = path.extname(file.originalname);
-      const nameWithoutExt = path.basename(file.originalname, ext);
-      const sanitizedName = nameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
-      cb(null, `${userId}_${timestamp}_${sanitizedName}${ext}`);
+      const publicId = `${userId}_${timestamp}_${sanitizeFilename(file.originalname)}`;
+
+      return {
+        folder,
+        resource_type: resourceType,
+        public_id: publicId,
+        use_filename: false,
+        unique_filename: false
+      };
     }
   });
-};
 
 // File filter for images
 const imageFilter = (req, file, cb) => {
@@ -70,7 +74,10 @@ const certificateFilter = (req, file, cb) => {
 
 // Configure multer for different upload types
 const uploadPhoto = multer({
-  storage: createStorage('photos'),
+  storage: createStorage({
+    folder: 'placement-system/photos',
+    resourceType: 'image'
+  }),
   limits: {
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
   },
@@ -78,7 +85,10 @@ const uploadPhoto = multer({
 });
 
 const uploadDocument = multer({
-  storage: createStorage('documents'),
+  storage: createStorage({
+    folder: 'placement-system/documents',
+    resourceType: 'raw'
+  }),
   limits: {
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
   },
@@ -86,7 +96,10 @@ const uploadDocument = multer({
 });
 
 const uploadResume = multer({
-  storage: createStorage('resumes'),
+  storage: createStorage({
+    folder: 'placement-system/resumes',
+    resourceType: 'raw'
+  }),
   limits: {
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
   },
@@ -94,7 +107,10 @@ const uploadResume = multer({
 });
 
 const uploadCertificate = multer({
-  storage: createStorage('certificates'),
+  storage: createStorage({
+    folder: 'placement-system/certificates',
+    resourceType: 'auto'
+  }),
   limits: {
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
   },

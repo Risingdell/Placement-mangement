@@ -252,7 +252,7 @@ const uploadPhoto = async (req, res) => {
       });
     }
 
-    const photoUrl = `/uploads/photos/${req.file.filename}`;
+    const photoUrl = req.file.path || req.file.secure_url;
 
     await promisePool.query(
       'UPDATE student_academics SET photo_url = ? WHERE user_id = ?',
@@ -287,7 +287,7 @@ const uploadResume = async (req, res) => {
       });
     }
 
-    const resumeUrl = `/uploads/resumes/${req.file.filename}`;
+    const resumeUrl = req.file.path || req.file.secure_url;
 
     await promisePool.query(
       'UPDATE student_academics SET resume_url = ? WHERE user_id = ?',
@@ -727,7 +727,7 @@ const uploadAchievementCertificate = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please upload a certificate file' });
     }
 
-    const certificateUrl = `/uploads/certificates/${req.file.filename}`;
+    const certificateUrl = req.file.path || req.file.secure_url;
 
     const [result] = await promisePool.query(
       'UPDATE achievements SET certificate_url = ? WHERE id = ? AND user_id = ?',
