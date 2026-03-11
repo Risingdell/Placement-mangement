@@ -80,7 +80,7 @@ function Register() {
   };
 
   return (
-    <div className="neo-page-container">
+    <div className="neo-page-container neo-theme-student">
       <div className="max-w-xl w-full relative">
         <div className="neo-form">
           <div className="text-center mb-4">
@@ -137,11 +137,7 @@ function Register() {
                   {emailError}
                 </div>
               )}
-              {checking && (
-                <div className="text-blue-600 text-sm">
-                  ✓ Checking email...
-                </div>
-              )}
+              {checking && <div className="text-sm text-indigo-600">Checking email...</div>}
             </div>
 
             <div className="flex flex-col gap-4">
@@ -193,7 +189,7 @@ function Register() {
             </div>
 
             <div className="md:col-span-2 mt-4">
-              <button type="submit" className="neo-button bg-[#4CAF50] !text-white hover:!text-white">
+              <button type="submit" className="neo-button bg-[#ffffff]">
                 Register
               </button>
             </div>
@@ -207,7 +203,7 @@ function Register() {
             </div>
             <div className="text-center">
               <p className="neo-subtitle">
-                Already have an account? <Link to="/login" className="font-bold underline">Login here</Link>
+                Already have an account? <Link to="/login" className="neo-accent-link underline">Login here</Link>
               </p>
             </div>
           </div>

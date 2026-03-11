@@ -121,7 +121,7 @@ const navSections = [
 const PAGE_META = {
   '/admin/dashboard': {
     title: 'Dashboard',
-    description: 'Monitor placement health, activity, and operational momentum.',
+    description: '',
   },
   '/admin/dashboard/companies': {
     title: 'Companies',
@@ -410,7 +410,7 @@ function AdminDashboardLayout() {
             : 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]'
         }`}>
           <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
-            <Outlet />
+            <Outlet context={{ adminTheme }} />
           </div>
         </main>
       </div>

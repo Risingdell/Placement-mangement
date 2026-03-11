@@ -39,7 +39,7 @@ function AdminLogin() {
   };
 
   return (
-    <div className="neo-page-container">
+    <div className="neo-page-container neo-theme-admin">
       <div className="max-w-md w-full relative">
         {/* Back Button */}
         <div className="flex justify-start mb-4">
@@ -143,12 +143,12 @@ function AdminLogin() {
           </div>
 
           {/* Info Box */}
-          <div className="mt-4 p-4 border-2 border-[#323232] rounded bg-purple-50">
+          <div className="mt-4 rounded border-2 border-[#e7d8bc] bg-[#fff7ed] p-4">
             <div className="flex items-start">
-              <svg className="w-5 h-5 text-purple-600 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="mr-3 mt-0.5 h-5 w-5 flex-shrink-0 text-[#d97706]" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
-              <div className="text-sm text-purple-900 font-mono">
+              <div className="font-mono text-sm text-[#7c2d12]">
                 <p className="font-bold mb-1">Admin Access Only</p>
                 <p className="text-[12px]">Restricted to authorized administrators and TPO staff. Unauthorized access is logged.</p>
               </div>
@@ -158,7 +158,7 @@ function AdminLogin() {
 
         {/* Footer */}
         <p className="text-center mt-8 neo-subtitle">
-          Not an admin? <Link to="/" className="font-bold underline text-purple-600">Return to home</Link>
+          Not an admin? <Link to="/" className="neo-accent-link underline">Return to home</Link>
         </p>
       </div>
     </div>

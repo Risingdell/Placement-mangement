@@ -31,7 +31,7 @@ function Login() {
   };
 
   return (
-    <div className="neo-page-container">
+    <div className="neo-page-container neo-theme-student">
       <div className="max-w-md w-full relative">
         {/* Login Card */}
         <div className="neo-form">
@@ -129,7 +129,7 @@ function Login() {
             <div className="text-center">
               <Link
                 to="/register"
-                className="neo-button bg-[#f0f0f0]"
+                className="neo-button bg-[#ffffff]"
               >
                 Create an account
               </Link>
@@ -139,7 +139,7 @@ function Login() {
 
         {/* Footer */}
         <p className="text-center mt-8 neo-subtitle">
-          Need help? <a href="mailto:support@placement.edu" className="font-bold underline">Contact support</a>
+          Need help? <a href="mailto:support@placement.edu" className="neo-accent-link underline">Contact support</a>
         </p>
       </div>
     </div>

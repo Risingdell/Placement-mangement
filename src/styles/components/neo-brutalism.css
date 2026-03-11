@@ -11,6 +11,32 @@
     --font-SpaceMono: 'Space Mono', monospace;
 }
 
+.neo-theme-student {
+    --background: #eef4ff;
+    --input-focus: #4f46e5;
+    --font-color: #1f2937;
+    --font-color-sub: #5b6474;
+    --bg-color: #ffffff;
+    --main-color: #c7d2fe;
+    background:
+        radial-gradient(circle at top left, rgba(79, 70, 229, 0.14), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.12), transparent 28%),
+        #f6f9ff;
+}
+
+.neo-theme-admin {
+    --background: #f5efe2;
+    --input-focus: #f7b545;
+    --font-color: #1f2937;
+    --font-color-sub: #625c52;
+    --bg-color: #fffdfa;
+    --main-color: #d6c7aa;
+    background:
+        radial-gradient(circle at top left, rgba(247, 181, 69, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(31, 41, 55, 0.08), transparent 30%),
+        #f8f4eb;
+}
+
 /* Global Background */
 .neo-page-container {
     min-height: 100vh;
@@ -34,6 +60,18 @@
     border: 2px solid var(--main-color);
     box-shadow: 4px 4px var(--main-color);
     transition: transform 0.2s;
+}
+
+.neo-theme-student .neo-card,
+.neo-theme-student .neo-form {
+    border-color: #c7d2fe;
+    box-shadow: 4px 4px 0 #c7d2fe;
+}
+
+.neo-theme-admin .neo-card,
+.neo-theme-admin .neo-form {
+    border-color: #e7d8bc;
+    box-shadow: 4px 4px 0 #e7d8bc;
 }
 
 .neo-card:hover,
@@ -98,6 +136,14 @@
     background-color: #f8f8f8;
 }
 
+.neo-theme-student .neo-input:focus {
+    background-color: #eef2ff;
+}
+
+.neo-theme-admin .neo-input:focus {
+    background-color: #fff7ed;
+}
+
 .neo-button {
     display: flex;
     justify-content: center;
@@ -120,6 +166,24 @@
     z-index: 1;
     text-decoration: none;
     font-family: var(--font-SpaceMono);
+}
+
+.neo-theme-student .neo-button {
+    border-color: #c7d2fe;
+    box-shadow: 4px 4px 0 #c7d2fe;
+}
+
+.neo-theme-student .neo-button::before {
+    background: linear-gradient(90deg, #4338ca 0%, #0ea5e9 100%);
+}
+
+.neo-theme-admin .neo-button {
+    border-color: #e7d8bc;
+    box-shadow: 4px 4px 0 #e7d8bc;
+}
+
+.neo-theme-admin .neo-button::before {
+    background: linear-gradient(90deg, #1f2937 0%, #111827 100%);
 }
 
 .neo-button::before {
@@ -197,4 +261,16 @@
     font-size: 13px;
     font-weight: 600;
     box-shadow: 3px 3px #ef4444;
+}
+
+.neo-accent-link {
+    font-weight: 700;
+}
+
+.neo-theme-student .neo-accent-link {
+    color: #4f46e5;
+}
+
+.neo-theme-admin .neo-accent-link {
+    color: #d97706;
 }
