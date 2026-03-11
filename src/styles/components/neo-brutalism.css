@@ -183,7 +183,7 @@
 }
 
 .neo-theme-admin .neo-button::before {
-    background: linear-gradient(90deg, #1f2937 0%, #111827 100%);
+    background: linear-gradient(90deg, #f7d79b 0%, #f7b545 100%);
 }
 
 .neo-button::before {
