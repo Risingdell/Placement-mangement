@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useStudent } from '../../context/StudentContext';
 import inboxService from '../../services/inboxService';
+import ThemeModeSwitch from '../common/ThemeModeSwitch';
 
 const resolveMediaUrl = (url) => {
   if (!url) return '';
@@ -11,7 +12,7 @@ const resolveMediaUrl = (url) => {
   return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme = 'dark', onToggleTheme }) {
+function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme = 'dark', onThemeChange }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -68,13 +69,7 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
           <div className={`${theme === 'light' ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]' : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'} hidden xl:flex items-center h-9 px-3 rounded-md border text-sm min-w-[220px]`}>
             Search
           </div>
-          <button
-            onClick={onToggleTheme}
-            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d1d5db] hover:bg-[#2a2a2e]'} h-9 px-3 rounded-md border bg-transparent text-[11px] font-semibold tracking-wider`}
-            title="Toggle theme"
-          >
-            {theme === 'light' ? 'DARK' : 'LIGHT'}
-          </button>
+          <ThemeModeSwitch theme={theme} onChange={onThemeChange} />
           <button
             className={`${theme === 'light' ? 'hover:bg-[#f3f4f6] border-[#d1d5db] text-[#374151]' : 'hover:bg-[#2a2a2e] border-[#3a3a40] text-[#d1d5db]'} relative h-9 px-3 rounded-md transition-colors border bg-transparent text-[11px] font-semibold tracking-wider`}
             onClick={() => navigate('/dashboard/inbox')}

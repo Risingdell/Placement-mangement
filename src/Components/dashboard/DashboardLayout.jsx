@@ -37,9 +37,7 @@ function DashboardLayout() {
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           isCollapsed={isCollapsed}
           theme={studentTheme}
-          onToggleTheme={() =>
-            setStudentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-          }
+          onThemeChange={setStudentTheme}
         />
 
         <CompactKPIBar theme={studentTheme} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import ThemeModeSwitch from '../common/ThemeModeSwitch';
 
 const navSections = [
   {
@@ -163,6 +164,10 @@ const PAGE_META = {
 function AdminDashboardLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [adminTheme, setAdminTheme] = useState(() => {
+    const saved = localStorage.getItem('admin-theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -178,6 +183,10 @@ function AdminDashboardLayout() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('admin-theme', adminTheme);
+  }, [adminTheme]);
+
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
@@ -186,6 +195,7 @@ function AdminDashboardLayout() {
   const pageMeta = PAGE_META[location.pathname] || PAGE_META['/admin/dashboard'];
   const userName = user?.fullName || user?.full_name || 'Admin';
   const userInitial = userName.charAt(0).toUpperCase();
+  const isLightTheme = adminTheme === 'light';
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -194,7 +204,13 @@ function AdminDashboardLayout() {
   });
 
   return (
-    <div className="admin-theme flex h-screen overflow-hidden bg-[#141416] text-[#e5e7eb]">
+    <div
+      className={`${
+        isLightTheme
+          ? 'flex h-screen overflow-hidden bg-[#f8fafc] text-[#111827]'
+          : 'admin-theme flex h-screen overflow-hidden bg-[#141416] text-[#e5e7eb]'
+      }`}
+    >
       {isMobileSidebarOpen && (
         <button
           type="button"
@@ -205,18 +221,24 @@ function AdminDashboardLayout() {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen border-r border-[#2e2e33] bg-[#17171a] transition-all duration-200 lg:static ${
+        className={`fixed left-0 top-0 z-40 h-screen transition-all duration-200 lg:static ${
+          isLightTheme
+            ? 'border-r border-[#d1d5db] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]'
+            : 'border-r border-[#2e2e33] bg-[#17171a]'
+        } ${
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${isCollapsed ? 'lg:w-[84px]' : 'w-64'}`}
       >
-        <div className="flex h-14 items-center border-b border-[#2e2e33] px-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#3a3a40] bg-[#232328] text-xs font-bold tracking-[0.2em] text-[#f7b545]">
+        <div className={`flex h-14 items-center px-4 ${isLightTheme ? 'border-b border-[#d1d5db]' : 'border-b border-[#2e2e33]'}`}>
+          <div className={`flex h-9 w-9 items-center justify-center rounded-lg border text-xs font-bold tracking-[0.2em] text-[#f7b545] ${
+            isLightTheme ? 'border-[#e5e7eb] bg-[#fff7ed]' : 'border-[#3a3a40] bg-[#232328]'
+          }`}>
             PM
           </div>
           {!isCollapsed && (
             <div className="ml-3 min-w-0">
               <p className="truncate text-sm font-semibold tracking-[0.18em] text-[#f7b545]">PLACEMENT</p>
-              <p className="truncate text-[11px] text-[#71717a]">Admin Control Room</p>
+              <p className={`truncate text-[11px] ${isLightTheme ? 'text-[#6b7280]' : 'text-[#71717a]'}`}>Admin Control Room</p>
             </div>
           )}
         </div>
@@ -225,7 +247,7 @@ function AdminDashboardLayout() {
           {navSections.map((section) => (
             <div key={section.label}>
               {!isCollapsed && (
-                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#71717a]">
+                <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.22em] ${isLightTheme ? 'text-[#6b7280]' : 'text-[#71717a]'}`}>
                   {section.label}
                 </p>
               )}
@@ -240,12 +262,20 @@ function AdminDashboardLayout() {
                     className={({ isActive }) =>
                       `group relative flex h-12 items-center rounded-md border-l-[3px] transition-all ${
                         isActive
-                          ? 'border-[#f7b545] bg-[rgba(247,181,69,0.1)] text-white'
-                          : 'border-transparent text-[#a1a1aa] hover:bg-[#232328] hover:text-white'
+                          ? isLightTheme
+                            ? 'border-[#f7b545] bg-[rgba(247,181,69,0.14)] text-[#111827]'
+                            : 'border-[#f7b545] bg-[rgba(247,181,69,0.1)] text-white'
+                          : isLightTheme
+                            ? 'border-transparent text-[#4b5563] hover:bg-[#f3f4f6] hover:text-[#111827]'
+                            : 'border-transparent text-[#a1a1aa] hover:bg-[#232328] hover:text-white'
                       } ${isCollapsed ? 'justify-center px-2' : 'px-3'}`
                     }
                   >
-                    <span className="grid h-7 w-7 place-items-center rounded-md border border-[#34343a] bg-[#26262d] text-[#d4d4d8]">
+                    <span className={`grid h-7 w-7 place-items-center rounded-md border ${
+                      isLightTheme
+                        ? 'border-[#e5e7eb] bg-[#f9fafb] text-[#374151]'
+                        : 'border-[#34343a] bg-[#26262d] text-[#d4d4d8]'
+                    }`}>
                       {item.icon}
                     </span>
                     {!isCollapsed && <span className="ml-3 text-sm font-medium">{item.name}</span>}
@@ -255,15 +285,17 @@ function AdminDashboardLayout() {
             </div>
           ))}
 
-          <div className="mt-auto border-t border-[#2e2e33] pt-3">
-            <div className={`rounded-lg border border-[#2f2f36] bg-[#1f1f24] p-3 ${isCollapsed ? 'text-center' : ''}`}>
+          <div className={`mt-auto pt-3 ${isLightTheme ? 'border-t border-[#d1d5db]' : 'border-t border-[#2e2e33]'}`}>
+            <div className={`rounded-lg border p-3 ${
+              isLightTheme ? 'border-[#d1d5db] bg-[#ffffff]' : 'border-[#2f2f36] bg-[#1f1f24]'
+            } ${isCollapsed ? 'text-center' : ''}`}>
               <div className={`${isCollapsed ? 'mx-auto' : ''} flex h-8 w-8 items-center justify-center rounded-full bg-[#f7b545] text-sm font-bold text-[#1a1a1f]`}>
                 {userInitial}
               </div>
               {!isCollapsed && (
                 <div className="mt-2 min-w-0">
-                  <p className="truncate text-[13px] font-semibold text-zinc-100">{userName}</p>
-                  <p className="truncate text-[11px] text-zinc-500">{user?.email}</p>
+                  <p className={`truncate text-[13px] font-semibold ${isLightTheme ? 'text-[#111827]' : 'text-zinc-100'}`}>{userName}</p>
+                  <p className={`truncate text-[11px] ${isLightTheme ? 'text-[#6b7280]' : 'text-zinc-500'}`}>{user?.email}</p>
                 </div>
               )}
             </div>
@@ -271,7 +303,11 @@ function AdminDashboardLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className={`mt-2 flex w-full items-center rounded-lg px-3 py-2 text-[13px] font-medium text-[#a1a1aa] transition-all hover:bg-[#2a1f17] hover:text-[#f59e0b] ${
+              className={`mt-2 flex w-full items-center rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
+                isLightTheme
+                  ? 'text-[#6b7280] hover:bg-[#fff7ed] hover:text-[#d97706]'
+                  : 'text-[#a1a1aa] hover:bg-[#2a1f17] hover:text-[#f59e0b]'
+              } ${
                 isCollapsed ? 'justify-center' : 'gap-2.5'
               }`}
             >
@@ -285,13 +321,17 @@ function AdminDashboardLayout() {
       </aside>
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-30 border-b border-[#2f2f34] bg-[#1a1a1e]/95 backdrop-blur">
+        <header className={`sticky top-0 z-30 border-b backdrop-blur ${isLightTheme ? 'border-[#d1d5db] bg-white/95' : 'border-[#2f2f34] bg-[#1a1a1e]/95'}`}>
           <div className="flex min-h-14 items-center justify-between gap-4 px-4 md:px-6">
             <div className="flex min-w-0 items-center gap-2 md:gap-4">
               <button
                 type="button"
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="h-9 w-9 rounded-md border border-[#3a3a40] bg-transparent text-[#d4d4d8] hover:bg-[#2a2a2e] lg:hidden"
+                className={`h-9 w-9 rounded-md border bg-transparent lg:hidden ${
+                  isLightTheme
+                    ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
+                    : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'
+                }`}
                 aria-label="Open sidebar"
               >
                 =
@@ -299,53 +339,76 @@ function AdminDashboardLayout() {
               <button
                 type="button"
                 onClick={() => setIsCollapsed((prev) => !prev)}
-                className="hidden h-9 w-9 rounded-md border border-[#3a3a40] bg-transparent text-[#d4d4d8] hover:bg-[#2a2a2e] lg:inline-flex"
+                className={`hidden h-9 w-9 rounded-md border bg-transparent lg:inline-flex ${
+                  isLightTheme
+                    ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
+                    : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'
+                }`}
                 aria-label="Toggle sidebar width"
               >
                 {isCollapsed ? '>' : '<'}
               </button>
 
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-zinc-100">{pageMeta.title}</p>
-                <p className="hidden truncate text-xs text-zinc-500 sm:block">{pageMeta.description}</p>
+                <p className={`truncate text-base font-semibold ${isLightTheme ? 'text-[#111827]' : 'text-zinc-100'}`}>{pageMeta.title}</p>
+                <p className={`hidden truncate text-xs sm:block ${isLightTheme ? 'text-[#6b7280]' : 'text-zinc-500'}`}>{pageMeta.description}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="hidden h-9 min-w-[220px] items-center rounded-md border border-[#3a3a40] bg-[#202026] px-3 text-sm text-[#9ca3af] xl:flex">
+              <div className={`hidden h-9 min-w-[220px] items-center rounded-md border px-3 text-sm xl:flex ${
+                isLightTheme
+                  ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]'
+                  : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'
+              }`}>
                 Search admin workspace
               </div>
-              <div className="hidden rounded-md border border-[#3a3a40] bg-[#202026] px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#f7b545] md:block">
+              <ThemeModeSwitch theme={adminTheme} onChange={setAdminTheme} />
+              <div className={`hidden rounded-md border px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#f7b545] md:block ${
+                isLightTheme ? 'border-[#d1d5db] bg-[#fff7ed]' : 'border-[#3a3a40] bg-[#202026]'
+              }`}>
                 ADMIN
               </div>
               <button
                 type="button"
-                className="relative h-9 rounded-md border border-[#3a3a40] bg-transparent px-3 text-[11px] font-semibold tracking-[0.18em] text-[#d1d5db] transition-colors hover:bg-[#2a2a2e]"
+                className={`relative h-9 rounded-md border bg-transparent px-3 text-[11px] font-semibold tracking-[0.18em] transition-colors ${
+                  isLightTheme
+                    ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
+                    : 'border-[#3a3a40] text-[#d1d5db] hover:bg-[#2a2a2e]'
+                }`}
                 title="Notifications"
               >
                 ALERTS
                 <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ef4444]" />
               </button>
-              <div className="flex items-center gap-2 rounded-md border border-[#3a3a40] bg-transparent px-2 py-1.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md border border-[#444] bg-[#2e2e34] text-sm">
+              <div className={`flex items-center gap-2 rounded-md border bg-transparent px-2 py-1.5 ${
+                isLightTheme ? 'border-[#d1d5db]' : 'border-[#3a3a40]'
+              }`}>
+                <div className={`flex h-7 w-7 items-center justify-center rounded-md border text-sm ${
+                  isLightTheme ? 'border-[#e5e7eb] bg-[#f9fafb]' : 'border-[#444] bg-[#2e2e34]'
+                }`}>
                   <span className="text-[10px] text-[#f7b545]">{userInitial}</span>
                 </div>
-                <span className="hidden max-w-[140px] truncate text-sm text-[#d4d4d8] sm:inline">{userName}</span>
+                <span className={`hidden max-w-[140px] truncate text-sm sm:inline ${isLightTheme ? 'text-[#374151]' : 'text-[#d4d4d8]'}`}>{userName}</span>
               </div>
             </div>
           </div>
         </header>
 
-        <section className="sticky top-14 z-20 border-b border-[#2f2f34] bg-[#17171b]/95 backdrop-blur">
+        <section className={`sticky top-14 z-20 border-b backdrop-blur ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'}`}>
           <div className="mx-auto grid w-full max-w-[1400px] grid-cols-2 gap-3 px-4 py-3 md:px-6 lg:grid-cols-4">
-            <InfoStripCard label="Workspace" value="Admin Portal" tone="text-[#f7b545]" />
-            <InfoStripCard label="Role" value={user?.role || 'Admin'} tone="text-zinc-100" />
-            <InfoStripCard label="Today" value={today} tone="text-zinc-100" />
-            <InfoStripCard label="Mode" value="Operations" tone="text-emerald-400" />
+            <InfoStripCard label="Workspace" value="Admin Portal" tone="text-[#f7b545]" theme={adminTheme} />
+            <InfoStripCard label="Role" value={user?.role || 'Admin'} tone={isLightTheme ? 'text-[#111827]' : 'text-zinc-100'} theme={adminTheme} />
+            <InfoStripCard label="Today" value={today} tone={isLightTheme ? 'text-[#111827]' : 'text-zinc-100'} theme={adminTheme} />
+            <InfoStripCard label="Mode" value="Operations" tone={isLightTheme ? 'text-emerald-600' : 'text-emerald-400'} theme={adminTheme} />
           </div>
         </section>
 
-        <main className="relative z-10 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]">
+        <main className={`relative z-10 flex-1 overflow-auto ${
+          isLightTheme
+            ? 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.12),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(59,130,246,0.08),_transparent_30%)]'
+            : 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]'
+        }`}>
           <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
             <Outlet />
           </div>
@@ -355,10 +418,12 @@ function AdminDashboardLayout() {
   );
 }
 
-function InfoStripCard({ label, value, tone }) {
+function InfoStripCard({ label, value, tone, theme = 'dark' }) {
   return (
-    <div className="rounded-xl border border-[#2f2f34] bg-[#1f1f24] px-4 py-3">
-      <p className="text-[11px] uppercase tracking-[0.08em] text-zinc-400">{label}</p>
+    <div className={`rounded-xl border px-4 py-3 ${
+      theme === 'light' ? 'border-[#d1d5db] bg-white' : 'border-[#2f2f34] bg-[#1f1f24]'
+    }`}>
+      <p className={`text-[11px] uppercase tracking-[0.08em] ${theme === 'light' ? 'text-[#6b7280]' : 'text-zinc-400'}`}>{label}</p>
       <p className={`mt-1 text-sm font-semibold ${tone}`}>{value}</p>
     </div>
   );
