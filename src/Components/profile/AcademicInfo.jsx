@@ -25,36 +25,82 @@ const getCgpaColor = (val) => {
   return '#EF4444';
 };
 
+const buildAcademicFormData = (profile) => ({
+  cgpa: profile?.cgpa || '',
+  sgpa: profile?.sgpa || '',
+  current_semester: profile?.current_semester || '',
+  tenth_percentage: profile?.tenth_percentage || '',
+  twelfth_percentage: profile?.twelfth_percentage || '',
+  diploma_percentage: profile?.diploma_percentage || '',
+  total_backlogs: profile?.total_backlogs || 0,
+  active_backlogs: profile?.active_backlogs || 0,
+});
+
+function AcademicInputField({
+  name,
+  label,
+  placeholder,
+  step,
+  min,
+  max,
+  optional,
+  isEditing,
+  formData,
+  errors,
+  handleChange,
+  handleBlur,
+}) {
+  return (
+    <div style={s.field}>
+      <label style={s.label}>
+        {label}
+        {optional && <span style={s.optional}> (optional)</span>}
+      </label>
+      {isEditing ? (
+        <div>
+          <input
+            type="number"
+            name={name}
+            value={formData[name]}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            step={step}
+            min={min}
+            max={max}
+            style={errors[name] ? s.inputErr : s.input}
+          />
+          {errors[name]
+            ? <span style={s.errorText}>{errors[name]}</span>
+            : <span style={s.helpText}>{placeholder}</span>
+          }
+        </div>
+      ) : (
+        <div style={s.viewValue}>
+          {formData[name] !== '' && formData[name] != null
+            ? (name.includes('percentage') ? `${formData[name]}%` : formData[name])
+            : optional
+              ? <span style={s.naText}>N/A</span>
+              : <span style={s.notSetText}>Not set</span>
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AcademicInfo() {
   const { profile, fetchProfile, updateAcademics, loading: contextLoading } = useStudent();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    cgpa: '',
-    sgpa: '',
-    current_semester: '',
-    tenth_percentage: '',
-    twelfth_percentage: '',
-    diploma_percentage: '',
-    total_backlogs: 0,
-    active_backlogs: 0,
-  });
+  const [formData, setFormData] = useState(() => buildAcademicFormData(null));
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setFormData({
-        cgpa: profile.cgpa || '',
-        sgpa: profile.sgpa || '',
-        current_semester: profile.current_semester || '',
-        tenth_percentage: profile.tenth_percentage || '',
-        twelfth_percentage: profile.twelfth_percentage || '',
-        diploma_percentage: profile.diploma_percentage || '',
-        total_backlogs: profile.total_backlogs || 0,
-        active_backlogs: profile.active_backlogs || 0,
-      });
+    if (profile && !isEditing) {
+      setFormData(buildAcademicFormData(profile));
     }
-  }, [profile]);
+  }, [profile, isEditing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,18 +164,7 @@ function AcademicInfo() {
   };
 
   const handleCancel = () => {
-    if (profile) {
-      setFormData({
-        cgpa: profile.cgpa || '',
-        sgpa: profile.sgpa || '',
-        current_semester: profile.current_semester || '',
-        tenth_percentage: profile.tenth_percentage || '',
-        twelfth_percentage: profile.twelfth_percentage || '',
-        diploma_percentage: profile.diploma_percentage || '',
-        total_backlogs: profile.total_backlogs || 0,
-        active_backlogs: profile.active_backlogs || 0,
-      });
-    }
+    setFormData(buildAcademicFormData(profile));
     setErrors({});
     setIsEditing(false);
   };
@@ -284,12 +319,46 @@ function AcademicInfo() {
             <span style={s.cardTitle}>Education History</span>
           </div>
           <div style={s.grid3}>
-            <InputField name="tenth_percentage" label="10th Percentage"
-              placeholder="e.g. 85.50" step="0.01" min="0" max="100" />
-            <InputField name="twelfth_percentage" label="12th Percentage"
-              placeholder="e.g. 82.00" step="0.01" min="0" max="100" />
-            <InputField name="diploma_percentage" label="Diploma Percentage"
-              placeholder="e.g. 75.50" step="0.01" min="0" max="100" optional />
+            <AcademicInputField
+              name="tenth_percentage"
+              label="10th Percentage"
+              placeholder="e.g. 85.50"
+              step="0.01"
+              min="0"
+              max="100"
+              isEditing={isEditing}
+              formData={formData}
+              errors={errors}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+            />
+            <AcademicInputField
+              name="twelfth_percentage"
+              label="12th Percentage"
+              placeholder="e.g. 82.00"
+              step="0.01"
+              min="0"
+              max="100"
+              isEditing={isEditing}
+              formData={formData}
+              errors={errors}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+            />
+            <AcademicInputField
+              name="diploma_percentage"
+              label="Diploma Percentage"
+              placeholder="e.g. 75.50"
+              step="0.01"
+              min="0"
+              max="100"
+              optional
+              isEditing={isEditing}
+              formData={formData}
+              errors={errors}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+            />
           </div>
         </div>
 

@@ -560,9 +560,13 @@ const getEligibilityStatus = async (req, res) => {
     const userId = req.user.id;
 
     const [academics] = await promisePool.query(
-      `SELECT cgpa, active_backlogs, is_placed
-       FROM student_academics sa
-       JOIN users u ON sa.user_id = u.id
+      `SELECT u.id,
+              u.is_placed,
+              sa.user_id AS academic_user_id,
+              COALESCE(sa.cgpa, 0) AS cgpa,
+              COALESCE(sa.active_backlogs, 0) AS active_backlogs
+       FROM users u
+       LEFT JOIN student_academics sa ON sa.user_id = u.id
        WHERE u.id = ?`,
       [userId]
     );
@@ -570,12 +574,12 @@ const getEligibilityStatus = async (req, res) => {
     if (academics.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Academic information not found'
+        message: 'User not found'
       });
     }
 
-    const { cgpa, active_backlogs } = academics[0];
-    const isPlaced = req.user.is_placed;
+    const { cgpa, active_backlogs, academic_user_id } = academics[0];
+    const isPlaced = Boolean(academics[0].is_placed);
 
     // Get ongoing project
     const [ongoingProjects] = await promisePool.query(
@@ -593,6 +597,7 @@ const getEligibilityStatus = async (req, res) => {
       success: true,
       data: {
         eligible,
+        hasAcademicProfile: Boolean(academic_user_id),
         cgpa: cgpa || 0,
         activeBacklogs: active_backlogs || 0,
         isPlaced,
