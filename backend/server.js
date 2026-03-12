@@ -58,12 +58,20 @@ if (process.env.NODE_ENV === 'development') {
 // ROUTES
 // =============================================
 
-// Health check route
+const healthResponse = () => ({
+  status: 'OK',
+  message: 'Placement Management System API is running',
+  timestamp: new Date().toISOString()
+});
+
+// Health check routes for Render, Uptime Kuma, and direct browser checks
+app.get('/', (req, res) => {
+  res.json(healthResponse());
+});
+
 app.get('/health', (req, res) => {
   res.json({
-    status: 'OK',
-    message: 'Placement Management System API is running',
-    timestamp: new Date().toISOString()
+    ...healthResponse()
   });
 });
 
