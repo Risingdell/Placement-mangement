@@ -1,14 +1,47 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns').promises;
 
 let transporterPromise = null;
 
+const resolveSmtpHost = async () => {
+  const configuredHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const forceIPv4 = String(process.env.SMTP_FORCE_IPV4 || 'true') === 'true';
+
+  if (!forceIPv4) {
+    return {
+      host: configuredHost,
+      servername: configuredHost
+    };
+  }
+
+  try {
+    const addresses = await dns.resolve4(configuredHost);
+    if (addresses.length > 0) {
+      return {
+        host: addresses[0],
+        servername: configuredHost
+      };
+    }
+  } catch (error) {
+    console.warn(`IPv4 lookup failed for ${configuredHost}, falling back to hostname`, error.message);
+  }
+
+  return {
+    host: configuredHost,
+    servername: configuredHost
+  };
+};
+
 const getTransporter = async () => {
   if (!transporterPromise) {
-    transporterPromise = Promise.resolve(
-      nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT || 465),
-        secure: String(process.env.SMTP_SECURE || 'true') === 'true',
+    transporterPromise = (async () => {
+      const smtpHost = await resolveSmtpHost();
+
+      return nodemailer.createTransport({
+        host: smtpHost.host,
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: String(process.env.SMTP_SECURE || 'false') === 'true',
+        requireTLS: String(process.env.SMTP_REQUIRE_TLS || 'true') === 'true',
         connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
         greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
         socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 20000),
@@ -16,8 +49,11 @@ const getTransporter = async () => {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
-      })
-    );
+        tls: {
+          servername: smtpHost.servername
+        }
+      });
+    })();
   }
 
   return transporterPromise;
