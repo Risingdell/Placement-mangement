@@ -9,6 +9,9 @@ const getTransporter = async () => {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: Number(process.env.SMTP_PORT || 465),
         secure: String(process.env.SMTP_SECURE || 'true') === 'true',
+        connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
+        greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
+        socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 20000),
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,

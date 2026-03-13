@@ -282,10 +282,18 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
 
     if (isEmailConfigured()) {
-      await sendPasswordResetEmail({
-        to: user.email,
-        name: user.full_name,
-        resetUrl
+      setImmediate(async () => {
+        try {
+          await sendPasswordResetEmail({
+            to: user.email,
+            name: user.full_name,
+            resetUrl
+          });
+          console.log(`Password reset email sent to ${user.email}`);
+        } catch (mailError) {
+          console.error('Password reset email send failed:', mailError);
+          console.warn(`Password reset link for ${email}: ${resetUrl}`);
+        }
       });
     } else {
       console.warn('Email service is not configured. Password reset link was not emailed.');
