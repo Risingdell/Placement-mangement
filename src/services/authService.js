@@ -42,4 +42,20 @@ const forgotPassword = async (email) => {
   return res.json();
 };
 
-export default { login, register, forgotPassword };
+const resetPassword = async (token, newPassword) => {
+  const res = await fetch(`${API_URL}/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, newPassword }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Password reset failed");
+  }
+
+  return data;
+};
+
+export default { login, register, forgotPassword, resetPassword };

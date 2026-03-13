@@ -10,6 +10,7 @@ function Register() {
     password: "",
     fullName: "",
     phone: "",
+    whatsappNumber: "",
     branch: "",
     batchYear: ""
   });
@@ -159,6 +160,18 @@ function Register() {
                 name="phone"
                 placeholder="Phone Number"
                 value={formData.phone}
+                onChange={handleChange}
+                className="neo-input"
+              />
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <label className="neo-label">WhatsApp Number</label>
+              <input
+                type="tel"
+                name="whatsappNumber"
+                placeholder="WhatsApp Number"
+                value={formData.whatsappNumber}
                 onChange={handleChange}
                 className="neo-input"
               />

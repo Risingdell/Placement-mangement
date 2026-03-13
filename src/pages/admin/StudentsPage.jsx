@@ -286,6 +286,7 @@ export default function StudentsPage() {
               ['Backlogs', selectedStudent.backlogs ?? '—'],
               ...(selectedStudent.placed_company ? [['Placed At', selectedStudent.placed_company]] : []),
               ...(selectedStudent.ctc ? [['CTC', `${selectedStudent.ctc} LPA`]] : []),
+              ...(selectedStudent.whatsapp_number ? [['WhatsApp', selectedStudent.whatsapp_number]] : []),
             ].map(([label, value]) => (
               <div key={label}>
                 <p className="text-xs text-gray-500 font-medium mb-0.5">{label}</p>

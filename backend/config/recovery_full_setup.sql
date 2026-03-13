@@ -16,6 +16,7 @@ CREATE TABLE users (
  full_name VARCHAR(150) NOT NULL,
  name VARCHAR(150) NULL,
  phone VARCHAR(20) NULL,
+ whatsapp_number VARCHAR(20) NULL,
  role ENUM('student','admin','tpo') DEFAULT 'student',
  is_active TINYINT(1) DEFAULT 1,
  is_placed TINYINT(1) DEFAULT 0,
@@ -460,12 +461,12 @@ CREATE TABLE system_settings (
  FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-INSERT INTO users (id,usn,email,password_hash,full_name,name,phone,role,is_active,is_placed) VALUES
-(1,'ADMIN001','admin@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','System Administrator','System Administrator','9999999990','admin',1,0),
-(2,'TPO001','tpo@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Dr. Anjali Rao','Dr. Anjali Rao','9999999999','tpo',1,0),
-(101,'1MS21CS001','student@test.com','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Rajesh Kumar','Rajesh Kumar','9876543210','student',1,0),
-(102,'1MS21CS002','priya.sharma@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Priya Sharma','Priya Sharma','9876543211','student',1,1),
-(103,'1MS21IS003','amit.patel@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Amit Patel','Amit Patel','9876543212','student',1,0);
+INSERT INTO users (id,usn,email,password_hash,full_name,name,phone,whatsapp_number,role,is_active,is_placed) VALUES
+(1,'ADMIN001','admin@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','System Administrator','System Administrator','9999999990','9999999990','admin',1,0),
+(2,'TPO001','tpo@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Dr. Anjali Rao','Dr. Anjali Rao','9999999999','9999999999','tpo',1,0),
+(101,'1MS21CS001','student@test.com','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Rajesh Kumar','Rajesh Kumar','9876543210','9876543210','student',1,0),
+(102,'1MS21CS002','priya.sharma@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Priya Sharma','Priya Sharma','9876543211','9876543211','student',1,1),
+(103,'1MS21IS003','amit.patel@college.edu','$2b$10$HkkOqY.56DX7ngec3P23heo9s.HRZhWOMFfzydhWq/pcZudZyTsFi','Amit Patel','Amit Patel','9876543212','9876543212','student',1,0);
 
 INSERT INTO companies (id,name,company_type,industry,location,website,description,hr_name,contact_email,contact_phone,is_active,created_by) VALUES
 (11,'Google','Product','Technology','Bangalore','https://careers.google.com','Global technology company','Ananya Singh','hr-india@google.com','08011112222',1,1),

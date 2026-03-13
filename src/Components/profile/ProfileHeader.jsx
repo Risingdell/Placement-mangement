@@ -18,9 +18,10 @@ function ProfileHeader({ profile, completion = 0 }) {
   const batch = profile?.batch || '';
   const avatarUrl = resolveMediaUrl(profile?.photo_url);
   const phone = profile?.phone || '';
+  const whatsappNumber = profile?.whatsapp_number || '';
 
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ full_name: name, phone });
+  const [editForm, setEditForm] = useState({ full_name: name, phone, whatsapp_number: whatsappNumber });
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -58,7 +59,11 @@ function ProfileHeader({ profile, completion = 0 }) {
   };
 
   const openEditModal = () => {
-    setEditForm({ full_name: profile?.full_name || '', phone: profile?.phone || '' });
+    setEditForm({
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+      whatsapp_number: profile?.whatsapp_number || '',
+    });
     setShowEditModal(true);
   };
 
@@ -134,6 +139,12 @@ function ProfileHeader({ profile, completion = 0 }) {
                   <span>{phone}</span>
                 </>
               )}
+              {whatsappNumber && (
+                <>
+                  <span className="hidden md:inline text-[#4b5563]">|</span>
+                  <span>WA: {whatsappNumber}</span>
+                </>
+              )}
             </p>
 
             <div className="flex flex-col gap-1 w-full max-w-md">
@@ -201,6 +212,16 @@ function ProfileHeader({ profile, completion = 0 }) {
                       type="tel"
                       value={editForm.phone}
                       onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      placeholder="e.g., 9876543210"
+                      style={modalStyles.input}
+                    />
+                  </div>
+                  <div style={modalStyles.group}>
+                    <label style={modalStyles.label}>WhatsApp Number</label>
+                    <input
+                      type="tel"
+                      value={editForm.whatsapp_number}
+                      onChange={(e) => setEditForm({ ...editForm, whatsapp_number: e.target.value })}
                       placeholder="e.g., 9876543210"
                       style={modalStyles.input}
                     />

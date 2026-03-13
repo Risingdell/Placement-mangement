@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { promisePool } = require('../config/database');
+const { hasColumn } = require('../utils/schemaUtils');
+const { isEmailConfigured, sendPasswordResetEmail } = require('../utils/emailService');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -17,7 +19,7 @@ const register = async (req, res) => {
   const connection = await promisePool.getConnection();
 
   try {
-    const { usn, email, password, fullName, phone, branch, batchYear } = req.body;
+    const { usn, email, password, fullName, phone, whatsappNumber, branch, batchYear } = req.body;
 
     // Validation
     if (!usn || !email || !password || !fullName || !branch || !batchYear) {
@@ -90,13 +92,23 @@ const register = async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+    const hasWhatsappNumber = await hasColumn('users', 'whatsapp_number');
 
     await connection.beginTransaction();
 
     // Insert user
+    const userColumns = ['usn', 'email', 'password_hash', 'full_name', 'phone', 'role'];
+    const userValues = [usn, email, passwordHash, fullName, phone || null, 'student'];
+
+    if (hasWhatsappNumber) {
+      userColumns.splice(5, 0, 'whatsapp_number');
+      userValues.splice(5, 0, whatsappNumber || null);
+    }
+
+    const placeholders = userColumns.map(() => '?').join(', ');
     const [userResult] = await connection.query(
-      'INSERT INTO users (usn, email, password_hash, full_name, phone, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [usn, email, passwordHash, fullName, phone || null, 'student']
+      `INSERT INTO users (${userColumns.join(', ')}) VALUES (${placeholders})`,
+      userValues
     );
 
     const userId = userResult.insertId;
@@ -155,7 +167,9 @@ const login = async (req, res) => {
 
     // Get user from database
     const [users] = await promisePool.query(
-      'SELECT id, usn, email, password_hash, full_name, role, is_active, is_placed FROM users WHERE email = ?',
+      `SELECT id, usn, email, password_hash, full_name, role, is_active, is_placed${
+        (await hasColumn('users', 'whatsapp_number')) ? ', whatsapp_number' : ''
+      } FROM users WHERE email = ?`,
       [email]
     );
 
@@ -199,7 +213,8 @@ const login = async (req, res) => {
         email: user.email,
         fullName: user.full_name,
         role: user.role,
-        isPlaced: user.is_placed
+        isPlaced: user.is_placed,
+        whatsappNumber: user.whatsapp_number || null
       }
     });
   } catch (error) {
@@ -264,19 +279,28 @@ const forgotPassword = async (req, res) => {
 
     await connection.commit();
 
-    // TODO: Send email with reset link
-    // For now, we'll just return success
-    // In production, you would send an email like:
-    // const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    // await sendEmail(user.email, 'Password Reset', resetUrl);
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
 
-    console.log(`Password reset token for ${email}: ${resetToken}`);
+    if (isEmailConfigured()) {
+      await sendPasswordResetEmail({
+        to: user.email,
+        name: user.full_name,
+        resetUrl
+      });
+    } else {
+      console.warn('Email service is not configured. Password reset link was not emailed.');
+      console.warn(`Password reset link for ${email}: ${resetUrl}`);
+    }
 
     res.json({
       success: true,
       message: 'If an account exists with this email, you will receive password reset instructions.',
       // TODO: Remove this in production
-      ...(process.env.NODE_ENV === 'development' && { resetToken })
+      ...(process.env.NODE_ENV === 'development' && {
+        resetToken,
+        resetUrl,
+        emailConfigured: isEmailConfigured()
+      })
     });
   } catch (error) {
     await connection.rollback();
@@ -376,8 +400,12 @@ const getMe = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    const includeWhatsappNumber = await hasColumn('users', 'whatsapp_number');
+
     const [users] = await promisePool.query(
-      `SELECT u.id, u.usn, u.email, u.full_name, u.phone, u.role, u.is_placed,
+      `SELECT u.id, u.usn, u.email, u.full_name, u.phone, u.role, u.is_placed${
+        includeWhatsappNumber ? ', u.whatsapp_number' : ''
+      },
               sa.branch, sa.batch_year, sa.current_semester, sa.cgpa, sa.sgpa,
               sa.total_backlogs, sa.active_backlogs, sa.photo_url
        FROM users u

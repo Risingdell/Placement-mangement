@@ -1,12 +1,16 @@
 const { promisePool } = require('../config/database');
+const { hasColumn } = require('../utils/schemaUtils');
 
 // Get all students with filters
 exports.getAllStudents = async (req, res) => {
   try {
     const { search, branch, year, placed, sortBy = 'name', order = 'ASC' } = req.query;
+    const includeWhatsappNumber = await hasColumn('users', 'whatsapp_number');
 
     let query = `
-      SELECT u.id, u.full_name as name, u.email, u.usn, u.phone, u.is_placed, u.created_at,
+      SELECT u.id, u.full_name as name, u.email, u.usn, u.phone${
+        includeWhatsappNumber ? ', u.whatsapp_number' : ''
+      }, u.is_placed, u.created_at,
         sa.cgpa, sa.branch, sa.batch_year as year, sa.active_backlogs as backlogs,
         pd.company_name as placed_company, pd.ctc,
         sa.resume_url

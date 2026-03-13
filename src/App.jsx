@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./Components/auth/Login";
 import Register from "./Components/auth/Register";
 import ForgotPassword from "./Components/auth/ForgotPassword";
+import ResetPassword from "./Components/auth/ResetPassword";
 import AdminLogin from "./Components/auth/AdminLogin";
 import ProtectedRoute from "./Components/common/ProtectedRoute";
 import DashboardLayout from "./Components/dashboard/DashboardLayout";
@@ -35,6 +36,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

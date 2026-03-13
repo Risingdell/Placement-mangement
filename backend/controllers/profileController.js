@@ -1,5 +1,6 @@
 const { promisePool } = require('../config/database');
 const path = require('path');
+const { hasColumn } = require('../utils/schemaUtils');
 
 const ensurePortfoliosTable = async () => {
   await promisePool.query(
@@ -26,6 +27,7 @@ const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     await ensurePortfoliosTable();
+    const includeWhatsappNumber = await hasColumn('users', 'whatsapp_number');
 
     const [academicColumns] = await promisePool.query(
       `SELECT COLUMN_NAME
@@ -40,7 +42,9 @@ const getProfile = async (req, res) => {
 
     // Get basic info and academics
     const [profile] = await promisePool.query(
-      `SELECT u.id, u.usn, u.email, u.full_name, u.phone, u.is_placed,
+      `SELECT u.id, u.usn, u.email, u.full_name, u.phone, u.is_placed${
+        includeWhatsappNumber ? ', u.whatsapp_number' : ''
+      },
               sa.branch, sa.batch_year, sa.current_semester, sa.cgpa, sa.sgpa,
               sa.total_backlogs, sa.active_backlogs, sa.tenth_percentage, sa.twelfth_percentage,
               sa.photo_url, sa.resume_url${diplomaSelect}
@@ -623,15 +627,26 @@ const getEligibilityStatus = async (req, res) => {
 const updateBasicInfo = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { full_name, phone } = req.body;
+    const { full_name, phone, whatsapp_number, whatsappNumber } = req.body;
+    const includeWhatsappNumber = await hasColumn('users', 'whatsapp_number');
 
     if (!full_name || !full_name.trim()) {
       return res.status(400).json({ success: false, message: 'Full name is required' });
     }
 
+    const updateFields = ['full_name = ?', 'phone = ?'];
+    const updateValues = [full_name.trim(), phone || null];
+
+    if (includeWhatsappNumber) {
+      updateFields.push('whatsapp_number = ?');
+      updateValues.push(whatsapp_number ?? whatsappNumber ?? null);
+    }
+
+    updateValues.push(userId);
+
     await promisePool.query(
-      'UPDATE users SET full_name = ?, phone = ?, updated_at = NOW() WHERE id = ?',
-      [full_name.trim(), phone || null, userId]
+      `UPDATE users SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = ?`,
+      updateValues
     );
 
     res.json({ success: true, message: 'Profile updated successfully' });
