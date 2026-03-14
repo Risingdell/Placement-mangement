@@ -291,12 +291,12 @@ const forgotPassword = async (req, res) => {
           });
           console.log(`Password reset email sent to ${user.email}`);
         } catch (mailError) {
-          console.error('Password reset email send failed:', mailError);
+          console.error('Password reset email send failed via Resend:', mailError);
           console.warn(`Password reset link for ${email}: ${resetUrl}`);
         }
       });
     } else {
-      console.warn('Email service is not configured. Password reset link was not emailed.');
+      console.warn('Resend email service is not configured. Password reset link was not emailed.');
       console.warn(`Password reset link for ${email}: ${resetUrl}`);
     }
 
