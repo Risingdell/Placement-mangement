@@ -12,7 +12,7 @@ const STATUS_STYLES = {
 
 const EMPTY_FORM = {
   company_name: '', role: '', ctc: '', drive_date: '', application_deadline: '',
-  min_cgpa: '', max_backlogs: '0', description: '', status: 'Upcoming',
+  min_cgpa: '', max_backlogs: '0', description: '', status: 'Upcoming', application_link: '',
 };
 
 function Skeleton({ className }) {
@@ -73,6 +73,7 @@ function PlacementDrivesPage() {
       max_backlogs: String(g(drive, 'max_backlogs', 'maxBacklogs') || '0'),
       description: g(drive, 'description', 'job_description') || '',
       status: drive.status || 'Upcoming',
+      application_link: g(drive, 'application_link', 'applicationLink') || '',
     });
     setFormError('');
     setShowModal(true);
@@ -102,6 +103,7 @@ function PlacementDrivesPage() {
       maxBacklogs:          formData.max_backlogs !== '' ? formData.max_backlogs : null,
       jobDescription:       formData.description || null,
       status:               formData.status,
+      applicationLink:      formData.application_link || null,
     };
     try {
       setSaving(true);
@@ -308,7 +310,7 @@ function PlacementDrivesPage() {
             className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={() => !saving && setShowModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-900">
                 {modalMode === 'add' ? 'Create Placement Drive' : 'Edit Drive'}
@@ -322,20 +324,20 @@ function PlacementDrivesPage() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
               {formError && (
                 <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                   {formError}
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company Name *</label>
                   <input
                     type="text" required
                     value={formData.company_name}
                     onChange={e => setFormData(p => ({ ...p, company_name: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="e.g. Google"
                   />
                 </div>
@@ -345,19 +347,19 @@ function PlacementDrivesPage() {
                     type="text" required
                     value={formData.role}
                     onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="e.g. Software Engineer"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">CTC / Package *</label>
                   <input
                     type="text" required
                     value={formData.ctc}
                     onChange={e => setFormData(p => ({ ...p, ctc: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="e.g. 25 LPA"
                   />
                 </div>
@@ -366,7 +368,7 @@ function PlacementDrivesPage() {
                   <select
                     value={formData.status}
                     onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
                   >
                     <option>Upcoming</option>
                     <option>Active</option>
@@ -375,14 +377,14 @@ function PlacementDrivesPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Drive Date *</label>
                   <input
                     type="date" required
                     value={formData.drive_date}
                     onChange={e => setFormData(p => ({ ...p, drive_date: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                 </div>
                 <div>
@@ -391,18 +393,18 @@ function PlacementDrivesPage() {
                     type="date" required
                     value={formData.application_deadline}
                     onChange={e => setFormData(p => ({ ...p, application_deadline: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Min. CGPA</label>
                   <input
                     type="number" step="0.01" min="0" max="10"
                     value={formData.min_cgpa}
                     onChange={e => setFormData(p => ({ ...p, min_cgpa: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="e.g. 7.5"
                   />
                 </div>
@@ -412,7 +414,7 @@ function PlacementDrivesPage() {
                     type="number" min="0"
                     value={formData.max_backlogs}
                     onChange={e => setFormData(p => ({ ...p, max_backlogs: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="0"
                   />
                 </div>
@@ -420,11 +422,21 @@ function PlacementDrivesPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">Job Description</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={formData.description}
                   onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
                   placeholder="Role responsibilities and requirements..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Link</label>
+                <input
+                  type="url"
+                  value={formData.application_link}
+                  onChange={e => setFormData(p => ({ ...p, application_link: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  placeholder="https://forms.google.com/... (Eligible students will receive this link)"
                 />
               </div>
               <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">

@@ -8,14 +8,6 @@ function CompaniesPage() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [showShortlistModal, setShowShortlistModal] = useState(false);
-  const [shortlistedStudents, setShortlistedStudents] = useState([]);
-  const [loadingShortlist, setLoadingShortlist] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const [notifying, setNotifying] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -106,90 +98,6 @@ function CompaniesPage() {
     }
   };
 
-  const handleManageShortlist = async (company) => {
-    setSelectedCompany(company);
-    setShowShortlistModal(true);
-
-    // Fetch shortlisted students for this company
-    try {
-      setLoadingShortlist(true);
-      const response = await companyService.getCompanyShortlists(company.id);
-      setShortlistedStudents(response.data || []);
-    } catch (error) {
-      console.error('Error fetching shortlists:', error);
-      setShortlistedStudents([]);
-    } finally {
-      setLoadingShortlist(false);
-    }
-  };
-
-
-  const handleSearch = async (term) => {
-    setSearchTerm(term);
-    if (term.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    try {
-      setIsSearching(true);
-      const response = await companyService.searchStudents(term);
-      // Filter out students already in the shortlist
-      const existingIds = shortlistedStudents.map(s => s.student_id);
-      const filtered = (response.data || []).filter(s => !existingIds.includes(s.id));
-      setSearchResults(filtered);
-    } catch (error) {
-      console.error('Error searching students:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleAddManualShortlist = async (student) => {
-    try {
-      await companyService.createShortlist(selectedCompany.id, {
-        student_id: student.id,
-        status: 'Shortlisted',
-        remarks: 'Manually shortlisted'
-      });
-
-      // Refresh shortlist
-      const response = await companyService.getCompanyShortlists(selectedCompany.id);
-      setShortlistedStudents(response.data || []);
-
-      // Clear search
-      setSearchTerm('');
-      setSearchResults([]);
-      setShowSearch(false);
-
-      // Update company count locally if possible or just refresh all companies
-      fetchCompanies();
-
-      alert(`${student.name} added to shortlist successfully!`);
-    } catch (error) {
-      console.error('Error adding to shortlist:', error);
-      alert('Failed to add student to shortlist');
-    }
-  };
-
-  const handleSendNotifications = async () => {
-    if (!selectedCompany || shortlistedStudents.length === 0) return;
-
-    try {
-      setNotifying(true);
-      const response = await companyService.notifyShortlistedStudents(selectedCompany.id);
-      alert(response.message || 'Notifications sent successfully!');
-
-      // Refresh shortlist to show 'Notified' status
-      const shortlistRes = await companyService.getCompanyShortlists(selectedCompany.id);
-      setShortlistedStudents(shortlistRes.data || []);
-    } catch (error) {
-      console.error('Error sending notifications:', error);
-      alert('Failed to send notifications. Please check the network connection.');
-    } finally {
-      setNotifying(false);
-    }
-  };
 
 
   if (loading) {
@@ -327,9 +235,6 @@ function CompaniesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Shortlisted
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -367,14 +272,6 @@ function CompaniesPage() {
                       }`}>
                       {company.is_active ? 'Active' : 'Inactive'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <button
-                      onClick={() => handleManageShortlist(company)}
-                      className="text-purple-600 hover:text-purple-800 font-medium"
-                    >
-                      {company.total_shortlisted || 0} Students
-                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button
@@ -517,8 +414,7 @@ function CompaniesPage() {
         </div>
       )}
 
-      {/* Student Shortlist Modal */}
-      {showShortlistModal && (
+      {/* Shortlist management moved to Placement Drives - eligibility filtering now done per drive */}
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
             <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowShortlistModal(false)}></div>
