@@ -291,7 +291,29 @@ const uploadResume = async (req, res) => {
       });
     }
 
-    const resumeUrl = req.file.path || req.file.secure_url;
+    // Debug: Log file object to see what Cloudinary returns
+    console.log('📄 Resume Upload Debug:');
+    console.log('  - req.file.fieldname:', req.file.fieldname);
+    console.log('  - req.file.originalname:', req.file.originalname);
+    console.log('  - req.file.encoding:', req.file.encoding);
+    console.log('  - req.file.mimetype:', req.file.mimetype);
+    console.log('  - req.file.size:', req.file.size);
+    console.log('  - req.file.path:', req.file.path);
+    console.log('  - req.file.secure_url:', req.file.secure_url);
+    console.log('  - req.file.url:', req.file.url);
+    console.log('  - Full file object:', JSON.stringify(req.file, null, 2));
+
+    // Use secure_url from Cloudinary (not path which is for disk storage)
+    const resumeUrl = req.file.secure_url || req.file.path;
+
+    if (!resumeUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'File upload to Cloudinary failed - no URL returned'
+      });
+    }
+
+    console.log('  - Final URL to save:', resumeUrl);
 
     await promisePool.query(
       'UPDATE student_academics SET resume_url = ? WHERE user_id = ?',
@@ -307,7 +329,7 @@ const uploadResume = async (req, res) => {
     console.error('Upload resume error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload resume'
+      message: 'Failed to upload resume: ' + error.message
     });
   }
 };

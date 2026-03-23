@@ -23,7 +23,16 @@ const createStorage = ({ folder, resourceType }) =>
     params: async (req, file) => {
       const userId = req.user ? req.user.id : 'unknown';
       const timestamp = Date.now();
-      const publicId = `${userId}_${timestamp}_${sanitizeFilename(file.originalname)}`;
+      const sanitized = sanitizeFilename(file.originalname);
+      const publicId = `${userId}_${timestamp}_${sanitized}`;
+
+      console.log('☁️ Cloudinary Upload Config:');
+      console.log('  - Original filename:', file.originalname);
+      console.log('  - Sanitized filename:', sanitized);
+      console.log('  - Public ID:', publicId);
+      console.log('  - Folder:', folder);
+      console.log('  - Resource type:', resourceType);
+      console.log('  - MIME type:', file.mimetype);
 
       return {
         folder,
