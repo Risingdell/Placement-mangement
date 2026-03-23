@@ -17,7 +17,16 @@ function ProfessionalProfile() {
     return resolvedUrl;
   }, [resolvedUrl]);
   const hasResume = Boolean(resumeUrl);
-  const isPdfResume = resumeUrl.toLowerCase().endsWith('.pdf');
+  // Check if it's a PDF: either ends with .pdf or is from Cloudinary's raw upload
+  const isPdfResume = useMemo(() => {
+    if (!resumeUrl) return false;
+    // Cloudinary raw uploads serve PDFs without .pdf extension in URL
+    if (resumeUrl.includes('cloudinary.com') && resumeUrl.includes('/raw/')) {
+      return true;
+    }
+    // Local files or other URLs with .pdf extension
+    return resumeUrl.toLowerCase().endsWith('.pdf');
+  }, [resumeUrl]);
 
   const handleResumeChange = async (e) => {
     const file = e.target.files?.[0];
