@@ -4,13 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStudent } from '../../context/StudentContext';
 import inboxService from '../../services/inboxService';
 import ThemeModeSwitch from '../common/ThemeModeSwitch';
-
-const resolveMediaUrl = (url) => {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  const apiOrigin = '';
-  return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
-};
+import { resolveFileUrl } from '../../services/api';
 
 function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme = 'dark', onThemeChange }) {
   const navigate = useNavigate();
@@ -20,7 +14,7 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const avatarUrl = resolveMediaUrl(profile?.photo_url);
+  const avatarUrl = resolveFileUrl(profile?.photo_url);
   const userName = profile?.full_name || 'Student';
 
   useEffect(() => {

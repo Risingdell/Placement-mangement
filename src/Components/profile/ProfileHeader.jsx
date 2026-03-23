@@ -1,13 +1,7 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
-
-const resolveMediaUrl = (url) => {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  const apiOrigin = '';
-  return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
-};
+import { resolveFileUrl } from '../../services/api';
 
 function ProfileHeader({ profile, completion = 0 }) {
   const { uploadPhoto, updateBasicInfo, fetchProfile } = useStudent();
@@ -16,7 +10,7 @@ function ProfileHeader({ profile, completion = 0 }) {
   const usn = profile?.usn || 'USN Not Added';
   const branch = profile?.branch || 'Branch Not Added';
   const batch = profile?.batch || '';
-  const avatarUrl = resolveMediaUrl(profile?.photo_url);
+  const avatarUrl = resolveFileUrl(profile?.photo_url);
   const phone = profile?.phone || '';
   const whatsappNumber = profile?.whatsapp_number || '';
 

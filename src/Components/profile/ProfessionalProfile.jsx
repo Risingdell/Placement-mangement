@@ -1,12 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
-
-const resolveMediaUrl = (url) => {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  const apiOrigin = '';
-  return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
-};
+import { resolveFileUrl } from '../../services/api';
 
 function ProfessionalProfile() {
   const { profile, uploadResume, deleteResume } = useStudent();
@@ -14,7 +8,7 @@ function ProfessionalProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const resumeUrl = useMemo(() => resolveMediaUrl(profile?.resume_url), [profile?.resume_url]);
+  const resumeUrl = useMemo(() => resolveFileUrl(profile?.resume_url), [profile?.resume_url]);
   const hasResume = Boolean(resumeUrl);
   const isPdfResume = resumeUrl.toLowerCase().endsWith('.pdf');
 

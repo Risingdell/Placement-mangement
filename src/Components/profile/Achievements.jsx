@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
+import { resolveFileUrl } from '../../services/api';
 
 const Icon = ({ name, size = 18, color, style: extra = {} }) => (
   <span
@@ -528,7 +529,7 @@ export default function Achievements() {
                 ) : ach.certificate_url ? (
                   <>
                     <a
-                      href={ach.certificate_url}
+                      href={resolveFileUrl(ach.certificate_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={styles.certLink}

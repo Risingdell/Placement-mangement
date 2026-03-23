@@ -1,6 +1,6 @@
 // Base API configuration and helper functions
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
 const inFlightGetRequests = new Map();
 const recentGetResponses = new Map();
 const GET_CACHE_TTL_MS = 1500;
@@ -96,7 +96,17 @@ export const apiUpload = async (endpoint, formData) => {
   }
 };
 
+// Helper to resolve static file URLs
+export const resolveFileUrl = (filePath) => {
+  if (!filePath) return '';
+  if (/^https?:\/\//i.test(filePath)) return filePath;
+
+  const apiBaseOrigin = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+  return `${apiBaseOrigin}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+};
+
 export default {
   apiRequest,
   apiUpload,
+  resolveFileUrl,
 };
