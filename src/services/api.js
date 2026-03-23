@@ -106,29 +106,14 @@ export const resolveFileUrl = (filePath) => {
 };
 
 // Helper to resolve Cloudinary URLs for inline preview (not download)
+// NOTE: Removed fl_attachment:false transformation because:
+// 1. It breaks the URL structure (returns 404)
+// 2. Modern browsers handle PDF display in iframes automatically
+// 3. The native browser PDF viewer is more reliable than forcing inline
 export const resolveCloudinaryUrl = (cloudinaryPath) => {
   if (!cloudinaryPath) return '';
-  if (!cloudinaryPath.includes('cloudinary.com')) return cloudinaryPath;
-
-  // Add fl_attachment:false to force inline display instead of download for PDFs
-  // Transformation goes after /upload/ in Cloudinary URL format
-  // Example: https://res.cloudinary.com/dszrb7ckt/raw/upload/v1234/file.pdf
-  // Becomes:  https://res.cloudinary.com/dszrb7ckt/raw/upload/fl_attachment:false/v1234/file.pdf
-
-  // Check if transformation already exists
-  if (cloudinaryPath.includes('fl_attachment')) {
-    console.log('⚠️ Transformation already applied');
-    return cloudinaryPath;
-  }
-
-  // Insert fl_attachment:false after /upload/
-  const transformed = cloudinaryPath.replace(
-    /\/upload\//,
-    '/upload/fl_attachment:false/'
-  );
-
-  console.log('🔄 Cloudinary transformation applied');
-  return transformed;
+  // Return URL as-is - browser will handle PDF preview
+  return cloudinaryPath;
 };
 
 export default {
