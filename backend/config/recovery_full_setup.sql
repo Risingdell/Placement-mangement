@@ -60,6 +60,7 @@ CREATE TABLE placement_drives (
  allowed_branches LONGTEXT NULL,
  drive_date DATE NULL,
  registration_deadline DATETIME NULL,
+ application_link VARCHAR(500) NULL,
  status ENUM('Upcoming','Ongoing','Completed','Cancelled') DEFAULT 'Upcoming',
  created_by INT NULL,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

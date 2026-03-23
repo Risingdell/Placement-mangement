@@ -5,7 +5,8 @@ const {
   createDrive,
   updateDrive,
   deleteDrive,
-  getUpcomingDrives
+  getUpcomingDrives,
+  getEligibleStudents
 } = require('../controllers/driveController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
@@ -23,5 +24,6 @@ router.get('/:id', getDriveById);
 router.post('/', restrictTo('admin', 'tpo'), createDrive);
 router.put('/:id', restrictTo('admin', 'tpo'), updateDrive);
 router.delete('/:id', restrictTo('admin', 'tpo'), deleteDrive);
+router.get('/:driveId/eligible-students', restrictTo('admin', 'tpo'), getEligibleStudents);
 
 module.exports = router;

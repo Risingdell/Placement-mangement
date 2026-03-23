@@ -1,4 +1,5 @@
 const { promisePool } = require('../config/database');
+const { sendDriveNotificationEmail, isEmailConfigured } = require('../utils/emailService');
 
 // @desc    Get all placement drives with eligibility check
 // @route   GET /api/drives
@@ -176,7 +177,8 @@ const createDrive = async (req, res) => {
       maxBacklogs,
       allowedBranches,
       driveDate,
-      registrationDeadline
+      registrationDeadline,
+      applicationLink
     } = req.body;
 
     if (!companyName || !role || !driveDate) {
@@ -190,8 +192,8 @@ const createDrive = async (req, res) => {
       `INSERT INTO placement_drives
        (company_name, role, company_type, ctc, job_description, eligibility_criteria,
         min_cgpa, max_backlogs, allowed_branches, drive_date, registration_deadline,
-        status, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Upcoming', ?)`,
+        application_link, status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Upcoming', ?)`,
       [
         companyName,
         role,
@@ -204,14 +206,81 @@ const createDrive = async (req, res) => {
         allowedBranches ? JSON.stringify(allowedBranches) : null,
         driveDate,
         registrationDeadline,
+        applicationLink,
         req.user.id
       ]
     );
 
+    const driveId = result.insertId;
+
+    // Send emails to eligible students (async, don't block drive creation)
+    if (isEmailConfigured() && applicationLink) {
+      setTimeout(async () => {
+        try {
+          // Get drive details for email
+          const [drives] = await promisePool.query(
+            `SELECT min_cgpa, max_backlogs, allowed_branches FROM placement_drives WHERE id = ?`,
+            [driveId]
+          );
+
+          if (drives.length === 0) return;
+
+          const drive = drives[0];
+
+          // Get all eligible students
+          const [students] = await promisePool.query(
+            `SELECT u.id, u.name, u.email, sa.cgpa, sa.active_backlogs, sa.branch
+             FROM users u
+             JOIN student_academics sa ON u.id = sa.user_id
+             WHERE u.role = 'student' AND u.is_placed = 0`,
+            []
+          );
+
+          // Filter by eligibility criteria
+          const eligibleStudents = students.filter(student => {
+            if (drive.min_cgpa && student.cgpa < drive.min_cgpa) return false;
+            if (drive.max_backlogs !== null && student.active_backlogs > drive.max_backlogs) return false;
+            if (drive.allowed_branches) {
+              try {
+                const allowedBranches = JSON.parse(drive.allowed_branches);
+                if (Array.isArray(allowedBranches) && !allowedBranches.includes(student.branch)) return false;
+              } catch (e) {
+                // ignore branch check if JSON parsing fails
+              }
+            }
+            return true;
+          });
+
+          // Send emails to each eligible student
+          for (const student of eligibleStudents) {
+            try {
+              await sendDriveNotificationEmail({
+                to: student.email,
+                studentName: student.name,
+                companyName,
+                role,
+                ctc,
+                driveDate,
+                registrationDeadline,
+                applicationLink
+              });
+            } catch (emailError) {
+              console.error(`Failed to send email to ${student.email}:`, emailError.message);
+              // Continue sending to other students even if one fails
+            }
+          }
+
+          console.log(`Drive ${driveId} created: ${eligibleStudents.length} eligible students notified`);
+        } catch (emailJobError) {
+          console.error(`Email notification job for drive ${driveId} failed:`, emailJobError.message);
+        }
+      }, 0);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Placement drive created successfully',
-      data: { id: result.insertId }
+      data: { id: driveId }
     });
   } catch (error) {
     console.error('Create drive error:', error);
@@ -240,7 +309,8 @@ const updateDrive = async (req, res) => {
       allowedBranches,
       driveDate,
       registrationDeadline,
-      status
+      status,
+      applicationLink
     } = req.body;
 
     // mysql2 rejects undefined — convert to null so COALESCE keeps existing DB value
@@ -259,6 +329,7 @@ const updateDrive = async (req, res) => {
            allowed_branches = COALESCE(?, allowed_branches),
            drive_date = COALESCE(?, drive_date),
            registration_deadline = COALESCE(?, registration_deadline),
+           application_link = COALESCE(?, application_link),
            status = COALESCE(?, status)
        WHERE id = ?`,
       [
@@ -273,6 +344,7 @@ const updateDrive = async (req, res) => {
         allowedBranches ? JSON.stringify(allowedBranches) : null,
         n(driveDate),
         n(registrationDeadline),
+        n(applicationLink),
         n(status),
         driveId
       ]
@@ -343,11 +415,86 @@ const getUpcomingDrives = async (req, res) => {
   }
 };
 
+// @desc    Get eligible students for a drive
+// @route   GET /api/drives/:driveId/eligible-students
+// @access  Private/Admin
+const getEligibleStudents = async (req, res) => {
+  try {
+    const driveId = req.params.driveId;
+
+    // Get drive details
+    const [drives] = await promisePool.query(
+      `SELECT min_cgpa, max_backlogs, allowed_branches FROM placement_drives WHERE id = ?`,
+      [driveId]
+    );
+
+    if (drives.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Drive not found'
+      });
+    }
+
+    const drive = drives[0];
+
+    // Get all students with their academics
+    const [students] = await promisePool.query(
+      `SELECT u.id, u.name, u.email, sa.cgpa, sa.active_backlogs, sa.branch
+       FROM users u
+       JOIN student_academics sa ON u.id = sa.user_id
+       WHERE u.role = 'student' AND u.is_placed = 0`,
+      []
+    );
+
+    // Filter eligible students
+    const eligibleStudents = students.filter(student => {
+      // Check CGPA
+      if (drive.min_cgpa && student.cgpa < drive.min_cgpa) {
+        return false;
+      }
+
+      // Check backlogs
+      if (drive.max_backlogs !== null && student.active_backlogs > drive.max_backlogs) {
+        return false;
+      }
+
+      // Check branch
+      if (drive.allowed_branches) {
+        try {
+          const allowedBranches = JSON.parse(drive.allowed_branches);
+          if (Array.isArray(allowedBranches) && !allowedBranches.includes(student.branch)) {
+            return false;
+          }
+        } catch (e) {
+          // ignore branch check if JSON parsing fails
+        }
+      }
+
+      return true;
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalEligible: eligibleStudents.length,
+        students: eligibleStudents
+      }
+    });
+  } catch (error) {
+    console.error('Get eligible students error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch eligible students'
+    });
+  }
+};
+
 module.exports = {
   getAllDrives,
   getDriveById,
   createDrive,
   updateDrive,
   deleteDrive,
-  getUpcomingDrives
+  getUpcomingDrives,
+  getEligibleStudents
 };

@@ -305,12 +305,12 @@ function PlacementDrivesPage() {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-20">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 my-8">
           <div
             className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={() => !saving && setShowModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[calc(100vh-120px)]">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-900">
                 {modalMode === 'add' ? 'Create Placement Drive' : 'Edit Drive'}
@@ -324,7 +324,7 @@ function PlacementDrivesPage() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[calc(100vh-200px)]">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
               {formError && (
                 <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                   {formError}
@@ -439,7 +439,7 @@ function PlacementDrivesPage() {
                   placeholder="https://forms.google.com/... (Eligible students will receive this link)"
                 />
               </div>
-              <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+              <div className="sticky bottom-0 bg-white flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

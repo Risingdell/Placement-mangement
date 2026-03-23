@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS placement_drives (
   allowed_branches JSON,
   drive_date DATE,
   registration_deadline DATETIME,
+  application_link VARCHAR(500),
   status ENUM('Upcoming', 'Ongoing', 'Completed', 'Cancelled') DEFAULT 'Upcoming',
   created_by INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
