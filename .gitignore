@@ -23,5 +23,31 @@ dist-ssr
 *.sln
 *.sw?
 
-# Ignore all markdown files
-*.md.claude/
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation & Markdown files
+*.md
+!README.md
+*.txt
+
+# Debug & temporary files
+*.log
+*.tmp
+*.temp
+*.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE config
+.vscode
+.idea
+*.swp
+*.swo
+
+# Claude workspace
+.claude/
