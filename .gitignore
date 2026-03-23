@@ -23,5 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-PROGRESS_SUMMARY.md
-SETUP_GUIDE.md
+# Ignore all markdown files
+*.md
