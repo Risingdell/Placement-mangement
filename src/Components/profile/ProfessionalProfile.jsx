@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
-import { resolveFileUrl } from '../../services/api';
+import { resolveFileUrl, resolveCloudinaryUrl } from '../../services/api';
 
 function ProfessionalProfile() {
   const { profile, uploadResume, deleteResume } = useStudent();
@@ -8,7 +8,14 @@ function ProfessionalProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const resumeUrl = useMemo(() => resolveFileUrl(profile?.resume_url), [profile?.resume_url]);
+  const resolvedUrl = useMemo(() => resolveFileUrl(profile?.resume_url), [profile?.resume_url]);
+  const resumeUrl = useMemo(() => {
+    // For Cloudinary URLs, add transformation to force inline preview instead of download
+    if (resolvedUrl && resolvedUrl.includes('cloudinary.com')) {
+      return resolveCloudinaryUrl(resolvedUrl);
+    }
+    return resolvedUrl;
+  }, [resolvedUrl]);
   const hasResume = Boolean(resumeUrl);
   const isPdfResume = resumeUrl.toLowerCase().endsWith('.pdf');
 

@@ -105,8 +105,25 @@ export const resolveFileUrl = (filePath) => {
   return `${apiBaseOrigin}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
 };
 
+// Helper to resolve Cloudinary URLs for inline preview (not download)
+export const resolveCloudinaryUrl = (cloudinaryPath) => {
+  if (!cloudinaryPath) return '';
+  if (!cloudinaryPath.includes('cloudinary.com')) return cloudinaryPath;
+
+  // Add fl_attachment:false to force inline display instead of download for PDFs
+  // Transformation goes after /upload/ and before version/filename
+  // Example: https://res.cloudinary.com/dszrb7ckt/raw/upload/v1234/file.pdf
+  // Becomes:  https://res.cloudinary.com/dszrb7ckt/raw/upload/fl_attachment:false/v1234/file.pdf
+
+  return cloudinaryPath.replace(
+    /\/upload\/([^/])/,
+    '/upload/fl_attachment:false/$1'
+  );
+};
+
 export default {
   apiRequest,
   apiUpload,
   resolveFileUrl,
+  resolveCloudinaryUrl,
 };
