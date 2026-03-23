@@ -8,12 +8,21 @@ function ProfessionalProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const resolvedUrl = useMemo(() => resolveFileUrl(profile?.resume_url), [profile?.resume_url]);
+  const resolvedUrl = useMemo(() => {
+    const url = resolveFileUrl(profile?.resume_url);
+    console.log('📄 Resume - Resolved URL:', url);
+    return url;
+  }, [profile?.resume_url]);
+
   const resumeUrl = useMemo(() => {
     // For Cloudinary URLs, add transformation to force inline preview instead of download
     if (resolvedUrl && resolvedUrl.includes('cloudinary.com')) {
-      return resolveCloudinaryUrl(resolvedUrl);
+      const transformed = resolveCloudinaryUrl(resolvedUrl);
+      console.log('📄 Resume - Original Cloudinary URL:', resolvedUrl);
+      console.log('📄 Resume - Transformed URL:', transformed);
+      return transformed;
     }
+    console.log('📄 Resume - Using non-Cloudinary URL:', resolvedUrl);
     return resolvedUrl;
   }, [resolvedUrl]);
   const hasResume = Boolean(resumeUrl);

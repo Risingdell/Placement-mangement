@@ -111,14 +111,24 @@ export const resolveCloudinaryUrl = (cloudinaryPath) => {
   if (!cloudinaryPath.includes('cloudinary.com')) return cloudinaryPath;
 
   // Add fl_attachment:false to force inline display instead of download for PDFs
-  // Transformation goes after /upload/ and before version/filename
+  // Transformation goes after /upload/ in Cloudinary URL format
   // Example: https://res.cloudinary.com/dszrb7ckt/raw/upload/v1234/file.pdf
   // Becomes:  https://res.cloudinary.com/dszrb7ckt/raw/upload/fl_attachment:false/v1234/file.pdf
 
-  return cloudinaryPath.replace(
-    /\/upload\/([^/])/,
-    '/upload/fl_attachment:false/$1'
+  // Check if transformation already exists
+  if (cloudinaryPath.includes('fl_attachment')) {
+    console.log('⚠️ Transformation already applied');
+    return cloudinaryPath;
+  }
+
+  // Insert fl_attachment:false after /upload/
+  const transformed = cloudinaryPath.replace(
+    /\/upload\//,
+    '/upload/fl_attachment:false/'
   );
+
+  console.log('🔄 Cloudinary transformation applied');
+  return transformed;
 };
 
 export default {

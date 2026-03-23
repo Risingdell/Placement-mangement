@@ -12,7 +12,9 @@ cloudinary.config({
 const sanitizeFilename = (originalName) => {
   const ext = path.extname(originalName);
   const nameWithoutExt = path.basename(originalName, ext);
-  return nameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
+  // Keep the extension! (e.g., .pdf, .png, .jpg)
+  const sanitizedName = nameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
+  return `${sanitizedName}${ext}`;
 };
 
 const createStorage = ({ folder, resourceType }) =>
