@@ -305,12 +305,12 @@ function PlacementDrivesPage() {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-20">
           <div
             className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={() => !saving && setShowModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[calc(100vh-120px)]">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-900">
                 {modalMode === 'add' ? 'Create Placement Drive' : 'Edit Drive'}
@@ -324,7 +324,7 @@ function PlacementDrivesPage() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[calc(100vh-200px)]">
               {formError && (
                 <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                   {formError}
