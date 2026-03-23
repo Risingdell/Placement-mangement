@@ -213,11 +213,11 @@ function DashboardPage() {
                     }
                   }}
                   placeholder="Add a skill (e.g. React, SQL, DSA)"
-                  className="flex-1 rounded-lg border border-[#363640] bg-[#24242b] px-3 py-2 text-sm text-zinc-200 outline-none"
+                  className="flex-1 min-w-0 rounded-lg border border-[#363640] bg-[#24242b] px-3 py-2 text-sm text-zinc-200 outline-none"
                 />
                 <button
                   onClick={addCustomSkill}
-                  className="rounded-lg bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]"
+                  className="flex-shrink-0 rounded-lg bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c] whitespace-nowrap"
                 >
                   Add
                 </button>

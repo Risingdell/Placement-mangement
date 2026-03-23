@@ -11,8 +11,6 @@ function CompaniesPage() {
   const [showShortlistModal, setShowShortlistModal] = useState(false);
   const [shortlistedStudents, setShortlistedStudents] = useState([]);
   const [loadingShortlist, setLoadingShortlist] = useState(false);
-  const [eligibleStudents, setEligibleStudents] = useState([]);
-  const [loadingStudents, setLoadingStudents] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -23,15 +21,8 @@ function CompaniesPage() {
     name: '',
     company_type: 'Product',
     location: '',
-    description: '',
-    minCgpa: '',
-    allowedBranches: [],
-    maxBacklogs: '',
-    allowedBatchYears: []
+    description: ''
   });
-
-  const branchOptions = ['CSE', 'ISE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'AI&ML', 'AIDS', 'DS'];
-  const batchYearOptions = ['2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027'];
 
   // Fetch companies on mount
   useEffect(() => {
@@ -51,41 +42,6 @@ function CompaniesPage() {
     }
   };
 
-  // Fetch eligible students when criteria changes
-  const fetchEligibleStudents = useCallback(async () => {
-    // Only fetch if at least one criterion is set
-    if (!formData.minCgpa && formData.allowedBranches.length === 0 &&
-      !formData.maxBacklogs && formData.allowedBatchYears.length === 0) {
-      setEligibleStudents([]);
-      return;
-    }
-
-    try {
-      setLoadingStudents(true);
-      const criteria = {
-        minCgpa: formData.minCgpa,
-        branches: formData.allowedBranches,
-        maxBacklogs: formData.maxBacklogs,
-        batchYears: formData.allowedBatchYears
-      };
-      const response = await companyService.getEligibleStudents(criteria);
-      setEligibleStudents(response.data || []);
-    } catch (error) {
-      console.error('Error fetching eligible students:', error);
-    } finally {
-      setLoadingStudents(false);
-    }
-  }, [formData.minCgpa, formData.allowedBranches, formData.maxBacklogs, formData.allowedBatchYears]);
-
-  // Debounce eligible students fetch
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (showModal) {
-        fetchEligibleStudents();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [fetchEligibleStudents, showModal]);
 
   const handleAddCompany = () => {
     setModalMode('add');
@@ -93,13 +49,8 @@ function CompaniesPage() {
       name: '',
       company_type: 'Product',
       location: '',
-      description: '',
-      minCgpa: '',
-      allowedBranches: [],
-      maxBacklogs: '',
-      allowedBatchYears: []
+      description: ''
     });
-    setEligibleStudents([]);
     setShowModal(true);
   };
 
@@ -110,11 +61,7 @@ function CompaniesPage() {
       name: company.name,
       company_type: company.company_type || 'Product',
       location: company.location || '',
-      description: company.description || '',
-      minCgpa: company.min_cgpa || '',
-      allowedBranches: company.allowed_branches ? company.allowed_branches.split(',') : [],
-      maxBacklogs: company.max_backlogs || '',
-      allowedBatchYears: company.allowed_batch_years ? company.allowed_batch_years.split(',') : []
+      description: company.description || ''
     });
     setShowModal(true);
   };
@@ -145,28 +92,8 @@ function CompaniesPage() {
 
     try {
       if (modalMode === 'add') {
-        const response = await companyService.createCompany(companyData);
-        const companyId = response.data.id;
-
-        // Automatically shortlist eligible students
-        if (eligibleStudents.length > 0) {
-          try {
-            // Shortlist each eligible student
-            for (const student of eligibleStudents) {
-              await companyService.createShortlist(companyId, {
-                student_id: student.id,
-                status: 'Shortlisted',
-                remarks: 'Automatically shortlisted based on eligibility criteria'
-              });
-            }
-            alert(`Company created successfully! ${eligibleStudents.length} students were automatically shortlisted.`);
-          } catch (shortlistError) {
-            console.error('Error shortlisting students:', shortlistError);
-            alert(`Company created, but there was an error shortlisting students: ${shortlistError.message}`);
-          }
-        } else {
-          alert('Company created successfully!');
-        }
+        await companyService.createCompany(companyData);
+        alert('Company added successfully! Students can now see this in the Upcoming Companies list.');
       } else {
         await companyService.updateCompany(selectedCompany.id, companyData);
         alert('Company updated successfully!');
@@ -196,23 +123,6 @@ function CompaniesPage() {
     }
   };
 
-  const toggleBranch = (branch) => {
-    setFormData(prev => ({
-      ...prev,
-      allowedBranches: prev.allowedBranches.includes(branch)
-        ? prev.allowedBranches.filter(b => b !== branch)
-        : [...prev.allowedBranches, branch]
-    }));
-  };
-
-  const toggleBatchYear = (year) => {
-    setFormData(prev => ({
-      ...prev,
-      allowedBatchYears: prev.allowedBatchYears.includes(year)
-        ? prev.allowedBatchYears.filter(y => y !== year)
-        : [...prev.allowedBatchYears, year]
-    }));
-  };
 
   const handleSearch = async (term) => {
     setSearchTerm(term);
@@ -576,135 +486,14 @@ function CompaniesPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                    placeholder="Brief description about the role and company"
+                    placeholder="Brief description about the company and roles offered"
                   />
                 </div>
 
-                {/* Eligibility Requirements Section */}
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Requirements</h4>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minimum CGPA
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="10"
-                        value={formData.minCgpa}
-                        onChange={(e) => setFormData({ ...formData, minCgpa: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                        placeholder="e.g., 7.0"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max Active Backlogs
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.maxBacklogs}
-                        onChange={(e) => setFormData({ ...formData, maxBacklogs: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                        placeholder="e.g., 0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Allowed Branches
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {branchOptions.map(branch => (
-                        <button
-                          key={branch}
-                          type="button"
-                          onClick={() => toggleBranch(branch)}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${formData.allowedBranches.includes(branch)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                          {branch}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Allowed Batch Years
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {batchYearOptions.map(year => (
-                        <button
-                          key={year}
-                          type="button"
-                          onClick={() => toggleBatchYear(year)}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${formData.allowedBatchYears.includes(year)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                          {year}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Eligible Students Display */}
-                  <div className="mt-6 border-t border-gray-200 pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h5 className="text-md font-semibold text-gray-900">Eligible Students</h5>
-                      <span className="text-sm text-gray-600">
-                        {loadingStudents ? 'Loading...' : `${eligibleStudents.length} students`}
-                      </span>
-                    </div>
-
-                    {!formData.minCgpa && formData.allowedBranches.length === 0 &&
-                      !formData.maxBacklogs && formData.allowedBatchYears.length === 0 ? (
-                      <div className="bg-gray-50 rounded-lg p-4 text-center">
-                        <p className="text-gray-600 text-sm">
-                          Set requirements above to see eligible students
-                        </p>
-                      </div>
-                    ) : loadingStudents ? (
-                      <div className="bg-gray-50 rounded-lg p-4 text-center">
-                        <p className="text-gray-600 text-sm">Loading eligible students...</p>
-                      </div>
-                    ) : eligibleStudents.length === 0 ? (
-                      <div className="bg-gray-50 rounded-lg p-4 text-center">
-                        <p className="text-gray-600 text-sm">No students match these criteria</p>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-                        <div className="space-y-2">
-                          {eligibleStudents.map(student => (
-                            <div key={student.id} className="bg-white p-3 rounded-lg shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="font-medium text-gray-900">{student.name}</p>
-                                  <p className="text-sm text-gray-600">{student.usn} • {student.branch}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold text-purple-600">{student.cgpa} CGPA</p>
-                                  <p className="text-xs text-gray-500">
-                                    Backlogs: {student.active_backlogs}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Eligibility criteria and shortlisted students will be managed when you create a Drive for this company.
+                  </p>
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4">
