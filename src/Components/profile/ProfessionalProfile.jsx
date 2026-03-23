@@ -152,11 +152,30 @@ function ProfessionalProfile() {
         {hasResume ? (
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             {isPdfResume ? (
-              <iframe
-                title="Resume Preview"
-                src={resumeUrl}
-                className="w-full h-[520px] bg-white"
-              />
+              <div className="w-full">
+                <iframe
+                  title="Resume Preview"
+                  src={resumeUrl}
+                  className="w-full h-[520px] bg-white"
+                  onError={() => {
+                    console.log('📄 iframe failed to load PDF - likely CORS issue');
+                  }}
+                />
+                <div className="p-4 bg-blue-50 border-t border-blue-200 text-sm text-blue-800">
+                  <p className="mb-2">
+                    💡 If the PDF doesn't display above, use this link to download:
+                  </p>
+                  <a
+                    href={resumeUrl}
+                    download={`Resume.pdf`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                  >
+                    📥 Download Resume
+                  </a>
+                </div>
+              </div>
             ) : (
               <div className="p-6 bg-gray-50 text-sm text-gray-700">
                 This file type cannot be previewed inline. Open it using this link:

@@ -314,6 +314,7 @@ const uploadResume = async (req, res) => {
     }
 
     console.log('  - Final URL to save:', resumeUrl);
+    console.log('  ✅ Resume saved successfully to DB');
 
     await promisePool.query(
       'UPDATE student_academics SET resume_url = ? WHERE user_id = ?',
