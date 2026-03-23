@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Ignore all markdown files
-*.md
+*.md.claude/
