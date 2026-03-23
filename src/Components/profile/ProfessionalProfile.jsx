@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useStudent } from '../../context/StudentContext';
 import { resolveFileUrl, resolveCloudinaryUrl } from '../../services/api';
 
@@ -10,21 +10,28 @@ function ProfessionalProfile() {
 
   const resolvedUrl = useMemo(() => {
     const url = resolveFileUrl(profile?.resume_url);
+    console.log('📄 Resume - Raw resume_url:', profile?.resume_url);
     console.log('📄 Resume - Resolved URL:', url);
     return url;
   }, [profile?.resume_url]);
 
   const resumeUrl = useMemo(() => {
-    // For Cloudinary URLs, add transformation to force inline preview instead of download
+    // For Cloudinary URLs, just use as-is (no transformation needed)
     if (resolvedUrl && resolvedUrl.includes('cloudinary.com')) {
-      const transformed = resolveCloudinaryUrl(resolvedUrl);
-      console.log('📄 Resume - Original Cloudinary URL:', resolvedUrl);
-      console.log('📄 Resume - Transformed URL:', transformed);
-      return transformed;
+      console.log('📄 Resume - Cloudinary URL:', resolvedUrl);
+      return resolvedUrl;
     }
-    console.log('📄 Resume - Using non-Cloudinary URL:', resolvedUrl);
+    console.log('📄 Resume - Non-Cloudinary URL:', resolvedUrl);
     return resolvedUrl;
   }, [resolvedUrl]);
+
+  // Debug: Log resumeUrl when it changes
+  useEffect(() => {
+    if (resumeUrl) {
+      console.log('📄 Resume - Final URL for display:', resumeUrl);
+      console.log('📄 Resume - URL is valid:', !!resumeUrl);
+    }
+  }, [resumeUrl]);
   const hasResume = Boolean(resumeUrl);
   // Check if it's a PDF: either ends with .pdf or is from Cloudinary's raw upload
   const isPdfResume = useMemo(() => {
