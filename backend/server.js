@@ -10,6 +10,9 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
+// Trust proxy for rate limiting on Render
+app.set('trust proxy', 1);
+
 // =============================================
 // MIDDLEWARE
 // =============================================

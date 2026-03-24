@@ -6,6 +6,7 @@ const {
   uploadPhoto,
   uploadResume,
   deleteResume,
+  streamResume,
   addSkill,
   deleteSkill,
   addProject,
@@ -46,6 +47,7 @@ router.put('/academics', updateAcademics);
 // File uploads
 router.post('/photo', photoUpload.single('photo'), handleUploadError, uploadPhoto);
 router.post('/resume', resumeUpload.single('resume'), handleUploadError, uploadResume);
+router.get('/resume/stream', streamResume);
 router.delete('/resume', deleteResume);
 
 // Skills

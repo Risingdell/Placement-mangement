@@ -1,12 +1,12 @@
 // Base API configuration and helper functions
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
 const inFlightGetRequests = new Map();
 const recentGetResponses = new Map();
 const GET_CACHE_TTL_MS = 1500;
 
 // Get auth token from localStorage
-const getAuthToken = () => {
+export const getAuthToken = () => {
   return localStorage.getItem('token');
 };
 

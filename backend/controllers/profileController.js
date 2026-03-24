@@ -1,5 +1,6 @@
 const { promisePool } = require('../config/database');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 const { hasColumn } = require('../utils/schemaUtils');
 
 const ensurePortfoliosTable = async () => {
@@ -356,6 +357,82 @@ const deleteResume = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete resume'
+    });
+  }
+};
+
+// @desc    Stream resume for preview or download (from Cloudinary)
+// @route   GET /api/profile/resume/stream
+// @access  Private
+const streamResume = async (req, res) => {
+  try {
+    // Get user ID - can come from JWT header (normal) or query param (for direct links)
+    let userId = req.user?.id;
+
+    // If no user from auth header, try getting token from query param
+    if (!userId && req.query.token) {
+      try {
+        const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (err) {
+        console.log('Invalid token in query param');
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+    }
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { download } = req.query; // ?download=true for download, default is preview
+
+    // Get resume URL from database
+    const [profile] = await promisePool.query(
+      'SELECT resume_url FROM student_academics WHERE user_id = ?',
+      [userId]
+    );
+
+    if (!profile || !profile[0]?.resume_url) {
+      return res.status(404).json({
+        success: false,
+        message: 'No resume found'
+      });
+    }
+
+    const resumeUrl = profile[0].resume_url;
+    console.log('📄 Resume Stream - Fetching from URL:', resumeUrl);
+
+    // Fetch the file from Cloudinary
+    const response = await fetch(resumeUrl);
+
+    if (!response.ok) {
+      console.error('📄 Resume Stream - Failed to fetch from Cloudinary:', response.status);
+      return res.status(response.status).json({
+        success: false,
+        message: 'Failed to retrieve resume from storage'
+      });
+    }
+
+    const buffer = await response.arrayBuffer();
+    const contentType = response.headers.get('content-type') || 'application/pdf';
+
+    // Set response headers
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Length', buffer.byteLength);
+
+    // Add download header if requested
+    if (download === 'true') {
+      res.setHeader('Content-Disposition', 'attachment; filename="Resume.pdf"');
+    } else {
+      res.setHeader('Content-Disposition', 'inline');
+    }
+
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    console.error('Stream resume error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve resume'
     });
   }
 };
@@ -1037,6 +1114,7 @@ module.exports = {
   uploadPhoto,
   uploadResume,
   deleteResume,
+  streamResume,
   addSkill,
   deleteSkill,
   addProject,

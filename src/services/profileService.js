@@ -1,4 +1,4 @@
-import { apiRequest, apiUpload } from './api';
+import { apiRequest, apiUpload, getAuthToken, API_BASE_URL } from './api';
 
 // Profile Services
 export const getProfile = async () => {
@@ -34,6 +34,18 @@ export const uploadResume = async (file) => {
 
 export const deleteResume = async () => {
   return await apiRequest('/profile/resume', { method: 'DELETE' });
+};
+
+export const getResumeUrl = (download = false) => {
+  const token = getAuthToken();
+  const params = new URLSearchParams();
+  if (token) {
+    params.set('token', token);
+  }
+  if (download) {
+    params.set('download', 'true');
+  }
+  return `${API_BASE_URL}/profile/resume/stream?${params.toString()}`;
 };
 
 // Skills
@@ -141,6 +153,7 @@ export default {
   uploadPhoto,
   uploadResume,
   deleteResume,
+  getResumeUrl,
   addSkill,
   deleteSkill,
   addProject,

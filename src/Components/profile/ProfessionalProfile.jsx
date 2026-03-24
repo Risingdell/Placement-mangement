@@ -1,6 +1,6 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
-import { resolveFileUrl, resolveCloudinaryUrl } from '../../services/api';
+import profileService from '../../services/profileService';
 
 function ProfessionalProfile() {
   const { profile, uploadResume, deleteResume } = useStudent();
@@ -8,41 +8,19 @@ function ProfessionalProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const resolvedUrl = useMemo(() => {
-    const url = resolveFileUrl(profile?.resume_url);
-    console.log('📄 Resume - Raw resume_url:', profile?.resume_url);
-    console.log('📄 Resume - Resolved URL:', url);
-    return url;
+  const resumeUrl = useMemo(() => {
+    // Use authenticated stream endpoint if resume exists
+    if (profile?.resume_url) {
+      const streamUrl = profileService.getResumeUrl(false);
+      console.log('📄 Resume - Using authenticated stream endpoint:', streamUrl);
+      return streamUrl;
+    }
+    return '';
   }, [profile?.resume_url]);
 
-  const resumeUrl = useMemo(() => {
-    // For Cloudinary URLs, just use as-is (no transformation needed)
-    if (resolvedUrl && resolvedUrl.includes('cloudinary.com')) {
-      console.log('📄 Resume - Cloudinary URL:', resolvedUrl);
-      return resolvedUrl;
-    }
-    console.log('📄 Resume - Non-Cloudinary URL:', resolvedUrl);
-    return resolvedUrl;
-  }, [resolvedUrl]);
-
-  // Debug: Log resumeUrl when it changes
-  useEffect(() => {
-    if (resumeUrl) {
-      console.log('📄 Resume - Final URL for display:', resumeUrl);
-      console.log('📄 Resume - URL is valid:', !!resumeUrl);
-    }
-  }, [resumeUrl]);
   const hasResume = Boolean(resumeUrl);
-  // Check if it's a PDF: either ends with .pdf or is from Cloudinary's raw upload
-  const isPdfResume = useMemo(() => {
-    if (!resumeUrl) return false;
-    // Cloudinary raw uploads serve PDFs without .pdf extension in URL
-    if (resumeUrl.includes('cloudinary.com') && resumeUrl.includes('/raw/')) {
-      return true;
-    }
-    // Local files or other URLs with .pdf extension
-    return resumeUrl.toLowerCase().endsWith('.pdf');
-  }, [resumeUrl]);
+  // We always validate PDF on upload, so if hasResume is true, it's a PDF
+  const isPdfResume = hasResume;
 
   const handleResumeChange = async (e) => {
     const file = e.target.files?.[0];
@@ -173,10 +151,8 @@ function ProfessionalProfile() {
                     💡 If the PDF doesn't display above, use this link to download:
                   </p>
                   <a
-                    href={resumeUrl}
+                    href={profileService.getResumeUrl(true)}
                     download={`Resume.pdf`}
-                    target="_blank"
-                    rel="noreferrer"
                     className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                   >
                     📥 Download Resume
