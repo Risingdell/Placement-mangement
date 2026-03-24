@@ -109,7 +109,7 @@ const uploadDocument = multer({
 const uploadResume = multer({
   storage: createStorage({
     folder: 'placement-system/resumes',
-    resourceType: 'raw'
+    resourceType: 'auto'
   }),
   limits: {
     fileSize: 1048576 // 1MB limit for resumes
