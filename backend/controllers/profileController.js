@@ -1,6 +1,13 @@
 const { promisePool } = require('../config/database');
 const path = require('path');
+const { v2: cloudinary } = require('cloudinary');
 const { hasColumn } = require('../utils/schemaUtils');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const ensurePortfoliosTable = async () => {
   await promisePool.query(
@@ -396,10 +403,29 @@ const streamResume = async (req, res) => {
     }
 
     const resumeUrl = profile[0].resume_url;
-    console.log('📄 Resume Stream - Redirecting to Cloudinary:', resumeUrl);
 
-    // Redirect browser directly to Cloudinary - avoids server-side auth issues
-    return res.redirect(302, resumeUrl);
+    // Extract public ID from stored Cloudinary URL
+    // URL format: https://res.cloudinary.com/{cloud}/raw/upload/v{version}/{public_id}
+    const uploadIndex = resumeUrl.indexOf('/upload/');
+    if (uploadIndex === -1) {
+      return res.redirect(302, resumeUrl);
+    }
+
+    let publicIdWithVersion = resumeUrl.substring(uploadIndex + 8); // after '/upload/'
+    // Remove version prefix like "v1234567890/"
+    const publicId = publicIdWithVersion.replace(/^v\d+\//, '');
+
+    console.log('📄 Resume Stream - Generating signed URL for public ID:', publicId);
+
+    // Generate a signed URL valid for 1 hour
+    const signedUrl = cloudinary.url(publicId, {
+      resource_type: 'raw',
+      sign_url: true,
+      expires_at: Math.floor(Date.now() / 1000) + 3600
+    });
+
+    console.log('📄 Resume Stream - Redirecting to signed URL');
+    return res.redirect(302, signedUrl);
   } catch (error) {
     console.error('📄 Resume Stream error:', error.message);
     res.status(500).json({
