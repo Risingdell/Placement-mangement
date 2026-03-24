@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
+import { getResumeUrl } from '../../services/profileService';
 
 function ProfessionalProfile() {
   const { profile, uploadResume, deleteResume } = useStudent();
@@ -7,9 +8,8 @@ function ProfessionalProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Use direct Cloudinary URL from profile - no proxy needed, Cloudinary URLs are public
-  const resumeUrl = profile?.resume_url || '';
-  const hasResume = Boolean(resumeUrl);
+  // Use authenticated stream endpoint — backend generates a signed Cloudinary URL
+  const hasResume = Boolean(profile?.resume_url);
 
   const handleResumeChange = async (e) => {
     const file = e.target.files?.[0];
@@ -138,7 +138,7 @@ function ProfessionalProfile() {
             </div>
             <div className="flex gap-3">
               <a
-                href={resumeUrl}
+                href={getResumeUrl(false)}
                 target="_blank"
                 rel="noreferrer"
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
@@ -146,8 +146,9 @@ function ProfessionalProfile() {
                 View Resume
               </a>
               <a
-                href={resumeUrl}
-                download="Resume.pdf"
+                href={getResumeUrl(true)}
+                target="_blank"
+                rel="noreferrer"
                 className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
               >
                 Download
