@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllDrives, createDrive, updateDrive, deleteDrive } from '../../services/driveService';
+import { getAllDrives, createDrive, updateDrive, deleteDrive, previewEligibleStudents } from '../../services/driveService';
 import DriveAttendeesModal from '../../Components/admin/DriveAttendeesModal';
 import AttendeeMessageModal from '../../Components/admin/AttendeeMessageModal';
 
@@ -10,9 +10,12 @@ const STATUS_STYLES = {
   Cancelled: { dot: 'bg-red-400',     badge: 'bg-red-50 text-red-700 border-red-200' },
 };
 
+const BRANCHES = ['CSE', 'ISE', 'ECE', 'EEE', 'ME', 'CIVIL', 'AI&ML', 'DS'];
+
 const EMPTY_FORM = {
   company_name: '', role: '', ctc: '', drive_date: '', application_deadline: '',
   min_cgpa: '', max_backlogs: '0', description: '', status: 'Upcoming', application_link: '',
+  allowed_branches: [],
 };
 
 function Skeleton({ className }) {
@@ -33,6 +36,11 @@ function PlacementDrivesPage() {
 
   const [showAttendeesModal, setShowAttendeesModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
+
+  // Preview eligible students state
+  const [eligiblePreview, setEligiblePreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [localFilter, setLocalFilter] = useState({ branch: '', year: '' });
 
   const fetchDrives = async () => {
     try {
@@ -62,6 +70,28 @@ function PlacementDrivesPage() {
     }
   }, [showModal]);
 
+  // Debounced preview of eligible students as criteria change
+  useEffect(() => {
+    if (!showModal) return;
+    const timer = setTimeout(async () => {
+      setPreviewLoading(true);
+      try {
+        const res = await previewEligibleStudents({
+          minCgpa: formData.min_cgpa,
+          maxBacklogs: formData.max_backlogs,
+          branches: formData.allowed_branches,
+        });
+        setEligiblePreview(res?.data || null);
+      } catch (error) {
+        console.error('Error fetching eligible students:', error);
+        setEligiblePreview(null);
+      } finally {
+        setPreviewLoading(false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [formData.min_cgpa, formData.max_backlogs, formData.allowed_branches, showModal]);
+
   const g = (d, ...keys) => {
     for (const k of keys) if (d[k] !== undefined && d[k] !== null) return d[k];
     return '';
@@ -77,6 +107,9 @@ function PlacementDrivesPage() {
   const openEdit = (drive) => {
     setModalMode('edit');
     setSelectedDrive(drive);
+    const allowedBranches = drive.allowed_branches
+      ? (typeof drive.allowed_branches === 'string' ? JSON.parse(drive.allowed_branches) : drive.allowed_branches)
+      : [];
     setFormData({
       company_name: g(drive, 'company_name', 'company'),
       role: drive.role || '',
@@ -88,6 +121,7 @@ function PlacementDrivesPage() {
       description: g(drive, 'description', 'job_description') || '',
       status: drive.status || 'Upcoming',
       application_link: g(drive, 'application_link', 'applicationLink') || '',
+      allowed_branches: Array.isArray(allowedBranches) ? allowedBranches : [],
     });
     setFormError('');
     setShowModal(true);
@@ -118,6 +152,7 @@ function PlacementDrivesPage() {
       jobDescription:       formData.description || null,
       status:               formData.status,
       applicationLink:      formData.application_link || null,
+      allowedBranches:      formData.allowed_branches.length > 0 ? formData.allowed_branches : null,
     };
     try {
       setSaving(true);
@@ -324,7 +359,8 @@ function PlacementDrivesPage() {
             className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={() => !saving && setShowModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col z-[1000] max-h-[98vh]">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col z-[1000] max-h-[98vh]">
+            {/* Header */}
             <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex-shrink-0">
               <h3 className="text-lg font-bold text-gray-900">
                 {modalMode === 'add' ? 'Create Placement Drive' : 'Edit Drive'}
@@ -338,122 +374,217 @@ function PlacementDrivesPage() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-5 overflow-y-auto flex-1 min-h-0">
-              {formError && (
-                <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                  {formError}
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company Name *</label>
-                  <input
-                    type="text" required
-                    value={formData.company_name}
-                    onChange={e => setFormData(p => ({ ...p, company_name: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="e.g. Google"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Role / Position *</label>
-                  <input
-                    type="text" required
-                    value={formData.role}
-                    onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="e.g. Software Engineer"
-                  />
-                </div>
+
+            {/* Two-Column Layout */}
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+              {/* Left Column - Form */}
+              <div className="w-3/5 pr-4 overflow-y-auto flex-1">
+                <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-5">
+                  {formError && (
+                    <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                      {formError}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company Name *</label>
+                      <input
+                        type="text" required
+                        value={formData.company_name}
+                        onChange={e => setFormData(p => ({ ...p, company_name: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="e.g. Google"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Role / Position *</label>
+                      <input
+                        type="text" required
+                        value={formData.role}
+                        onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="e.g. Software Engineer"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">CTC / Package *</label>
+                      <input
+                        type="text" required
+                        value={formData.ctc}
+                        onChange={e => setFormData(p => ({ ...p, ctc: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="e.g. 25 LPA"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
+                      <select
+                        value={formData.status}
+                        onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                      >
+                        <option>Upcoming</option>
+                        <option>Active</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Drive Date *</label>
+                      <input
+                        type="date" required
+                        value={formData.drive_date}
+                        onChange={e => setFormData(p => ({ ...p, drive_date: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Deadline *</label>
+                      <input
+                        type="date" required
+                        value={formData.application_deadline}
+                        onChange={e => setFormData(p => ({ ...p, application_deadline: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Min. CGPA</label>
+                      <input
+                        type="number" step="0.01" min="0" max="10"
+                        value={formData.min_cgpa}
+                        onChange={e => setFormData(p => ({ ...p, min_cgpa: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="e.g. 7.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Max. Backlogs Allowed</label>
+                      <input
+                        type="number" min="0"
+                        value={formData.max_backlogs}
+                        onChange={e => setFormData(p => ({ ...p, max_backlogs: e.target.value }))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">Allowed Branches</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {BRANCHES.map(branch => (
+                        <button
+                          key={branch}
+                          type="button"
+                          onClick={() => {
+                            setFormData(p => ({
+                              ...p,
+                              allowed_branches: p.allowed_branches.includes(branch)
+                                ? p.allowed_branches.filter(b => b !== branch)
+                                : [...p.allowed_branches, branch]
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            formData.allowed_branches.includes(branch)
+                              ? 'bg-indigo-600 text-white'
+                              : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {branch}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Job Description</label>
+                    <textarea
+                      rows={3}
+                      value={formData.description}
+                      onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                      placeholder="Role responsibilities and requirements..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Link</label>
+                    <input
+                      type="url"
+                      value={formData.application_link}
+                      onChange={e => setFormData(p => ({ ...p, application_link: e.target.value }))}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                      placeholder="https://forms.google.com/... (Eligible students will receive this link)"
+                    />
+                  </div>
+                </form>
               </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">CTC / Package *</label>
-                  <input
-                    type="text" required
-                    value={formData.ctc}
-                    onChange={e => setFormData(p => ({ ...p, ctc: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="e.g. 25 LPA"
-                  />
+
+              {/* Right Column - Eligible Students Preview */}
+              <div className="w-2/5 pl-4 border-l border-gray-200 flex flex-col bg-gray-50">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Eligible Students
+                  </p>
+                  {eligiblePreview && (
+                    <p className="text-lg font-bold text-gray-900 mt-1">
+                      {eligiblePreview.totalEligible} students
+                    </p>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-                  >
-                    <option>Upcoming</option>
-                    <option>Active</option>
-                    <option>Completed</option>
-                    <option>Cancelled</option>
-                  </select>
-                </div>
+
+                {!formData.min_cgpa && formData.max_backlogs === '0' && formData.allowed_branches.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center p-4 text-center">
+                    <p className="text-sm text-gray-500">Set eligibility criteria to preview eligible students</p>
+                  </div>
+                ) : previewLoading ? (
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+                    ))}
+                  </div>
+                ) : eligiblePreview?.students?.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center p-4 text-center">
+                    <p className="text-sm text-gray-500">No students match these criteria</p>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                    {eligiblePreview?.students?.map(student => (
+                      <div key={student.id} className="bg-white p-3 rounded-lg border border-gray-200">
+                        <div className="font-medium text-sm text-gray-900">{student.name}</div>
+                        <div className="text-xs text-gray-500 mt-1">{student.email}</div>
+                        <div className="flex gap-2 mt-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              student.cgpa >= 8.5
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : student.cgpa >= 7.0
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-amber-100 text-amber-700'
+                            }`}
+                          >
+                            {student.cgpa}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                            {student.branch}
+                          </span>
+                          {student.year && (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                              Yr {student.year}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Drive Date *</label>
-                  <input
-                    type="date" required
-                    value={formData.drive_date}
-                    onChange={e => setFormData(p => ({ ...p, drive_date: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Deadline *</label>
-                  <input
-                    type="date" required
-                    value={formData.application_deadline}
-                    onChange={e => setFormData(p => ({ ...p, application_deadline: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Min. CGPA</label>
-                  <input
-                    type="number" step="0.01" min="0" max="10"
-                    value={formData.min_cgpa}
-                    onChange={e => setFormData(p => ({ ...p, min_cgpa: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="e.g. 7.5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Max. Backlogs Allowed</label>
-                  <input
-                    type="number" min="0"
-                    value={formData.max_backlogs}
-                    onChange={e => setFormData(p => ({ ...p, max_backlogs: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Job Description</label>
-                <textarea
-                  rows={3}
-                  value={formData.description}
-                  onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
-                  placeholder="Role responsibilities and requirements..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Link</label>
-                <input
-                  type="url"
-                  value={formData.application_link}
-                  onChange={e => setFormData(p => ({ ...p, application_link: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                  placeholder="https://forms.google.com/... (Eligible students will receive this link)"
-                />
-              </div>
-            </form>
+            </div>
+
+            {/* Footer */}
             <div className="flex justify-end gap-3 px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100 bg-gray-50 flex-shrink-0">
               <button
                 type="button"

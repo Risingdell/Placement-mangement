@@ -489,6 +489,62 @@ const getEligibleStudents = async (req, res) => {
   }
 };
 
+// @desc    Preview eligible students based on criteria (no driveId needed)
+// @route   GET /api/drives/preview-eligible?minCgpa=7.5&maxBacklogs=0&branches=CSE,ECE
+// @access  Private/Admin
+const previewEligibleStudents = async (req, res) => {
+  try {
+    const { minCgpa, maxBacklogs, branches } = req.query;
+
+    let query = `
+      SELECT u.id, u.full_name as name, u.email, sa.cgpa, sa.active_backlogs, sa.branch, sa.batch_year as year
+      FROM users u
+      JOIN student_academics sa ON u.id = sa.user_id
+      WHERE u.role = 'student' AND u.is_placed = 0
+    `;
+    const params = [];
+
+    // Add CGPA filter
+    if (minCgpa) {
+      query += ' AND sa.cgpa >= ?';
+      params.push(parseFloat(minCgpa));
+    }
+
+    // Add backlogs filter
+    if (maxBacklogs !== undefined && maxBacklogs !== '') {
+      query += ' AND sa.active_backlogs <= ?';
+      params.push(parseInt(maxBacklogs));
+    }
+
+    // Add branches filter
+    if (branches) {
+      const branchList = branches.split(',').map(b => b.trim()).filter(Boolean);
+      if (branchList.length > 0) {
+        query += ` AND sa.branch IN (${branchList.map(() => '?').join(',')})`;
+        params.push(...branchList);
+      }
+    }
+
+    query += ' ORDER BY sa.cgpa DESC, u.full_name ASC';
+
+    const [students] = await promisePool.query(query, params);
+
+    res.json({
+      success: true,
+      data: {
+        totalEligible: students.length,
+        students
+      }
+    });
+  } catch (error) {
+    console.error('Preview eligible students error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to preview eligible students'
+    });
+  }
+};
+
 module.exports = {
   getAllDrives,
   getDriveById,
@@ -496,5 +552,6 @@ module.exports = {
   updateDrive,
   deleteDrive,
   getUpcomingDrives,
-  getEligibleStudents
+  getEligibleStudents,
+  previewEligibleStudents
 };

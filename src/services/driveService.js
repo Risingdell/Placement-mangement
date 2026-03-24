@@ -25,6 +25,15 @@ export const updateDrive = async (id, data) =>
 export const deleteDrive = async (id) =>
   apiRequest(`/drives/${id}`, { method: 'DELETE' });
 
+// Preview eligible students based on criteria (for live preview in form)
+export const previewEligibleStudents = async ({ minCgpa, maxBacklogs, branches }) => {
+  const params = new URLSearchParams();
+  if (minCgpa) params.set('minCgpa', minCgpa);
+  if (maxBacklogs !== '') params.set('maxBacklogs', maxBacklogs);
+  if (branches?.length) params.set('branches', branches.join(','));
+  return apiRequest(`/drives/preview-eligible?${params}`, { method: 'GET' });
+};
+
 export default {
   getAllDrives,
   getDriveById,
@@ -32,4 +41,5 @@ export default {
   createDrive,
   updateDrive,
   deleteDrive,
+  previewEligibleStudents,
 };
