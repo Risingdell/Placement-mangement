@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
-import profileService from '../../services/profileService';
 
 function ProfessionalProfile() {
   const { profile, uploadResume, deleteResume } = useStudent();
@@ -8,19 +7,9 @@ function ProfessionalProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const resumeUrl = useMemo(() => {
-    // Use authenticated stream endpoint if resume exists
-    if (profile?.hasResume) {
-      const streamUrl = profileService.getResumeUrl(false);
-      console.log('📄 Resume - Using authenticated stream endpoint:', streamUrl);
-      return streamUrl;
-    }
-    return '';
-  }, [profile?.hasResume]);
-
+  // Use direct Cloudinary URL from profile - no proxy needed, Cloudinary URLs are public
+  const resumeUrl = profile?.resume_url || '';
   const hasResume = Boolean(resumeUrl);
-  // We always validate PDF on upload, so if hasResume is true, it's a PDF
-  const isPdfResume = hasResume;
 
   const handleResumeChange = async (e) => {
     const file = e.target.files?.[0];
@@ -135,43 +124,35 @@ function ProfessionalProfile() {
         </div>
 
         {hasResume ? (
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            {isPdfResume ? (
-              <div className="w-full">
-                <iframe
-                  title="Resume Preview"
-                  src={resumeUrl}
-                  className="w-full h-[520px] bg-white"
-                  onError={() => {
-                    console.log('📄 iframe failed to load PDF - likely CORS issue');
-                  }}
-                />
-                <div className="p-4 bg-blue-50 border-t border-blue-200 text-sm text-blue-800">
-                  <p className="mb-2">
-                    💡 If the PDF doesn't display above, use this link to download:
-                  </p>
-                  <a
-                    href={profileService.getResumeUrl(true)}
-                    download={`Resume.pdf`}
-                    className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                  >
-                    📥 Download Resume
-                  </a>
-                </div>
+          <div className="border border-gray-200 rounded-lg p-6 bg-gray-50 flex flex-col items-center gap-4">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-3 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                  <path d="M14 2v6h6"/>
+                  <path d="M9 13h6M9 17h3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
               </div>
-            ) : (
-              <div className="p-6 bg-gray-50 text-sm text-gray-700">
-                This file type cannot be previewed inline. Open it using this link:
-                <a
-                  href={resumeUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="ml-2 text-blue-600 underline"
-                >
-                  Open Resume
-                </a>
-              </div>
-            )}
+              <p className="font-medium text-gray-800">Resume.pdf</p>
+              <p className="text-sm text-gray-500 mt-1">Your resume is uploaded and ready</p>
+            </div>
+            <div className="flex gap-3">
+              <a
+                href={resumeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
+              >
+                View Resume
+              </a>
+              <a
+                href={resumeUrl}
+                download="Resume.pdf"
+                className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+              >
+                Download
+              </a>
+            </div>
           </div>
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center text-gray-600">
