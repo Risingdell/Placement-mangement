@@ -31,9 +31,9 @@ function ProfessionalProfile() {
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = 1 * 1024 * 1024; // 1MB limit
     if (file.size > maxSize) {
-      setMessage({ type: 'error', text: 'File size must be less than 5MB.' });
+      setMessage({ type: 'error', text: 'File size must be less than 1MB.' });
       return;
     }
 

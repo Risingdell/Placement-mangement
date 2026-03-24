@@ -8,20 +8,27 @@ const protect = async (req, res, next) => {
   // Check for token in Authorization header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+    console.log('[AUTH] Token found in Authorization header');
   }
 
   // Check for token in query parameter if not in header
   if (!token && req.query.token) {
     token = req.query.token;
+    console.log('[AUTH] Token found in query parameter');
   }
 
   // If no token found
   if (!token) {
+    console.error('[AUTH] No token found in headers or query params');
+    console.error('[AUTH] Headers:', Object.keys(req.headers));
+    console.error('[AUTH] Query params:', Object.keys(req.query));
     return res.status(401).json({
       success: false,
       message: 'Not authorized to access this route. Please login.'
     });
   }
+
+  console.log('[AUTH] Token received, verifying...');
 
   try {
     // Verify token

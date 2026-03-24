@@ -112,7 +112,7 @@ const uploadResume = multer({
     resourceType: 'raw'
   }),
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880 // 5MB default
+    fileSize: 1048576 // 1MB limit for resumes
   },
   fileFilter: documentFilter
 });
@@ -134,7 +134,7 @@ const handleUploadError = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File size too large. Maximum allowed size is 5MB'
+        message: 'File size too large. Maximum allowed size is 1MB for resumes'
       });
     }
     return res.status(400).json({

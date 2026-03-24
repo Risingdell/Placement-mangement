@@ -365,6 +365,18 @@ const deleteResume = async (req, res) => {
 // @access  Private
 const streamResume = async (req, res) => {
   try {
+    console.log('📄 Resume Stream - Request received');
+    console.log('📄 Resume Stream - User ID:', req.user?.id);
+    console.log('📄 Resume Stream - Query params:', req.query);
+
+    if (!req.user?.id) {
+      console.error('📄 Resume Stream - No user found in request');
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: No user information'
+      });
+    }
+
     const userId = req.user.id;
     const { download } = req.query; // ?download=true for download, default is preview
 
@@ -375,6 +387,7 @@ const streamResume = async (req, res) => {
     );
 
     if (!profile || !profile[0]?.resume_url) {
+      console.warn('📄 Resume Stream - No resume found for user:', userId);
       return res.status(404).json({
         success: false,
         message: 'No resume found'
@@ -388,7 +401,7 @@ const streamResume = async (req, res) => {
     const response = await fetch(resumeUrl);
 
     if (!response.ok) {
-      console.error('📄 Resume Stream - Failed to fetch from Cloudinary:', response.status);
+      console.error('📄 Resume Stream - Failed to fetch from Cloudinary:', response.status, response.statusText);
       return res.status(response.status).json({
         success: false,
         message: 'Failed to retrieve resume from storage'
@@ -398,9 +411,14 @@ const streamResume = async (req, res) => {
     const buffer = await response.arrayBuffer();
     const contentType = response.headers.get('content-type') || 'application/pdf';
 
+    console.log('📄 Resume Stream - Successfully fetched, size:', buffer.byteLength, 'bytes');
+
     // Set response headers
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Length', buffer.byteLength);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     // Add download header if requested
     if (download === 'true') {
@@ -411,7 +429,7 @@ const streamResume = async (req, res) => {
 
     res.send(Buffer.from(buffer));
   } catch (error) {
-    console.error('Stream resume error:', error);
+    console.error('📄 Resume Stream error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve resume'
