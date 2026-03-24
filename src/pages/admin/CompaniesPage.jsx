@@ -21,6 +21,18 @@ function CompaniesPage() {
     fetchCompanies();
   }, []);
 
+  // Toggle info strip visibility when modal opens/closes
+  useEffect(() => {
+    const infoStrip = document.getElementById('info-strip');
+    if (infoStrip) {
+      if (showModal) {
+        infoStrip.classList.add('hidden-by-modal');
+      } else {
+        infoStrip.classList.remove('hidden-by-modal');
+      }
+    }
+  }, [showModal]);
+
   const fetchCompanies = async () => {
     try {
       setLoading(true);

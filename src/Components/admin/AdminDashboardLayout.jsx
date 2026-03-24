@@ -395,7 +395,7 @@ function AdminDashboardLayout() {
           </div>
         </header>
 
-        <section className={`sticky top-14 z-20 border-b backdrop-blur ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'}`}>
+        <section className={`sticky top-14 z-20 border-b backdrop-blur transition-all duration-200 ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'}`} id="info-strip">
           <div className="mx-auto grid w-full max-w-[1400px] grid-cols-2 gap-3 px-4 py-3 md:px-6 lg:grid-cols-4">
             <InfoStripCard label="Workspace" value="Admin Portal" tone="text-[#f7b545]" theme={adminTheme} />
             <InfoStripCard label="Role" value={user?.role || 'Admin'} tone={isLightTheme ? 'text-[#111827]' : 'text-zinc-100'} theme={adminTheme} />

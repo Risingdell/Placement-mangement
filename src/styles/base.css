@@ -16,3 +16,19 @@
     color: rgb(156 163 175);    /* gray-400 */
   }
 }
+
+/* Hide info strip when modal is open */
+@layer utilities {
+  #info-strip {
+    transition: opacity 0.2s ease, max-height 0.2s ease;
+  }
+
+  #info-strip.hidden-by-modal {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    border: none;
+    pointer-events: none;
+    overflow: hidden;
+  }
+}
