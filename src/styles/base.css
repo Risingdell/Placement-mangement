@@ -17,12 +17,14 @@
   }
 }
 
-/* Hide info strip when modal is open */
+/* Hide header and info strip when modal is open */
 @layer utilities {
+  header,
   #info-strip {
-    transition: opacity 0.2s ease, max-height 0.2s ease;
+    transition: opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease;
   }
 
+  header.hidden-by-modal,
   #info-strip.hidden-by-modal {
     opacity: 0;
     max-height: 0;
@@ -30,5 +32,6 @@
     border: none;
     pointer-events: none;
     overflow: hidden;
+    transform: translateY(-100%);
   }
 }

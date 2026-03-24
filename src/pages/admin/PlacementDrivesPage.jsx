@@ -50,11 +50,14 @@ function PlacementDrivesPage() {
 
   useEffect(() => {
     const infoStrip = document.getElementById('info-strip');
+    const header = document.querySelector('header');
     if (infoStrip) {
       if (showModal) {
         infoStrip.classList.add('hidden-by-modal');
+        header?.classList.add('hidden-by-modal');
       } else {
         infoStrip.classList.remove('hidden-by-modal');
+        header?.classList.remove('hidden-by-modal');
       }
     }
   }, [showModal]);
