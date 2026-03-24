@@ -100,10 +100,16 @@ const getProfile = async (req, res) => {
       [userId]
     );
 
+    // Prepare profile data without exposing raw resume URL
+    const profileData = { ...profile[0] };
+    const hasResume = !!profileData.resume_url; // Check if resume exists
+    delete profileData.resume_url; // Remove raw URL from response
+
     res.json({
       success: true,
       data: {
-        ...profile[0],
+        ...profileData,
+        hasResume, // Flag indicating resume exists
         skills,
         projects,
         internships,

@@ -10,13 +10,13 @@ function ProfessionalProfile() {
 
   const resumeUrl = useMemo(() => {
     // Use authenticated stream endpoint if resume exists
-    if (profile?.resume_url) {
+    if (profile?.hasResume) {
       const streamUrl = profileService.getResumeUrl(false);
       console.log('📄 Resume - Using authenticated stream endpoint:', streamUrl);
       return streamUrl;
     }
     return '';
-  }, [profile?.resume_url]);
+  }, [profile?.hasResume]);
 
   const hasResume = Boolean(resumeUrl);
   // We always validate PDF on upload, so if hasResume is true, it's a PDF
