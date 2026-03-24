@@ -1,6 +1,5 @@
 const { promisePool } = require('../config/database');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 const { hasColumn } = require('../utils/schemaUtils');
 
 const ensurePortfoliosTable = async () => {
@@ -366,24 +365,7 @@ const deleteResume = async (req, res) => {
 // @access  Private
 const streamResume = async (req, res) => {
   try {
-    // Get user ID - can come from JWT header (normal) or query param (for direct links)
-    let userId = req.user?.id;
-
-    // If no user from auth header, try getting token from query param
-    if (!userId && req.query.token) {
-      try {
-        const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-        userId = decoded.id;
-      } catch (err) {
-        console.log('Invalid token in query param');
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
-    }
-
-    if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-
+    const userId = req.user.id;
     const { download } = req.query; // ?download=true for download, default is preview
 
     // Get resume URL from database

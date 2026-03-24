@@ -10,6 +10,11 @@ const protect = async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
 
+  // Check for token in query parameter if not in header
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
+
   // If no token found
   if (!token) {
     return res.status(401).json({
