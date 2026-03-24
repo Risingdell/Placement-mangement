@@ -305,13 +305,13 @@ function PlacementDrivesPage() {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-4">
           <div
             className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={() => !saving && setShowModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col z-[1000]">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col z-[1000] max-h-[98vh]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex-shrink-0">
               <h3 className="text-lg font-bold text-gray-900">
                 {modalMode === 'add' ? 'Create Placement Drive' : 'Edit Drive'}
               </h3>
@@ -324,7 +324,7 @@ function PlacementDrivesPage() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-5 overflow-y-auto flex-1 min-h-0">
               {formError && (
                 <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                   {formError}
@@ -439,25 +439,26 @@ function PlacementDrivesPage() {
                   placeholder="https://forms.google.com/... (Eligible students will receive this link)"
                 />
               </div>
-              <div className="sticky bottom-0 bg-white flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  disabled={saving}
-                  className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {saving && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
-                  {saving ? 'Saving…' : modalMode === 'add' ? 'Create Drive' : 'Save Changes'}
-                </button>
-              </div>
             </form>
+            <div className="flex justify-end gap-3 px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100 bg-gray-50 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                disabled={saving}
+                className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                onClick={handleSubmit}
+              >
+                {saving && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                {saving ? 'Saving…' : modalMode === 'add' ? 'Create Drive' : 'Save Changes'}
+              </button>
+            </div>
           </div>
         </div>
       )}

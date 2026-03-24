@@ -309,26 +309,25 @@ function CompaniesPage() {
 
       {/* Add/Edit Company Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[999] overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowModal(false)}></div>
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-4">
+          <div className="absolute inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowModal(false)}></div>
 
-            <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl max-h-[90vh] overflow-y-auto z-[1000]">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {modalMode === 'add' ? 'Add New Company' : 'Edit Company'}
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+          <div className="relative w-full max-w-4xl flex flex-col rounded-2xl shadow-xl bg-white z-[1000] max-h-[98vh]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex-shrink-0">
+              <h3 className="text-2xl font-bold text-gray-900">
+                {modalMode === 'add' ? 'Add New Company' : 'Edit Company'}
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-4 overflow-y-auto flex-1 min-h-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -392,23 +391,23 @@ function CompaniesPage() {
                     <strong>Note:</strong> Eligibility criteria and shortlisted students will be managed when you create a Drive for this company.
                   </p>
                 </div>
+            </form>
 
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
-                  >
-                    {modalMode === 'add' ? 'Add Company' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
+            <div className="flex justify-end space-x-3 px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
+              >
+                {modalMode === 'add' ? 'Add Company' : 'Save Changes'}
+              </button>
             </div>
           </div>
         </div>
