@@ -145,8 +145,56 @@ const sendDriveNotificationEmail = async ({ to, studentName, companyName, role, 
   return response.json();
 };
 
+// Send inbox notification to eligible students
+const sendEligibleStudentInboxNotification = async ({ eligibleStudentIds, companyName, role, ctc, driveDate, applicationLink, driveId, senderId }) => {
+  if (!eligibleStudentIds || eligibleStudentIds.length === 0) {
+    return null;
+  }
+
+  const { promisePool } = require('../config/database');
+
+  try {
+    const formattedDriveDate = new Date(driveDate).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const subject = `Placement Opportunity: ${companyName} - ${role}`;
+    const message = `You are eligible to apply for ${companyName} position of ${role} (${ctc} LPA). Drive Date: ${formattedDriveDate}. Click the link to apply.`;
+
+    // Prepare bulk insert values
+    const values = eligibleStudentIds.map(studentId => [
+      studentId,
+      senderId || 1, // admin user ID (fallback to 1)
+      subject,
+      message,
+      'Notification',
+      driveId,
+      applicationLink || null
+    ]);
+
+    // Insert bulk messages
+    const query = `INSERT INTO inbox_messages
+                   (recipient_id, sender_id, subject, message, message_type, related_drive_id, action_url)
+                   VALUES ?`;
+
+    await promisePool.query(query, [values]);
+
+    return {
+      success: true,
+      count: eligibleStudentIds.length,
+      message: `Inbox notifications sent to ${eligibleStudentIds.length} eligible students`
+    };
+  } catch (error) {
+    console.error('Send inbox notification error:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   isEmailConfigured,
   sendPasswordResetEmail,
   sendDriveNotificationEmail,
+  sendEligibleStudentInboxNotification,
 };

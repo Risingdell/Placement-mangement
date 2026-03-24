@@ -1,5 +1,5 @@
 const { promisePool } = require('../config/database');
-const { sendDriveNotificationEmail, isEmailConfigured } = require('../utils/emailService');
+const { sendDriveNotificationEmail, isEmailConfigured, sendEligibleStudentInboxNotification } = require('../utils/emailService');
 
 // @desc    Get all placement drives with eligibility check
 // @route   GET /api/drives
@@ -270,7 +270,27 @@ const createDrive = async (req, res) => {
             }
           }
 
-          console.log(`Drive ${driveId} created: ${eligibleStudents.length} eligible students notified`);
+          // Send inbox messages to eligible students
+          if (eligibleStudents.length > 0) {
+            try {
+              const eligibleStudentIds = eligibleStudents.map(s => s.id);
+              await sendEligibleStudentInboxNotification({
+                eligibleStudentIds,
+                companyName,
+                role,
+                ctc,
+                driveDate,
+                applicationLink,
+                driveId,
+                senderId: req.user.id
+              });
+            } catch (inboxError) {
+              console.error(`Failed to send inbox notifications for drive ${driveId}:`, inboxError.message);
+              // Don't fail the drive creation if inbox notification fails
+            }
+          }
+
+          console.log(`Drive ${driveId} created: ${eligibleStudents.length} eligible students notified via email and inbox`);
         } catch (emailJobError) {
           console.error(`Email notification job for drive ${driveId} failed:`, emailJobError.message);
         }
