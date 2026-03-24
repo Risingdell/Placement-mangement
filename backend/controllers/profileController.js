@@ -384,7 +384,6 @@ const streamResume = async (req, res) => {
     }
 
     const userId = req.user.id;
-    const { download } = req.query; // ?download=true for download, default is preview
 
     // Get resume URL from database
     const [profile] = await promisePool.query(
@@ -401,39 +400,10 @@ const streamResume = async (req, res) => {
     }
 
     const resumeUrl = profile[0].resume_url;
-    console.log('📄 Resume Stream - Fetching from URL:', resumeUrl);
+    console.log('📄 Resume Stream - Redirecting to Cloudinary:', resumeUrl);
 
-    // Fetch the file from Cloudinary
-    const response = await fetch(resumeUrl);
-
-    if (!response.ok) {
-      console.error('📄 Resume Stream - Failed to fetch from Cloudinary:', response.status, response.statusText);
-      return res.status(response.status).json({
-        success: false,
-        message: 'Failed to retrieve resume from storage'
-      });
-    }
-
-    const buffer = await response.arrayBuffer();
-    const contentType = response.headers.get('content-type') || 'application/pdf';
-
-    console.log('📄 Resume Stream - Successfully fetched, size:', buffer.byteLength, 'bytes');
-
-    // Set response headers
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Length', buffer.byteLength);
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-
-    // Add download header if requested
-    if (download === 'true') {
-      res.setHeader('Content-Disposition', 'attachment; filename="Resume.pdf"');
-    } else {
-      res.setHeader('Content-Disposition', 'inline');
-    }
-
-    res.send(Buffer.from(buffer));
+    // Redirect browser directly to Cloudinary - avoids server-side auth issues
+    return res.redirect(302, resumeUrl);
   } catch (error) {
     console.error('📄 Resume Stream error:', error.message);
     res.status(500).json({
