@@ -108,13 +108,11 @@ const uploadDocument = multer({
   fileFilter: documentFilter
 });
 
+// Resume uses memory storage — uploaded to Supabase in the controller
 const uploadResume = multer({
-  storage: createStorage({
-    folder: 'placement-system/resumes',
-    resourceType: 'raw'
-  }),
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 1048576 // 1MB limit for resumes
+    fileSize: 1048576 // 1MB limit
   },
   fileFilter: documentFilter
 });
