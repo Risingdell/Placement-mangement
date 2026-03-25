@@ -39,7 +39,9 @@ const createStorage = ({ folder, resourceType }) =>
         resource_type: resourceType,
         public_id: publicId,
         use_filename: false,
-        unique_filename: false
+        unique_filename: false,
+        type: 'upload',
+        access_mode: 'public'
       };
     }
   });

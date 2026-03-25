@@ -1,5 +1,4 @@
 const { promisePool } = require('../config/database');
-const { v2: cloudinary } = require('cloudinary');
 const { hasColumn } = require('../utils/schemaUtils');
 
 cloudinary.config({
@@ -403,70 +402,17 @@ const streamResume = async (req, res) => {
 
     const resumeUrl = profile[0].resume_url;
 
-    // Extract public ID from stored Cloudinary URL
-    // URL format: https://res.cloudinary.com/{cloud}/raw/upload/v{version}/{public_id}
-    const uploadIndex = resumeUrl.indexOf('/upload/');
-    if (uploadIndex === -1) {
-      return res.redirect(302, resumeUrl);
-    }
-
-    let publicIdWithVersion = resumeUrl.substring(uploadIndex + 8); // after '/upload/'
-    // Remove version prefix like "v1234567890/"
-    const publicId = publicIdWithVersion.replace(/^v\d+\//, '');
-
-    // Ensure cloudinary is configured with env credentials
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
-
-    console.log('📄 Resume Stream - Public ID:', publicId);
-    console.log('📄 Cloudinary config:', {
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY ? '***set***' : 'MISSING',
-      api_secret: process.env.CLOUDINARY_API_SECRET ? '***set***' : 'MISSING',
-    });
-
-    // Use Basic Auth fetch with API credentials — bypasses public URL restrictions
-    const authHeader = 'Basic ' + Buffer.from(
-      `${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`
-    ).toString('base64');
-
-    console.log('📄 Resume Stream - Fetching with admin credentials');
-
-    const cloudinaryResponse = await fetch(resumeUrl, {
-      headers: { Authorization: authHeader }
-    });
-
-    console.log('📄 Resume Stream - Cloudinary response status:', cloudinaryResponse.status);
-
-    if (!cloudinaryResponse.ok) {
-      // Fallback: try private_download_url redirect
-      console.warn('📄 Resume Stream - Basic auth failed, trying private_download_url');
-      const { download: dl } = req.query;
-      const privateUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
-        resource_type: 'raw',
-        attachment: dl === 'true',
-        expires_at: Math.floor(Date.now() / 1000) + 3600,
-      });
-      console.log('📄 Resume Stream - Redirecting to private_download_url');
-      return res.redirect(302, privateUrl);
-    }
-
-    const buffer = await cloudinaryResponse.arrayBuffer();
     const { download } = req.query;
+    console.log('📄 Resume Stream - Redirecting to:', resumeUrl, '| download:', download);
 
-    console.log('📄 Resume Stream - Sending PDF bytes, size:', buffer.byteLength);
+    // Files are uploaded with access_mode: 'public' — direct URL works without auth
+    // For download, append fl_attachment transformation to force browser download
+    if (download === 'true') {
+      const downloadUrl = resumeUrl.replace('/upload/', '/upload/fl_attachment/');
+      return res.redirect(302, downloadUrl);
+    }
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Length', buffer.byteLength);
-    res.setHeader('Cache-Control', 'private, no-cache');
-    res.setHeader(
-      'Content-Disposition',
-      download === 'true' ? 'attachment; filename="Resume.pdf"' : 'inline; filename="Resume.pdf"'
-    );
-    return res.send(Buffer.from(buffer));
+    return res.redirect(302, resumeUrl);
   } catch (error) {
     console.error('📄 Resume Stream error:', error.message);
     res.status(500).json({
