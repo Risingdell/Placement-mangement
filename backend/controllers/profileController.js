@@ -414,32 +414,50 @@ const streamResume = async (req, res) => {
     // Remove version prefix like "v1234567890/"
     const publicId = publicIdWithVersion.replace(/^v\d+\//, '');
 
-    console.log('📄 Resume Stream - Generating signed URL for public ID:', publicId);
-
-    // Generate a signed URL valid for 1 hour
-    const signedUrl = cloudinary.url(publicId, {
-      resource_type: 'raw',
-      sign_url: true,
-      expires_at: Math.floor(Date.now() / 1000) + 3600
+    // Ensure cloudinary is configured with env credentials
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
-    console.log('📄 Resume Stream - Fetching from signed URL server-side');
+    console.log('📄 Resume Stream - Public ID:', publicId);
+    console.log('📄 Cloudinary config:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY ? '***set***' : 'MISSING',
+      api_secret: process.env.CLOUDINARY_API_SECRET ? '***set***' : 'MISSING',
+    });
 
-    // Fetch from Cloudinary using signed URL and stream bytes to client
-    const cloudinaryResponse = await fetch(signedUrl);
+    // Use Basic Auth fetch with API credentials — bypasses public URL restrictions
+    const authHeader = 'Basic ' + Buffer.from(
+      `${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`
+    ).toString('base64');
+
+    console.log('📄 Resume Stream - Fetching with admin credentials');
+
+    const cloudinaryResponse = await fetch(resumeUrl, {
+      headers: { Authorization: authHeader }
+    });
+
+    console.log('📄 Resume Stream - Cloudinary response status:', cloudinaryResponse.status);
 
     if (!cloudinaryResponse.ok) {
-      console.error('📄 Resume Stream - Cloudinary fetch failed:', cloudinaryResponse.status, cloudinaryResponse.statusText);
-      return res.status(502).json({
-        success: false,
-        message: `Storage fetch failed: ${cloudinaryResponse.status}`
+      // Fallback: try private_download_url redirect
+      console.warn('📄 Resume Stream - Basic auth failed, trying private_download_url');
+      const { download: dl } = req.query;
+      const privateUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
+        resource_type: 'raw',
+        attachment: dl === 'true',
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
       });
+      console.log('📄 Resume Stream - Redirecting to private_download_url');
+      return res.redirect(302, privateUrl);
     }
 
     const buffer = await cloudinaryResponse.arrayBuffer();
     const { download } = req.query;
 
-    console.log('📄 Resume Stream - Sending PDF bytes to client, size:', buffer.byteLength);
+    console.log('📄 Resume Stream - Sending PDF bytes, size:', buffer.byteLength);
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Length', buffer.byteLength);
