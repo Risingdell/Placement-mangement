@@ -1,5 +1,6 @@
 const { promisePool } = require('../config/database');
 const { hasColumn } = require('../utils/schemaUtils');
+const supabase = require('../config/supabase');
 
 const ensurePortfoliosTable = async () => {
   await promisePool.query(
@@ -278,7 +279,7 @@ const uploadPhoto = async (req, res) => {
   }
 };
 
-// @desc    Upload resume
+// @desc    Upload resume to Supabase Storage
 // @route   POST /api/profile/resume
 // @access  Private
 const uploadResume = async (req, res) => {
@@ -286,53 +287,40 @@ const uploadResume = async (req, res) => {
     const userId = req.user.id;
 
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please upload a resume'
-      });
+      return res.status(400).json({ success: false, message: 'Please upload a PDF resume' });
     }
 
-    // Debug: Log file object to see what Cloudinary returns
-    console.log('📄 Resume Upload Debug:');
-    console.log('  - req.file.fieldname:', req.file.fieldname);
-    console.log('  - req.file.originalname:', req.file.originalname);
-    console.log('  - req.file.encoding:', req.file.encoding);
-    console.log('  - req.file.mimetype:', req.file.mimetype);
-    console.log('  - req.file.size:', req.file.size);
-    console.log('  - req.file.path:', req.file.path);
-    console.log('  - req.file.secure_url:', req.file.secure_url);
-    console.log('  - req.file.url:', req.file.url);
-    console.log('  - Full file object:', JSON.stringify(req.file, null, 2));
+    const fileName = `${userId}_${Date.now()}_Resume.pdf`;
+    const filePath = `resumes/${fileName}`;
 
-    // Use secure_url from Cloudinary (not path which is for disk storage)
-    const resumeUrl = req.file.secure_url || req.file.path;
-
-    if (!resumeUrl) {
-      return res.status(400).json({
-        success: false,
-        message: 'File upload to Cloudinary failed - no URL returned'
+    // Upload buffer to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('resumes')
+      .upload(filePath, req.file.buffer, {
+        contentType: 'application/pdf',
+        upsert: true
       });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      return res.status(500).json({ success: false, message: 'Failed to upload to storage' });
     }
 
-    console.log('  - Final URL to save:', resumeUrl);
-    console.log('  ✅ Resume saved successfully to DB');
+    // Get public URL
+    const { data } = supabase.storage.from('resumes').getPublicUrl(filePath);
+    const resumeUrl = data.publicUrl;
+
+    console.log('✅ Resume uploaded to Supabase:', resumeUrl);
 
     await promisePool.query(
       'UPDATE student_academics SET resume_url = ? WHERE user_id = ?',
       [resumeUrl, userId]
     );
 
-    res.json({
-      success: true,
-      message: 'Resume uploaded successfully',
-      data: { resumeUrl }
-    });
+    res.json({ success: true, message: 'Resume uploaded successfully', data: { resumeUrl } });
   } catch (error) {
     console.error('Upload resume error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload resume: ' + error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to upload resume' });
   }
 };
 
@@ -343,76 +331,54 @@ const deleteResume = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    // Get current resume URL to delete from Supabase
+    const [rows] = await promisePool.query(
+      'SELECT resume_url FROM student_academics WHERE user_id = ?',
+      [userId]
+    );
+
+    if (rows[0]?.resume_url) {
+      // Extract file path from public URL
+      const url = rows[0].resume_url;
+      const pathMatch = url.match(/\/resumes\/(.+)$/);
+      if (pathMatch) {
+        await supabase.storage.from('resumes').remove([`resumes/${pathMatch[1]}`]);
+      }
+    }
+
     await promisePool.query(
       'UPDATE student_academics SET resume_url = NULL WHERE user_id = ?',
       [userId]
     );
 
-    res.json({
-      success: true,
-      message: 'Resume deleted successfully'
-    });
+    res.json({ success: true, message: 'Resume deleted successfully' });
   } catch (error) {
     console.error('Delete resume error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete resume'
-    });
+    res.status(500).json({ success: false, message: 'Failed to delete resume' });
   }
 };
 
-// @desc    Stream resume for preview or download (from Cloudinary)
+// @desc    View/download resume — redirect to Supabase public URL
 // @route   GET /api/profile/resume/stream
 // @access  Private
 const streamResume = async (req, res) => {
   try {
-    console.log('📄 Resume Stream - Request received');
-    console.log('📄 Resume Stream - User ID:', req.user?.id);
-    console.log('📄 Resume Stream - Query params:', req.query);
-
-    if (!req.user?.id) {
-      console.error('📄 Resume Stream - No user found in request');
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized: No user information'
-      });
-    }
-
     const userId = req.user.id;
 
-    // Get resume URL from database
     const [profile] = await promisePool.query(
       'SELECT resume_url FROM student_academics WHERE user_id = ?',
       [userId]
     );
 
-    if (!profile || !profile[0]?.resume_url) {
-      console.warn('📄 Resume Stream - No resume found for user:', userId);
-      return res.status(404).json({
-        success: false,
-        message: 'No resume found'
-      });
+    if (!profile?.[0]?.resume_url) {
+      return res.status(404).json({ success: false, message: 'No resume found' });
     }
 
-    const resumeUrl = profile[0].resume_url;
-
-    const { download } = req.query;
-    console.log('📄 Resume Stream - Redirecting to:', resumeUrl, '| download:', download);
-
-    // Files are uploaded with access_mode: 'public' — direct URL works without auth
-    // For download, append fl_attachment transformation to force browser download
-    if (download === 'true') {
-      const downloadUrl = resumeUrl.replace('/upload/', '/upload/fl_attachment/');
-      return res.redirect(302, downloadUrl);
-    }
-
-    return res.redirect(302, resumeUrl);
+    // Supabase public URL — no auth required, works directly in browser
+    return res.redirect(302, profile[0].resume_url);
   } catch (error) {
-    console.error('📄 Resume Stream error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve resume'
-    });
+    console.error('Resume stream error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to retrieve resume' });
   }
 };
 

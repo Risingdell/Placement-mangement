@@ -25,12 +25,22 @@ const {
   getRankingInsights
 } = require('../controllers/profileController');
 const { protect } = require('../middlewares/authMiddleware');
+const multer = require('multer');
 const {
   uploadPhoto: photoUpload,
-  uploadResume: resumeUpload,
   uploadCertificate: certUpload,
   handleUploadError
 } = require('../middlewares/uploadMiddleware');
+
+// Resume uses memory storage → uploaded to Supabase in controller
+const resumeUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 1048576 }, // 1MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Only PDF files are allowed'), false);
+  }
+});
 
 const router = express.Router();
 
