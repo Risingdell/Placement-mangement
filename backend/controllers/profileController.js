@@ -1,5 +1,4 @@
 const { promisePool } = require('../config/database');
-const path = require('path');
 const { v2: cloudinary } = require('cloudinary');
 const { hasColumn } = require('../utils/schemaUtils');
 
@@ -424,8 +423,32 @@ const streamResume = async (req, res) => {
       expires_at: Math.floor(Date.now() / 1000) + 3600
     });
 
-    console.log('📄 Resume Stream - Redirecting to signed URL');
-    return res.redirect(302, signedUrl);
+    console.log('📄 Resume Stream - Fetching from signed URL server-side');
+
+    // Fetch from Cloudinary using signed URL and stream bytes to client
+    const cloudinaryResponse = await fetch(signedUrl);
+
+    if (!cloudinaryResponse.ok) {
+      console.error('📄 Resume Stream - Cloudinary fetch failed:', cloudinaryResponse.status, cloudinaryResponse.statusText);
+      return res.status(502).json({
+        success: false,
+        message: `Storage fetch failed: ${cloudinaryResponse.status}`
+      });
+    }
+
+    const buffer = await cloudinaryResponse.arrayBuffer();
+    const { download } = req.query;
+
+    console.log('📄 Resume Stream - Sending PDF bytes to client, size:', buffer.byteLength);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', buffer.byteLength);
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader(
+      'Content-Disposition',
+      download === 'true' ? 'attachment; filename="Resume.pdf"' : 'inline; filename="Resume.pdf"'
+    );
+    return res.send(Buffer.from(buffer));
   } catch (error) {
     console.error('📄 Resume Stream error:', error.message);
     res.status(500).json({
