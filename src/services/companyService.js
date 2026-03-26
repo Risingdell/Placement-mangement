@@ -36,9 +36,9 @@ export const updateCompany = async (id, companyData) =>
         ? apiFormData(`/admin/companies/${id}`, 'PUT', companyData)
         : apiRequest(`/admin/companies/${id}`, { method: 'PUT', body: JSON.stringify(companyData) });
 
-// Delete company
-export const deleteCompany = async (id) =>
-    apiRequest(`/admin/companies/${id}`, { method: 'DELETE' });
+// Delete company (force=true cascade deletes linked drives + applications)
+export const deleteCompany = async (id, force = false) =>
+    apiRequest(`/admin/companies/${id}${force ? '?force=true' : ''}`, { method: 'DELETE' });
 
 // Get eligible students based on criteria
 export const getEligibleStudents = async (criteria) => {

@@ -206,18 +206,33 @@ exports.updateCompany = async (req, res) => {
 exports.deleteCompany = async (req, res) => {
   try {
     const { id } = req.params;
+    const { force } = req.query; // ?force=true to cascade delete drives
 
     // Check if company has associated drives
     const [drives] = await promisePool.query(
-      'SELECT COUNT(*) as count FROM placement_drives WHERE company_id = ?',
+      'SELECT id FROM placement_drives WHERE company_id = ?',
       [id]
     );
 
-    if (drives[0].count > 0) {
+    if (drives.length > 0 && force !== 'true') {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete company with associated placement drives'
+        message: `This company has ${drives.length} placement drive(s). Pass force=true to delete all.`,
+        driveCount: drives.length
       });
+    }
+
+    // Cascade delete: applications → drives → company
+    if (drives.length > 0) {
+      const driveIds = drives.map(d => d.id);
+      await promisePool.query(
+        `DELETE FROM applications WHERE drive_id IN (${driveIds.map(() => '?').join(',')})`,
+        driveIds
+      );
+      await promisePool.query(
+        `DELETE FROM placement_drives WHERE company_id = ?`,
+        [id]
+      );
     }
 
     await promisePool.query('DELETE FROM companies WHERE id = ?', [id]);

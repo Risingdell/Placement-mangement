@@ -92,11 +92,24 @@ function CompaniesPage() {
     if (!window.confirm('Are you sure you want to delete this company?')) return;
 
     try {
-      await companyService.deleteCompany(id);
+      await companyService.deleteCompany(id, false);
       setCompanies(prev => prev.filter(c => c.id !== id));
     } catch (error) {
-      console.error('Error deleting company:', error);
-      alert(error.message || 'Failed to delete company');
+      // Company has linked drives — ask to force delete
+      if (error.message && error.message.includes('placement drive')) {
+        const confirmed = window.confirm(
+          `⚠️ ${error.message}\n\nDeleting this company will also delete all its placement drives and student applications.\n\nDo you want to proceed?`
+        );
+        if (!confirmed) return;
+        try {
+          await companyService.deleteCompany(id, true);
+          setCompanies(prev => prev.filter(c => c.id !== id));
+        } catch (forceError) {
+          alert(forceError.message || 'Failed to delete company');
+        }
+      } else {
+        alert(error.message || 'Failed to delete company');
+      }
     }
   };
 
