@@ -217,8 +217,9 @@ exports.deleteCompany = async (req, res) => {
     if (drives.length > 0 && force !== 'true') {
       return res.status(400).json({
         success: false,
-        message: `This company has ${drives.length} placement drive(s). Pass force=true to delete all.`,
-        driveCount: drives.length
+        message: `This company has ${drives.length} associated placement drive(s). Confirm to delete them all.`,
+        driveCount: drives.length,
+        requiresForce: true
       });
     }
 
