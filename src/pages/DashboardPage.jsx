@@ -4,7 +4,6 @@ import { useStudent } from '../context/StudentContext';
 import UpcomingDrives from '../Components/dashboard/UpcomingDrives';
 import UpcomingCompanies from '../Components/dashboard/UpcomingCompanies';
 import EventsBar from '../Components/dashboard/EventsBar';
-import InboxPreview from '../Components/dashboard/InboxPreview';
 import applicationService from '../services/applicationService';
 import profileService from '../services/profileService';
 import driveService from '../services/driveService';
@@ -263,14 +262,13 @@ function DashboardPage() {
         )}
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-        <UpcomingDrives />
-        <EventsBar />
-        <InboxPreview />
+      <section className="mb-8">
+        <UpcomingCompanies />
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-        <UpcomingCompanies />
+        <UpcomingDrives />
+        <EventsBar />
       </section>
 
       <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">

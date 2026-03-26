@@ -5,6 +5,16 @@ const inFlightGetRequests = new Map();
 const recentGetResponses = new Map();
 const GET_CACHE_TTL_MS = 1500;
 
+// Invalidate all cached GET responses whose key contains the given path segment
+export const invalidateCache = (pathSegment) => {
+  for (const key of recentGetResponses.keys()) {
+    if (key.includes(pathSegment)) {
+      recentGetResponses.delete(key);
+      inFlightGetRequests.delete(key);
+    }
+  }
+};
+
 // Get auth token from localStorage
 export const getAuthToken = () => {
   return localStorage.getItem('token');

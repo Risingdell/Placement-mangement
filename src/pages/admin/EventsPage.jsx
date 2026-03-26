@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllEvents, createEvent, updateEvent, deleteEvent } from '../../services/eventService';
+import { invalidateCache } from '../../services/api';
 
 const TYPE_STYLES = {
   Talk:      { badge: 'bg-blue-50 text-blue-700 border-blue-200',       dot: 'bg-blue-400' },
@@ -13,7 +14,7 @@ const EVENT_TYPES = ['Talk', 'Workshop', 'Interview', 'Seminar', 'Other'];
 
 const EMPTY_FORM = {
   title: '', description: '', event_date: '', event_time: '',
-  location: '', type: 'Talk', max_attendees: '',
+  location: '', type: '', max_attendees: '',
 };
 
 function Skeleton({ className }) {
@@ -74,6 +75,7 @@ function EventsPage() {
     try {
       await deleteEvent(id);
       setEvents(prev => prev.filter(e => e.id !== id));
+      invalidateCache('/events');
     } catch {
       alert('Failed to delete event.');
     }
@@ -82,7 +84,6 @@ function EventsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
-    // Map frontend snake_case form fields to backend camelCase field names
     const payload = {
       title: formData.title,
       eventType: formData.type,
@@ -93,12 +94,31 @@ function EventsPage() {
     try {
       setSaving(true);
       if (modalMode === 'add') {
-        await createEvent(payload);
+        const res = await createEvent(payload);
+        const newEvent = {
+          id: res?.data?.id ?? Date.now(),
+          title: formData.title,
+          event_type: formData.type || 'Other',
+          description: formData.description,
+          event_date: formData.event_date,
+          event_time: formData.event_time,
+          location: formData.location,
+          max_attendees: formData.max_attendees || null,
+        };
+        setEvents(prev => [newEvent, ...prev]);
       } else {
         await updateEvent(selectedEvent.id, payload);
+        setEvents(prev => prev.map(ev =>
+          ev.id === selectedEvent.id
+            ? { ...ev, title: formData.title, event_type: formData.type || ev.event_type,
+                description: formData.description, event_date: formData.event_date,
+                event_time: formData.event_time, location: formData.location,
+                max_attendees: formData.max_attendees || ev.max_attendees }
+            : ev
+        ));
       }
+      invalidateCache('/events');
       setShowModal(false);
-      fetchEvents();
     } catch (err) {
       setFormError(err?.message || 'Failed to save event. Please try again.');
     } finally {
@@ -289,6 +309,7 @@ function EventsPage() {
                     onChange={e => setFormData(p => ({ ...p, type: e.target.value }))}
                     className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
                   >
+                    <option value="">Select type</option>
                     {EVENT_TYPES.map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>

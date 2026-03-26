@@ -31,7 +31,7 @@ function DashboardLayout() {
         theme={studentTheme}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+      <div className="flex-1 flex flex-col overflow-y-auto relative min-w-0">
         <TopNavbar
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
@@ -43,7 +43,7 @@ function DashboardLayout() {
         <CompactKPIBar theme={studentTheme} />
 
         <main
-          className={`flex-1 overflow-auto relative z-10 ${
+          className={`flex-1 relative z-10 ${
             studentTheme === 'light'
               ? 'bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.12),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(59,130,246,0.08),_transparent_30%)]'
               : 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]'
