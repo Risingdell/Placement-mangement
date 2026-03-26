@@ -1,4 +1,17 @@
-import { apiRequest } from './api';
+import { apiRequest, API_BASE_URL, getAuthToken } from './api';
+
+// Helper to send multipart form data (for logo uploads)
+const apiFormData = async (endpoint, method, formData) => {
+  const token = getAuthToken();
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+    body: formData,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Request failed');
+  return data;
+};
 
 // Get all companies
 export const getAllCompanies = async (filters = {}) => {
@@ -11,13 +24,17 @@ export const getAllCompanies = async (filters = {}) => {
 export const getCompanyById = async (id) =>
     apiRequest(`/admin/companies/${id}`, { method: 'GET' });
 
-// Create new company
+// Create new company (accepts FormData for logo upload)
 export const createCompany = async (companyData) =>
-    apiRequest('/admin/companies', { method: 'POST', body: JSON.stringify(companyData) });
+    companyData instanceof FormData
+        ? apiFormData('/admin/companies', 'POST', companyData)
+        : apiRequest('/admin/companies', { method: 'POST', body: JSON.stringify(companyData) });
 
-// Update company
+// Update company (accepts FormData for logo upload)
 export const updateCompany = async (id, companyData) =>
-    apiRequest(`/admin/companies/${id}`, { method: 'PUT', body: JSON.stringify(companyData) });
+    companyData instanceof FormData
+        ? apiFormData(`/admin/companies/${id}`, 'PUT', companyData)
+        : apiRequest(`/admin/companies/${id}`, { method: 'PUT', body: JSON.stringify(companyData) });
 
 // Delete company
 export const deleteCompany = async (id) =>

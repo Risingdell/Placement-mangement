@@ -102,17 +102,21 @@ exports.createCompany = async (req, res) => {
       company_size, is_active
     } = req.body;
 
+    // Logo uploaded via Cloudinary (multer-storage-cloudinary)
+    const logo_url = req.file ? (req.file.secure_url || req.file.path) : null;
+
     // mysql2 rejects undefined — convert every optional field to null
     const toNull = (v) => (v === undefined || v === '') ? null : v;
 
     const [result] = await promisePool.query(
       `INSERT INTO companies (
-        name, company_type, industry, location, website, description,
+        name, logo_url, company_type, industry, location, website, description,
         contact_email, contact_phone, hr_name,
         company_size, is_active, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         name,
+        logo_url,
         toNull(company_type) || 'Other',
         toNull(industry),
         toNull(location),
@@ -159,6 +163,11 @@ exports.updateCompany = async (req, res) => {
         .filter(([, v]) => v !== undefined)
         .map(([k, v]) => [k, v === '' ? null : v])
     );
+
+    // If a new logo was uploaded, include it
+    if (req.file) {
+      updateFields.logo_url = req.file.secure_url || req.file.path;
+    }
 
     const setClause = Object.keys(updateFields)
       .map(key => `${key} = ?`)

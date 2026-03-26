@@ -87,6 +87,9 @@ app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/inbox', require('./routes/inboxRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 
+// Public companies list (for student dashboard)
+app.use('/api/companies', require('./routes/companyRoutes'));
+
 // Admin API routes
 app.use('/api/admin/companies', require('./routes/adminCompanyRoutes'));
 app.use('/api/admin/students', require('./routes/adminStudentRoutes'));

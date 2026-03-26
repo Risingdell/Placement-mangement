@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as companyService from '../../services/companyService';
 import { Skeleton } from '../../Components/common/Skeleton';
 
@@ -8,6 +8,10 @@ function CompaniesPage() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const logoInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -55,12 +59,9 @@ function CompaniesPage() {
 
   const handleAddCompany = () => {
     setModalMode('add');
-    setFormData({
-      name: '',
-      company_type: 'Product',
-      location: '',
-      description: ''
-    });
+    setFormData({ name: '', company_type: 'Product', location: '', description: '' });
+    setLogoFile(null);
+    setLogoPreview('');
     setShowModal(true);
   };
 
@@ -73,7 +74,18 @@ function CompaniesPage() {
       location: company.location || '',
       description: company.description || ''
     });
+    setLogoFile(null);
+    setLogoPreview(company.logo_url || '');
     setShowModal(true);
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Only image files allowed'); return; }
+    if (file.size > 2 * 1024 * 1024) { alert('Logo must be under 2MB'); return; }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
   };
 
   const handleDeleteCompany = async (id) => {
@@ -90,29 +102,33 @@ function CompaniesPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
 
-    const companyData = {
-      name: formData.name,
-      company_type: formData.company_type,
-      location: formData.location,
-      description: formData.description,
-      industry: 'Technology',
-      is_active: 1
-    };
+    // Build FormData so logo file can be sent
+    const fd = new FormData();
+    fd.append('name', formData.name);
+    fd.append('company_type', formData.company_type);
+    fd.append('location', formData.location);
+    fd.append('description', formData.description);
+    fd.append('industry', 'Technology');
+    fd.append('is_active', 1);
+    if (logoFile) fd.append('logo', logoFile);
 
     try {
       if (modalMode === 'add') {
-        await companyService.createCompany(companyData);
-        alert('Company added successfully! Students can now see this in the Upcoming Companies list.');
+        await companyService.createCompany(fd);
+        alert('Company added successfully!');
       } else {
-        await companyService.updateCompany(selectedCompany.id, companyData);
+        await companyService.updateCompany(selectedCompany.id, fd);
         alert('Company updated successfully!');
       }
       setShowModal(false);
-      fetchCompanies(); // Refresh list
+      fetchCompanies();
     } catch (error) {
       console.error('Error saving company:', error);
       alert('Failed to save company');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -263,9 +279,13 @@ function CompaniesPage() {
                 <tr key={company.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center text-white font-bold mr-3">
-                        {company.name.charAt(0)}
-                      </div>
+                      {company.logo_url ? (
+                        <img src={company.logo_url} alt={company.name} className="w-10 h-10 rounded-lg object-contain border border-gray-200 bg-white mr-3" />
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center text-white font-bold mr-3">
+                          {company.name.charAt(0)}
+                        </div>
+                      )}
                       <div>
                         <div className="text-sm font-medium text-gray-900">{company.name}</div>
                         <div className="text-sm text-gray-500">{company.industry || 'Technology'}</div>
@@ -346,6 +366,33 @@ function CompaniesPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+
+                {/* Logo Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                  <div className="flex items-center gap-4">
+                    <div
+                      onClick={() => logoInputRef.current?.click()}
+                      className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-purple-400 transition-colors overflow-hidden bg-gray-50"
+                    >
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                      ) : (
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div>
+                      <button type="button" onClick={() => logoInputRef.current?.click()} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                        {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                      </button>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
+                    </div>
+                    <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -422,9 +469,10 @@ function CompaniesPage() {
               <button
                 type="submit"
                 onClick={handleSubmit}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
+                disabled={submitting}
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all disabled:opacity-60"
               >
-                {modalMode === 'add' ? 'Add Company' : 'Save Changes'}
+                {submitting ? 'Saving...' : modalMode === 'add' ? 'Add Company' : 'Save Changes'}
               </button>
             </div>
           </div>
