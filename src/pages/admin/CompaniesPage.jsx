@@ -93,10 +93,10 @@ function CompaniesPage() {
 
     try {
       await companyService.deleteCompany(id);
-      fetchCompanies(); // Refresh list
+      setCompanies(prev => prev.filter(c => c.id !== id));
     } catch (error) {
       console.error('Error deleting company:', error);
-      alert('Failed to delete company');
+      alert(error.message || 'Failed to delete company');
     }
   };
 
