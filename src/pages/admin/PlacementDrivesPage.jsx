@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllDrives, createDrive, updateDrive, deleteDrive, previewEligibleStudents } from '../../services/driveService';
+import { getAllDrives, createDrive, updateDrive, deleteDrive, previewEligibleStudents, getAllStudents, enrollStudents } from '../../services/driveService';
 import DriveAttendeesModal from '../../Components/admin/DriveAttendeesModal';
 import AttendeeMessageModal from '../../Components/admin/AttendeeMessageModal';
 
@@ -41,6 +41,17 @@ function PlacementDrivesPage() {
   const [eligiblePreview, setEligiblePreview] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [localFilter, setLocalFilter] = useState({ branch: '', year: '' });
+
+  // Right-panel tab: 'eligible' | 'manual'
+  const [rightTab, setRightTab] = useState('eligible');
+
+  // Manual enrollment state
+  const [allStudents, setAllStudents] = useState([]);
+  const [allStudentsLoading, setAllStudentsLoading] = useState(false);
+  const [manualSearch, setManualSearch] = useState('');
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollResult, setEnrollResult] = useState(null); // { enrolled, skipped }
 
   const fetchDrives = async () => {
     try {
@@ -100,10 +111,46 @@ function PlacementDrivesPage() {
     return '';
   };
 
+  // Load all students when switching to manual tab
+  useEffect(() => {
+    if (rightTab !== 'manual' || !showModal) return;
+    if (allStudents.length > 0) return; // already loaded
+    setAllStudentsLoading(true);
+    getAllStudents()
+      .then(res => setAllStudents(Array.isArray(res?.data) ? res.data : []))
+      .catch(() => setAllStudents([]))
+      .finally(() => setAllStudentsLoading(false));
+  }, [rightTab, showModal]); // eslint-disable-line
+
+  const handleEnroll = async () => {
+    if (!selectedDrive || selectedStudentIds.length === 0) return;
+    setEnrolling(true);
+    setEnrollResult(null);
+    try {
+      const res = await enrollStudents(selectedDrive.id, selectedStudentIds);
+      setEnrollResult({ enrolled: res.enrolled, skipped: res.skipped });
+      setSelectedStudentIds([]);
+      fetchDrives();
+    } catch (err) {
+      setEnrollResult({ error: err?.message || 'Enrollment failed' });
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
+  const toggleStudent = (id) => {
+    setSelectedStudentIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
   const openAdd = () => {
     setModalMode('add');
     setFormData(EMPTY_FORM);
     setFormError('');
+    setRightTab('eligible');
+    setSelectedStudentIds([]);
+    setEnrollResult(null);
     setShowModal(true);
   };
 
@@ -127,6 +174,9 @@ function PlacementDrivesPage() {
       allowed_branches: Array.isArray(allowedBranches) ? allowedBranches : [],
     });
     setFormError('');
+    setRightTab('eligible');
+    setSelectedStudentIds([]);
+    setEnrollResult(null);
     setShowModal(true);
   };
 
@@ -526,62 +576,178 @@ function PlacementDrivesPage() {
                 </form>
               </div>
 
-              {/* Right Column - Eligible Students Preview */}
+              {/* Right Column - Tabs: Eligible Preview | Manual Add */}
               <div className="w-2/5 pl-4 border-l border-gray-200 flex flex-col bg-gray-50">
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Eligible Students
-                  </p>
-                  {eligiblePreview && (
-                    <p className="text-lg font-bold text-gray-900 mt-1">
-                      {eligiblePreview.totalEligible} students
-                    </p>
-                  )}
+                {/* Tab header */}
+                <div className="flex border-b border-gray-200 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setRightTab('eligible')}
+                    className={`flex-1 px-3 py-2.5 text-xs font-semibold transition-colors ${
+                      rightTab === 'eligible'
+                        ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Eligible Preview
+                    {eligiblePreview && (
+                      <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px]">
+                        {eligiblePreview.totalEligible}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRightTab('manual')}
+                    className={`flex-1 px-3 py-2.5 text-xs font-semibold transition-colors ${
+                      rightTab === 'manual'
+                        ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Manual Add
+                    {selectedStudentIds.length > 0 && (
+                      <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px]">
+                        {selectedStudentIds.length}
+                      </span>
+                    )}
+                  </button>
                 </div>
 
-                {!formData.min_cgpa && formData.max_backlogs === '0' && formData.allowed_branches.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center p-4 text-center">
-                    <p className="text-sm text-gray-500">Set eligibility criteria to preview eligible students</p>
-                  </div>
-                ) : previewLoading ? (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : eligiblePreview?.students?.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center p-4 text-center">
-                    <p className="text-sm text-gray-500">No students match these criteria</p>
-                  </div>
-                ) : (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                    {eligiblePreview?.students?.map(student => (
-                      <div key={student.id} className="bg-white p-3 rounded-lg border border-gray-200">
-                        <div className="font-medium text-sm text-gray-900">{student.name}</div>
-                        <div className="text-xs text-gray-500 mt-1">{student.email}</div>
-                        <div className="flex gap-2 mt-2">
-                          <span
-                            className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                              student.cgpa >= 8.5
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : student.cgpa >= 7.0
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}
-                          >
-                            {student.cgpa}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                            {student.branch}
-                          </span>
-                          {student.year && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                              Yr {student.year}
-                            </span>
-                          )}
-                        </div>
+                {/* ── Tab: Eligible Preview ── */}
+                {rightTab === 'eligible' && (
+                  <>
+                    {!formData.min_cgpa && formData.max_backlogs === '0' && formData.allowed_branches.length === 0 ? (
+                      <div className="flex-1 flex items-center justify-center p-4 text-center">
+                        <p className="text-sm text-gray-500">Set eligibility criteria to preview eligible students</p>
                       </div>
-                    ))}
+                    ) : previewLoading ? (
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+                        ))}
+                      </div>
+                    ) : eligiblePreview?.students?.length === 0 ? (
+                      <div className="flex-1 flex items-center justify-center p-4 text-center">
+                        <p className="text-sm text-gray-500">No students match these criteria</p>
+                      </div>
+                    ) : (
+                      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                        {eligiblePreview?.students?.map(student => (
+                          <div key={student.id} className="bg-white p-3 rounded-lg border border-gray-200">
+                            <div className="font-medium text-sm text-gray-900">{student.name}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{student.email}</div>
+                            <div className="flex gap-2 mt-2">
+                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                student.cgpa >= 8.5 ? 'bg-emerald-100 text-emerald-700'
+                                  : student.cgpa >= 7.0 ? 'bg-blue-100 text-blue-700'
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}>{student.cgpa}</span>
+                              <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{student.branch}</span>
+                              {student.year && <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">Yr {student.year}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* ── Tab: Manual Add ── */}
+                {rightTab === 'manual' && (
+                  <div className="flex flex-col flex-1 min-h-0">
+                    {/* Only available in edit mode */}
+                    {modalMode === 'add' ? (
+                      <div className="flex-1 flex flex-col items-center justify-center p-4 text-center gap-2">
+                        <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-sm text-gray-500">Save the drive first, then manually add students here.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Search */}
+                        <div className="p-3 flex-shrink-0">
+                          <input
+                            type="text"
+                            placeholder="Search by name, email or USN..."
+                            value={manualSearch}
+                            onChange={e => setManualSearch(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                          />
+                        </div>
+
+                        {/* Student list */}
+                        {allStudentsLoading ? (
+                          <div className="flex-1 p-3 space-y-2">
+                            {[1,2,3,4].map(i => <div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />)}
+                          </div>
+                        ) : (
+                          <div className="flex-1 overflow-y-auto px-3 pb-2 space-y-1.5">
+                            {allStudents
+                              .filter(s => {
+                                const q = manualSearch.toLowerCase();
+                                return !q || s.name?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q) || s.usn?.toLowerCase().includes(q);
+                              })
+                              .map(student => {
+                                const checked = selectedStudentIds.includes(student.id);
+                                return (
+                                  <label
+                                    key={student.id}
+                                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                                      checked ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => toggleStudent(student.id)}
+                                      className="accent-indigo-600 w-3.5 h-3.5 flex-shrink-0"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-semibold text-gray-900 truncate">{student.name}</p>
+                                      <p className="text-[10px] text-gray-500 truncate">{student.usn} · {student.email}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                                      {student.cgpa && (
+                                        <span className="text-[10px] font-bold text-indigo-600">{parseFloat(student.cgpa).toFixed(2)}</span>
+                                      )}
+                                      {student.branch && (
+                                        <span className="text-[10px] text-gray-400">{student.branch}</span>
+                                      )}
+                                    </div>
+                                  </label>
+                                );
+                              })
+                            }
+                            {allStudents.filter(s => {
+                              const q = manualSearch.toLowerCase();
+                              return !q || s.name?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q) || s.usn?.toLowerCase().includes(q);
+                            }).length === 0 && (
+                              <p className="text-xs text-gray-400 text-center py-6">No students found</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Enroll footer */}
+                        <div className="p-3 border-t border-gray-200 flex-shrink-0 space-y-2">
+                          {enrollResult && (
+                            <p className={`text-xs text-center font-medium ${enrollResult.error ? 'text-red-600' : 'text-emerald-600'}`}>
+                              {enrollResult.error || `✓ ${enrollResult.enrolled} enrolled${enrollResult.skipped > 0 ? `, ${enrollResult.skipped} already added` : ''}`}
+                            </p>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleEnroll}
+                            disabled={selectedStudentIds.length === 0 || enrolling}
+                            className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                          >
+                            {enrolling && <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                            {enrolling ? 'Enrolling…' : `Enroll ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ''}Student${selectedStudentIds.length !== 1 ? 's' : ''}`}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

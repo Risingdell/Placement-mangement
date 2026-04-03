@@ -7,7 +7,9 @@ const {
   deleteDrive,
   getUpcomingDrives,
   getEligibleStudents,
-  previewEligibleStudents
+  previewEligibleStudents,
+  getAllStudents,
+  enrollStudents,
 } = require('../controllers/driveController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
@@ -20,8 +22,9 @@ router.use(protect);
 router.get('/', getAllDrives);
 router.get('/upcoming/preview', getUpcomingDrives);
 
-// Admin only routes - preview eligible students (must be before /:id to avoid route collision)
+// Admin only routes - must be before /:id to avoid route collision
 router.get('/preview-eligible', restrictTo('admin', 'tpo'), previewEligibleStudents);
+router.get('/all-students', restrictTo('admin', 'tpo'), getAllStudents);
 
 router.get('/:id', getDriveById);
 
@@ -30,5 +33,6 @@ router.post('/', restrictTo('admin', 'tpo'), createDrive);
 router.put('/:id', restrictTo('admin', 'tpo'), updateDrive);
 router.delete('/:id', restrictTo('admin', 'tpo'), deleteDrive);
 router.get('/:driveId/eligible-students', restrictTo('admin', 'tpo'), getEligibleStudents);
+router.post('/:id/enroll', restrictTo('admin', 'tpo'), enrollStudents);
 
 module.exports = router;

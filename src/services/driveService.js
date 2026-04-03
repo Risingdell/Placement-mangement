@@ -34,6 +34,15 @@ export const previewEligibleStudents = async ({ minCgpa, maxBacklogs, branches }
   return apiRequest(`/drives/preview-eligible?${params}`, { method: 'GET' });
 };
 
+export const getAllStudents = () =>
+  apiRequest('/drives/all-students', { method: 'GET' });
+
+export const enrollStudents = (driveId, userIds) =>
+  apiRequest(`/drives/${driveId}/enroll`, {
+    method: 'POST',
+    body: JSON.stringify({ userIds }),
+  });
+
 export default {
   getAllDrives,
   getDriveById,
@@ -42,4 +51,6 @@ export default {
   updateDrive,
   deleteDrive,
   previewEligibleStudents,
+  getAllStudents,
+  enrollStudents,
 };

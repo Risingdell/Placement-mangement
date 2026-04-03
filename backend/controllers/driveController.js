@@ -565,6 +565,130 @@ const previewEligibleStudents = async (req, res) => {
   }
 };
 
+// @desc    Get all students for manual enrollment picker
+// @route   GET /api/drives/all-students
+// @access  Private/Admin
+const getAllStudents = async (req, res) => {
+  try {
+    const [students] = await promisePool.query(`
+      SELECT u.id, u.full_name AS name, u.email, u.usn,
+             sa.cgpa, sa.branch, sa.active_backlogs, sa.batch_year AS year
+      FROM users u
+      LEFT JOIN student_academics sa ON u.id = sa.user_id
+      WHERE u.role = 'student' AND u.is_active = 1
+      ORDER BY u.full_name ASC
+    `);
+    res.json({ success: true, data: students });
+  } catch (error) {
+    console.error('Get all students error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch students' });
+  }
+};
+
+// @desc    Manually enroll students into a drive
+// @route   POST /api/drives/:id/enroll
+// @access  Private/Admin
+const enrollStudents = async (req, res) => {
+  try {
+    const driveId = req.params.id;
+    const { userIds } = req.body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'No students selected' });
+    }
+
+    // Fetch drive details
+    const [drives] = await promisePool.query(
+      'SELECT id, company_name, role, ctc, drive_date, registration_deadline, application_link FROM placement_drives WHERE id = ?',
+      [driveId]
+    );
+    if (drives.length === 0) {
+      return res.status(404).json({ success: false, message: 'Drive not found' });
+    }
+    const drive = drives[0];
+
+    // INSERT IGNORE skips duplicates (already applied students)
+    const values = userIds.map(uid => [uid, driveId, 'Applied']);
+    const [result] = await promisePool.query(
+      'INSERT IGNORE INTO applications (user_id, drive_id, status) VALUES ?',
+      [values]
+    );
+
+    const enrolled = result.affectedRows;
+    const skipped = userIds.length - enrolled;
+
+    // Respond immediately — notifications fire async
+    res.json({
+      success: true,
+      message: `${enrolled} student(s) enrolled successfully`,
+      enrolled,
+      skipped,
+    });
+
+    // Send email + inbox notification only to newly enrolled students (not duplicates)
+    if (enrolled === 0) return;
+
+    setTimeout(async () => {
+      try {
+        // Fetch details of the userIds that were actually inserted
+        // We re-query who now has an application for this drive among the requested ids
+        const placeholders = userIds.map(() => '?').join(',');
+        const [newlyEnrolled] = await promisePool.query(
+          `SELECT u.id, u.full_name, u.email
+           FROM users u
+           INNER JOIN applications a ON a.user_id = u.id AND a.drive_id = ?
+           WHERE u.id IN (${placeholders})`,
+          [driveId, ...userIds]
+        );
+
+        // Inbox notification for all newly enrolled students
+        if (newlyEnrolled.length > 0) {
+          try {
+            await sendEligibleStudentInboxNotification(
+              newlyEnrolled.map(s => s.id),
+              drive.company_name,
+              drive.role,
+              drive.ctc,
+              drive.drive_date,
+              drive.application_link,
+              driveId,
+              req.user?.id
+            );
+          } catch (inboxErr) {
+            console.error('[ENROLL] Inbox notification error:', inboxErr.message);
+          }
+        }
+
+        // Email notification (only if email is configured)
+        if (isEmailConfigured() && drive.application_link) {
+          for (const student of newlyEnrolled) {
+            try {
+              await sendDriveNotificationEmail({
+                to: student.email,
+                studentName: student.full_name,
+                companyName: drive.company_name,
+                role: drive.role,
+                ctc: drive.ctc,
+                driveDate: drive.drive_date,
+                registrationDeadline: drive.registration_deadline,
+                applicationLink: drive.application_link,
+              });
+            } catch (emailErr) {
+              console.error(`[ENROLL] Email failed for ${student.email}:`, emailErr.message);
+            }
+          }
+        }
+      } catch (notifyErr) {
+        console.error('[ENROLL] Notification error:', notifyErr.message);
+      }
+    }, 0);
+
+  } catch (error) {
+    console.error('Enroll students error:', error);
+    res.status(500).json({ success: false, message: 'Failed to enroll students' });
+  }
+};
+
 module.exports = {
   getAllDrives,
   getDriveById,
@@ -573,5 +697,7 @@ module.exports = {
   deleteDrive,
   getUpcomingDrives,
   getEligibleStudents,
-  previewEligibleStudents
+  previewEligibleStudents,
+  getAllStudents,
+  enrollStudents,
 };
