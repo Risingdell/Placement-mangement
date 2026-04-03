@@ -1,164 +1,339 @@
-/* Neo-Brutalism Style - Inspired by uiverse.io */
+/* ─────────────────────────────────────────
+   LANDING PAGE — Enhanced Neo-Brutalism
+   ───────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Dela+Gothic+One&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-    --background: #d3d3d3;
-    --input-focus: #2d8cf0;
-    --font-color: #323232;
-    --font-color-sub: #666;
-    --bg-color: #fff;
-    --main-color: #323232;
-    --font-DelaGothicOne: 'Dela Gothic One', cursive;
-    --font-SpaceMono: 'Space Mono', monospace;
+  --background: #d3d3d3;
+  --input-focus: #2d8cf0;
+  --font-color: #1a1a2e;
+  --font-color-sub: #555;
+  --bg-color: #fff;
+  --main-color: #1a1a2e;
+  --font-DelaGothicOne: 'Dela Gothic One', cursive;
+  --font-SpaceMono: 'Space Mono', monospace;
+  --font-Inter: 'Inter', sans-serif;
 }
 
-.landing-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: #e8e8e8;
-    padding: 20px;
+/* ── Body / Page Background ── */
+body {
+  font-family: var(--font-Inter), sans-serif;
 }
 
+.landing-page-root {
+  background: radial-gradient(ellipse at 20% 10%, #dce8ff 0%, transparent 45%),
+              radial-gradient(ellipse at 80% 90%, #f5e6c8 0%, transparent 45%),
+              #f0f2f7;
+  min-height: 100vh;
+}
+
+/* ── Navbar ── */
+.landing-navbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid #e2e8f0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Hero Section ── */
+.landing-hero {
+  text-align: center;
+  padding: 40px 16px 8px;
+}
+
+.landing-hero-title {
+  font-family: var(--font-Inter);
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.landing-hero-subtitle {
+  font-family: var(--font-SpaceMono), monospace;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.landing-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #c7d2fe;
+  background: linear-gradient(90deg, #eef2ff, #e0e7ff);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #4338ca;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.landing-hero-badge-dot {
+  width: 7px;
+  height: 7px;
+  background: #6366f1;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ── Cards ── */
 .neo-card {
-    padding: 30px;
-    background: var(--background);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    border-radius: 5px;
-    border: 2px solid var(--main-color);
-    box-shadow: 4px 4px var(--main-color);
-    width: 320px;
-    min-height: 380px;
-    transition: transform 0.2s;
+  padding: 32px 28px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border-radius: 20px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  width: 320px;
+  min-height: 390px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top-edge glow line */
+.neo-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  border-radius: 0 0 4px 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .neo-card-student {
-    background: linear-gradient(180deg, #eef4ff 0%, #e0ecff 100%);
-    border-color: #c7d2fe;
-    box-shadow: 4px 4px 0 #c7d2fe;
+  background: linear-gradient(145deg, #f0f5ff 0%, #e0ebff 60%, #dce8ff 100%);
+  border-color: #c7d2fe;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.12), 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.neo-card-student::after {
+  background: linear-gradient(90deg, #6366f1, #0ea5e9);
 }
 
 .neo-card-admin {
-    background: linear-gradient(180deg, #f7f1e4 0%, #efe2c7 100%);
-    border-color: #e7d8bc;
-    box-shadow: 4px 4px 0 #e7d8bc;
+  background: linear-gradient(145deg, #fffbf2 0%, #fef3d8 60%, #fde8b4 100%);
+  border-color: #e7d8bc;
+  box-shadow: 0 10px 30px rgba(217, 119, 6, 0.12), 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.neo-card-admin::after {
+  background: linear-gradient(90deg, #f59e0b, #f97316);
 }
 
 .neo-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px var(--main-color);
+  transform: translateY(-10px) scale(1.015);
+}
+
+.neo-card:hover::after {
+  opacity: 1;
 }
 
 .neo-card-student:hover {
-    box-shadow: 6px 6px 0 #c7d2fe;
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.18), 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .neo-card-admin:hover {
-    box-shadow: 6px 6px 0 #e7d8bc;
+  box-shadow: 0 20px 40px rgba(217, 119, 6, 0.18), 0 4px 12px rgba(0,0,0,0.06);
 }
 
 @media (max-width: 400px) {
-    .neo-card {
-        width: 90vw;
-        min-height: 380px;
-    }
+  .neo-card {
+    width: 90vw;
+    min-height: 380px;
+  }
 }
 
+/* ── Card icon box ── */
+.neo-card-icon-box {
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.neo-card:hover .neo-card-icon-box {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.neo-card-icon-box-student {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  border: 2px solid #a5b4fc;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.neo-card-icon-box-admin {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 2px solid #fcd34d;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+}
+
+/* ── Typography ── */
 .neo-card-title {
-    font-family: var(--font-DelaGothicOne), sans-serif;
-    color: #000000 !important;
-    font-weight: 900;
-    font-size: 18px;
-    letter-spacing: 0.05em;
-    text-align: center;
+  font-family: var(--font-DelaGothicOne), cursive;
+  color: #1a1a2e;
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  text-align: center;
 }
 
 .neo-card-subtitle {
-    font-family: var(--font-SpaceMono), monospace;
-    color: #000000 !important;
-    font-weight: 700;
-    font-size: 13px;
-    text-align: center;
-    line-height: 1.5;
+  font-family: var(--font-Inter);
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+  padding: 0 4px;
 }
 
+/* ── Divider ── */
+.neo-card-divider-student {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c7d2fe, transparent);
+  border-radius: 999px;
+}
+
+.neo-card-divider-admin {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #fcd34d, transparent);
+  border-radius: 999px;
+}
+
+/* ── Buttons ── */
 .neo-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
-    width: 100%;
-    height: 45px;
-    border-radius: 5px;
-    border: 2px solid var(--main-color);
-    background-color: var(--bg-color);
-    box-shadow: 4px 4px var(--main-color);
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--font-color);
-    cursor: pointer;
-    transition: all 250ms;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-    text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid var(--main-color);
+  background-color: var(--bg-color);
+  font-family: var(--font-Inter);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--font-color);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease,
+              color 0.2s ease,
+              background-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  text-decoration: none;
+  letter-spacing: 0.02em;
 }
 
 .neo-button::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 0;
-    background-color: #212121;
-    z-index: -1;
-    transition: all 250ms;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  z-index: -1;
+  transition: width 0.25s ease;
 }
 
 .neo-button:hover {
-    color: #e8e8e8;
+  color: #fff;
+  transform: scale(1.04);
 }
 
 .neo-button:hover::before {
-    width: 100%;
+  width: 100%;
+}
+
+.neo-button:active {
+  transform: scale(0.98);
 }
 
 .neo-button-student {
-    border-color: #c7d2fe;
-    box-shadow: 4px 4px 0 #c7d2fe;
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .neo-button-student::before {
-    background: linear-gradient(90deg, #4338ca 0%, #0ea5e9 100%);
+  background: linear-gradient(90deg, #4338ca, #0ea5e9);
+}
+
+.neo-button-student:hover {
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
 }
 
 .neo-button-admin {
-    border-color: #e7d8bc;
-    box-shadow: 4px 4px 0 #e7d8bc;
+  border-color: #d97706;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
 }
 
 .neo-button-admin::before {
-    background: linear-gradient(90deg, #f7d79b 0%, #f7b545 100%);
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+
+.neo-button-admin:hover {
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
 }
 
 .neo-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-    fill: currentColor;
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.neo-button:hover .neo-icon {
+  transform: translateX(4px);
+}
+
+/* ── Footer label ── */
+.landing-footer-label {
+  font-family: var(--font-SpaceMono);
+  font-size: 0.65rem;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-top: 32px;
+  text-transform: uppercase;
 }
 
 .title-header {
-    font-family: var(--font-DelaGothicOne);
-    font-size: 3rem;
-    color: var(--main-color);
-    text-align: center;
-    margin-bottom: 3rem;
-    text-shadow: 3px 3px white;
+  font-family: var(--font-DelaGothicOne);
+  font-size: 3rem;
+  color: var(--main-color);
+  text-align: center;
+  margin-bottom: 3rem;
+  text-shadow: 3px 3px white;
 }
