@@ -322,7 +322,7 @@ function AdminDashboardLayout() {
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className={`sticky top-0 z-30 border-b backdrop-blur ${isLightTheme ? 'border-[#d1d5db] bg-white/95' : 'border-[#2f2f34] bg-[#1a1a1e]/95'}`}>
-          <div className="flex min-h-14 items-center justify-between gap-4 px-4 md:px-6">
+          <div className="flex h-14 items-center justify-between gap-4 px-4 md:px-6">
             <div className="flex min-w-0 items-center gap-2 md:gap-4">
               <button
                 type="button"
@@ -339,7 +339,7 @@ function AdminDashboardLayout() {
               <button
                 type="button"
                 onClick={() => setIsCollapsed((prev) => !prev)}
-                className={`hidden h-9 w-9 rounded-md border bg-transparent lg:inline-flex ${
+                className={`hidden h-9 w-9 rounded-md border bg-transparent lg:inline-flex items-center justify-center ${
                   isLightTheme
                     ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
                     : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'
