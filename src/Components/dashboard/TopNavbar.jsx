@@ -51,7 +51,7 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
           </button>
           <button
             onClick={onToggleCollapse}
-            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} hidden lg:inline-flex h-9 w-9 rounded-md bg-transparent`}
+            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} hidden lg:inline-flex items-center justify-center h-9 w-9 rounded-md border bg-transparent`}
             aria-label="Toggle sidebar width"
           >
             {isCollapsed ? '>' : '<'}

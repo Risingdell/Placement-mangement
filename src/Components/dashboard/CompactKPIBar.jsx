@@ -35,7 +35,7 @@ function CompactKPIBar({ theme = 'dark' }) {
 
   return (
     <section className={`sticky top-14 z-20 backdrop-blur ${
-      theme === 'light' ? 'border-b border-[#d1d5db] bg-white/95' : 'border-b border-[#2f2f34] bg-[#17171b]/95'
+      theme === 'light' ? 'bg-white/95' : 'bg-[#17171b]/95'
     }`}>
       <div className="mx-auto w-full max-w-[1400px] px-4 py-3 md:px-6">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
