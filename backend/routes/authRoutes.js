@@ -8,7 +8,7 @@ const {
 } = require('../controllers/authController');
 const { checkEmailAuthorization } = require('../controllers/authorizedEmailController');
 const { protect } = require('../middlewares/authMiddleware');
-const { authLimiter, passwordResetLimiter } = require('../middlewares/rateLimitMiddleware');
+const { authLimiter, passwordResetLimiter, emailCheckLimiter } = require('../middlewares/rateLimitMiddleware');
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ router.post('/forgot-password', passwordResetLimiter, forgotPassword);
 router.post('/reset-password', passwordResetLimiter, resetPassword);
 
 // Public: Check if email is authorized for registration (used on register page)
-router.get('/check-email/:email', checkEmailAuthorization);
+router.get('/check-email/:email', emailCheckLimiter, checkEmailAuthorization);
 
 // Protected routes
 router.get('/me', protect, getMe);

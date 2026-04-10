@@ -524,16 +524,22 @@ const previewEligibleStudents = async (req, res) => {
     `;
     const params = [];
 
-    // Add CGPA filter
-    if (minCgpa) {
-      query += ' AND sa.cgpa >= ?';
-      params.push(parseFloat(minCgpa));
+    // Add CGPA filter — clamp to valid range 0–10
+    if (minCgpa !== undefined && minCgpa !== '') {
+      const cgpa = parseFloat(minCgpa);
+      if (!isNaN(cgpa) && cgpa >= 0 && cgpa <= 10) {
+        query += ' AND sa.cgpa >= ?';
+        params.push(cgpa);
+      }
     }
 
-    // Add backlogs filter
+    // Add backlogs filter — clamp to valid range 0–20
     if (maxBacklogs !== undefined && maxBacklogs !== '') {
-      query += ' AND sa.active_backlogs <= ?';
-      params.push(parseInt(maxBacklogs));
+      const backlogs = parseInt(maxBacklogs);
+      if (!isNaN(backlogs) && backlogs >= 0 && backlogs <= 20) {
+        query += ' AND sa.active_backlogs <= ?';
+        params.push(backlogs);
+      }
     }
 
     // Add branches filter
@@ -607,6 +613,15 @@ const enrollStudents = async (req, res) => {
     }
     const drive = drives[0];
 
+    // Find who is already enrolled before inserting
+    const placeholders = userIds.map(() => '?').join(',');
+    const [alreadyEnrolled] = await promisePool.query(
+      `SELECT user_id FROM applications WHERE drive_id = ? AND user_id IN (${placeholders})`,
+      [driveId, ...userIds]
+    );
+    const alreadyEnrolledIds = new Set(alreadyEnrolled.map(r => r.user_id));
+    const newlyAddedIds = userIds.filter(id => !alreadyEnrolledIds.has(id));
+
     // INSERT IGNORE skips duplicates (already applied students)
     const values = userIds.map(uid => [uid, driveId, 'Applied']);
     const [result] = await promisePool.query(
@@ -625,43 +640,38 @@ const enrollStudents = async (req, res) => {
       skipped,
     });
 
-    // Send email + inbox notification only to newly enrolled students (not duplicates)
-    if (enrolled === 0) return;
+    // Notify only the newly added students (not those already enrolled)
+    if (newlyAddedIds.length === 0) return;
 
     setTimeout(async () => {
       try {
-        // Fetch details of the userIds that were actually inserted
-        // We re-query who now has an application for this drive among the requested ids
-        const placeholders = userIds.map(() => '?').join(',');
-        const [newlyEnrolled] = await promisePool.query(
-          `SELECT u.id, u.full_name, u.email
-           FROM users u
-           INNER JOIN applications a ON a.user_id = u.id AND a.drive_id = ?
-           WHERE u.id IN (${placeholders})`,
-          [driveId, ...userIds]
+        const newPlaceholders = newlyAddedIds.map(() => '?').join(',');
+        const [newStudents] = await promisePool.query(
+          `SELECT id, full_name, email FROM users WHERE id IN (${newPlaceholders})`,
+          newlyAddedIds
         );
 
-        // Inbox notification for all newly enrolled students
-        if (newlyEnrolled.length > 0) {
-          try {
-            await sendEligibleStudentInboxNotification(
-              newlyEnrolled.map(s => s.id),
-              drive.company_name,
-              drive.role,
-              drive.ctc,
-              drive.drive_date,
-              drive.application_link,
-              driveId,
-              req.user?.id
-            );
-          } catch (inboxErr) {
-            console.error('[ENROLL] Inbox notification error:', inboxErr.message);
-          }
+        if (newStudents.length === 0) return;
+
+        // Inbox notification
+        try {
+          await sendEligibleStudentInboxNotification(
+            newStudents.map(s => s.id),
+            drive.company_name,
+            drive.role,
+            drive.ctc,
+            drive.drive_date,
+            drive.application_link,
+            driveId,
+            req.user?.id
+          );
+        } catch (inboxErr) {
+          console.error('[ENROLL] Inbox notification error:', inboxErr.message);
         }
 
         // Email notification (only if email is configured)
         if (isEmailConfigured() && drive.application_link) {
-          for (const student of newlyEnrolled) {
+          for (const student of newStudents) {
             try {
               await sendDriveNotificationEmail({
                 to: student.email,

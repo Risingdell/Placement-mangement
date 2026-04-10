@@ -12,6 +12,16 @@ const generateToken = (userId) => {
   });
 };
 
+// Password strength validator
+const validatePassword = (password) => {
+  if (!password || password.length < 8) return 'Password must be at least 8 characters long';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+  if (!/[^A-Za-z0-9]/.test(password)) return 'Password must contain at least one special character';
+  return null;
+};
+
 // @desc    Register new student
 // @route   POST /api/auth/register
 // @access  Public
@@ -27,6 +37,11 @@ const register = async (req, res) => {
         success: false,
         message: 'Please provide all required fields'
       });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ success: false, message: passwordError });
     }
 
     // Check if email is in authorized whitelist
@@ -338,11 +353,9 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters long'
-      });
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      return res.status(400).json({ success: false, message: passwordError });
     }
 
     // Hash the provided token

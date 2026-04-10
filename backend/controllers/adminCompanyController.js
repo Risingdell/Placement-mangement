@@ -3,7 +3,11 @@ const { promisePool } = require('../config/database');
 // Get all companies with stats
 exports.getAllCompanies = async (req, res) => {
   try {
-    const { search, type, status, sortBy = 'created_at', order = 'DESC' } = req.query;
+    const { search, type, status } = req.query;
+    // Whitelist sortBy and order to prevent SQL injection
+    const ALLOWED_SORT = ['created_at', 'name', 'company_type', 'location'];
+    const sortBy = ALLOWED_SORT.includes(req.query.sortBy) ? req.query.sortBy : 'created_at';
+    const order = req.query.order === 'ASC' ? 'ASC' : 'DESC';
 
     let query = `
       SELECT c.*,
@@ -43,7 +47,7 @@ exports.getAllCompanies = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching companies',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -88,7 +92,7 @@ exports.getCompanyById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching company details',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -148,25 +152,36 @@ exports.createCompany = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error creating company',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
+
+// Whitelist of columns that can be updated — prevents mass assignment
+const COMPANY_UPDATABLE_FIELDS = [
+  'name', 'company_type', 'industry', 'location', 'website',
+  'description', 'contact_email', 'contact_phone', 'hr_name',
+  'company_size', 'is_active'
+];
 
 // Update company
 exports.updateCompany = async (req, res) => {
   try {
     const { id } = req.params;
-    // Strip undefined values so mysql2 doesn't throw; convert '' to null
+    // Only allow whitelisted fields — prevent mass assignment
     const updateFields = Object.fromEntries(
       Object.entries(req.body)
-        .filter(([, v]) => v !== undefined)
+        .filter(([k, v]) => COMPANY_UPDATABLE_FIELDS.includes(k) && v !== undefined)
         .map(([k, v]) => [k, v === '' ? null : v])
     );
 
     // If a new logo was uploaded, include it
     if (req.file) {
       updateFields.logo_url = req.file.secure_url || req.file.path;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid fields to update' });
     }
 
     const setClause = Object.keys(updateFields)
@@ -197,7 +212,7 @@ exports.updateCompany = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating company',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -255,7 +270,7 @@ exports.deleteCompany = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting company',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -292,7 +307,7 @@ exports.getCompanyShortlists = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching shortlists',
-      error: error.message,
+      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       stack: error.stack
     });
   }
@@ -354,7 +369,7 @@ exports.createShortlist = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error creating shortlist',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -381,7 +396,7 @@ exports.updateShortlistStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating shortlist status',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -402,7 +417,7 @@ exports.deleteShortlist = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error removing shortlist',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -462,7 +477,7 @@ exports.getEligibleStudents = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching eligible students',
-      error: error.message
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -532,7 +547,7 @@ exports.notifyShortlistedStudents = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error sending notifications',
-      error: error.message,
+      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
     });
   }
 };

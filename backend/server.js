@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
 const path = require('path');
 const { testConnection } = require('./config/database');
@@ -13,33 +14,35 @@ const app = express();
 // Trust proxy for rate limiting on Render
 app.set('trust proxy', 1);
 
+// Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow Cloudinary/Supabase assets
+}));
+
 // =============================================
 // MIDDLEWARE
 // =============================================
 
-// CORS configuration
-// CORS configuration
+// CORS — explicit whitelist only, no wildcards
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow server-to-server / curl (no Origin header)
     if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175'
-    ];
-
-    // In development, allow any localhost origin
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
-    if (allowedOrigins.includes(origin) || (isDevelopment && origin.startsWith('http://localhost:')) || origin.endsWith('.vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // In development only, allow any localhost
+    if (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:')) {
+      return callback(null, true);
     }
+    callback(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
 }));
 
 // Body parser middleware

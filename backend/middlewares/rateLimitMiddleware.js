@@ -25,8 +25,16 @@ const passwordResetLimiter = rateLimit({
   message: 'Too many password reset attempts, please try again after an hour.',
 });
 
+// Rate limiter for email enumeration endpoint
+const emailCheckLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: 'Too many requests, please try again later.',
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
   passwordResetLimiter,
+  emailCheckLimiter,
 };

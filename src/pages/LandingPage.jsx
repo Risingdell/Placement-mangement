@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import sitLogo from '../assets/image.png';
-import universityLogo from '../assets/Srinivas_University_logo.gif';
+import sitLogo from '../assets/image.webp';
+import universityLogo from '../assets/Srinivas_University_logo.webp';
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -34,11 +34,11 @@ function LandingPage() {
 
         {/* Hero label */}
         <div className="landing-hero text-center mb-8">
-          <div className="landing-hero-badge">
-            <span className="landing-hero-badge-dot" />
-            Placement Portal Active
-          </div>
-          <h2 className="landing-hero-title mt-4">Welcome to the Placement Portal</h2>
+          {/* <div className="landing-hero-badge">
+            <span  />
+            
+          </div> */}
+          {/* <h2 className="landing-hero-title mt-4">Welcome to the Placement Portal</h2> */}
           <p className="landing-hero-subtitle">Select your role to continue</p>
         </div>
 
@@ -56,12 +56,12 @@ function LandingPage() {
               </svg>
             </div>
 
-            <p className="neo-card-subtitle">Browse placement drives, track applications, and manage your profile</p>
+            {/* <p className="neo-card-subtitle">Browse placement drives, track applications, and manage your profile</p> */}
 
             <button onClick={() => navigate('/login')} className="neo-button neo-button-student">
-              <svg className="neo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* <svg className="neo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              </svg> */}
               Continue as Student
             </button>
           </div>
@@ -77,12 +77,12 @@ function LandingPage() {
               </svg>
             </div>
 
-            <p className="neo-card-subtitle">Manage placement drives, review applications, and access analytics</p>
+            {/* <p className="neo-card-subtitle">Manage placement drives, review applications, and access analytics</p> */}
 
             <button onClick={() => navigate('/admin/login')} className="neo-button neo-button-admin">
-              <svg className="neo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* <svg className="neo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              </svg> */}
               Continue as Admin
             </button>
           </div>
