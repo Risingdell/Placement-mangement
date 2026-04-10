@@ -39,8 +39,8 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
   };
 
   return (
-    <header className={`${theme === 'light' ? 'bg-white/95 border-[#d1d5db]' : 'bg-[#1a1a1e]/95 border-[#2f2f34]'} backdrop-blur border-b sticky top-0 z-30`}>
-      <div className="h-14 px-4 md:px-6 flex items-center justify-between gap-4">
+    <header className={`${theme === 'light' ? 'bg-white/95' : 'bg-[#1a1a1e]/95'} backdrop-blur sticky top-0 z-30`}>
+      <div className={`h-14 px-4 md:px-6 flex items-center justify-between gap-4 border-b ${theme === 'light' ? 'border-[#d1d5db]' : 'border-[#2f2f34]'}`}>
         <div className="flex items-center gap-2 md:gap-4 min-w-0">
           <button
             onClick={onOpenMobileSidebar}

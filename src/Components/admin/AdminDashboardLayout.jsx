@@ -321,8 +321,8 @@ function AdminDashboardLayout() {
       </aside>
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className={`sticky top-0 z-30 border-b backdrop-blur ${isLightTheme ? 'border-[#d1d5db] bg-white/95' : 'border-[#2f2f34] bg-[#1a1a1e]/95'}`}>
-          <div className="flex h-14 items-center justify-between gap-4 px-4 md:px-6">
+        <header className={`sticky top-0 z-30 backdrop-blur ${isLightTheme ? 'bg-white/95' : 'bg-[#1a1a1e]/95'}`}>
+          <div className={`flex h-14 items-center justify-between gap-4 px-4 md:px-6 border-b ${isLightTheme ? 'border-[#d1d5db]' : 'border-[#2f2f34]'}`}>
             <div className="flex min-w-0 items-center gap-2 md:gap-4">
               <button
                 type="button"
