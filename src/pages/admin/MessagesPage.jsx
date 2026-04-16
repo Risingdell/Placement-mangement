@@ -1,14 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
 import inboxService from '../../services/inboxService';
 import studentService from '../../services/studentService';
 import { format } from 'date-fns';
 
 function MessagesPage() {
+  const { setIsModalOpen } = useOutletContext() || {};
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showComposeModal, setShowComposeModal] = useState(false);
+
+  const openModal = () => { setShowComposeModal(true); setIsModalOpen?.(true); };
+  const closeModal = () => { setShowComposeModal(false); setIsModalOpen?.(false); };
   const [sending, setSending] = useState(false);
 
   // Search and Select Students
@@ -72,7 +78,7 @@ function MessagesPage() {
       });
 
       alert('Message sent successfully!');
-      setShowComposeModal(false);
+      closeModal();
       setComposeData({ subject: '', message: '' });
       setSelectedStudent(null);
       setStudentSearch('');
@@ -100,7 +106,7 @@ function MessagesPage() {
           <p className="text-gray-600 mt-1">Send and manage official messages to students</p>
         </div>
         <button
-          onClick={() => setShowComposeModal(true)}
+          onClick={openModal}
           className="flex items-center px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all duration-200 font-semibold"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,15 +225,15 @@ function MessagesPage() {
         </div>
       </div>
 
-      {/* Compose Modal */}
-      {showComposeModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 animate-in fade-in duration-200">
-            <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => !sending && setShowComposeModal(false)}></div>
+      {/* Compose Modal — rendered via Portal to escape stacking context */}
+      {showComposeModal && createPortal(
+        <div className="fixed inset-0 z-[9999] overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => !sending && closeModal()}></div>
             <div className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl transform overflow-hidden">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900">Official Communication</h3>
-                <button onClick={() => !sending && setShowComposeModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button onClick={() => !sending && closeModal()} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -315,7 +321,7 @@ function MessagesPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setShowComposeModal(false)}
+                    onClick={closeModal}
                     className="px-6 py-2.5 border border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                     disabled={sending}
                   >
@@ -338,7 +344,7 @@ function MessagesPage() {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }

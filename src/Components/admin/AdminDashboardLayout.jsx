@@ -171,6 +171,7 @@ function AdminDashboardLayout() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadAlerts, setUnreadAlerts] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -450,7 +451,7 @@ function AdminDashboardLayout() {
           </div>
         </header>
 
-        <section className={`sticky top-14 z-20 border-b backdrop-blur transition-all duration-200 ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'}`} id="info-strip">
+        <section className={`sticky top-14 z-20 border-b backdrop-blur transition-all duration-200 ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'} ${isModalOpen ? 'hidden' : ''}`} id="info-strip">
           <div className="mx-auto grid w-full max-w-[1400px] grid-cols-2 gap-3 px-4 py-3 md:px-6 lg:grid-cols-4">
             <InfoStripCard label="Workspace" value="Admin Portal" tone="text-[#f7b545]" theme={adminTheme} />
             <InfoStripCard label="Role" value={user?.role || 'Admin'} tone={isLightTheme ? 'text-[#111827]' : 'text-zinc-100'} theme={adminTheme} />
@@ -465,7 +466,7 @@ function AdminDashboardLayout() {
             : 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]'
         }`}>
           <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
-            <Outlet context={{ adminTheme }} />
+            <Outlet context={{ adminTheme, setIsModalOpen }} />
           </div>
         </main>
       </div>
