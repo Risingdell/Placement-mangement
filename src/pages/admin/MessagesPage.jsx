@@ -144,9 +144,13 @@ function MessagesPage() {
                     <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                       {message.recipient_usn}
                     </span>
-                    {message.message_type === 'Official' && (
-                      <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                        Official
+                    {message.is_read ? (
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                        ✓ Read
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                        Unread
                       </span>
                     )}
                   </div>
@@ -176,11 +180,22 @@ function MessagesPage() {
                     </div>
                   </div>
                 </div>
-                {selectedMessage.message_type === 'Official' && (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100">
-                    <span className="text-blue-500">✓</span> Official Message
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {selectedMessage.message_type === 'Official' && (
+                    <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100">
+                      <span className="text-blue-500">✓</span> Official
+                    </span>
+                  )}
+                  {selectedMessage.is_read ? (
+                    <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">
+                      ✓ Read {selectedMessage.read_at ? `· ${format(new Date(selectedMessage.read_at), 'MMM d, p')}` : ''}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-100">
+                      Pending Read
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="p-8 flex-1 overflow-y-auto">
                 <div className="prose prose-indigo max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">

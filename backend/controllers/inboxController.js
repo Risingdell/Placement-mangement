@@ -359,6 +359,7 @@ const getSentMessages = async (req, res) => {
 
     const [messages] = await promisePool.query(
       `SELECT im.id, im.subject, im.message, im.message_type, im.sent_at,
+              im.is_read, im.read_at,
               u.full_name as recipient_name, u.usn as recipient_usn, u.email as recipient_email
        FROM inbox_messages im
        JOIN users u ON im.recipient_id = u.id

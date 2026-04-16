@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ThemeModeSwitch from '../common/ThemeModeSwitch';
+import { getSentMessages } from '../../services/inboxService';
 
 const navSections = [
   {
@@ -168,6 +169,8 @@ function AdminDashboardLayout() {
     const saved = localStorage.getItem('admin-theme');
     return saved === 'light' ? 'light' : 'dark';
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [unreadAlerts, setUnreadAlerts] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -186,6 +189,50 @@ function AdminDashboardLayout() {
   useEffect(() => {
     localStorage.setItem('admin-theme', adminTheme);
   }, [adminTheme]);
+
+  // Fetch sent messages count to drive the ALERTS red dot
+  const fetchAlerts = useCallback(async () => {
+    try {
+      const res = await getSentMessages();
+      const messages = res?.data || res || [];
+      const unread = messages.filter(m => !m.is_read).length;
+      setUnreadAlerts(unread);
+    } catch {
+      // silently ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(interval);
+  }, [fetchAlerts]);
+
+  // Re-check when navigating back to messages page
+  useEffect(() => {
+    if (location.pathname === '/admin/dashboard/messages') {
+      setUnreadAlerts(0);
+    }
+  }, [location.pathname]);
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const pages = [
+        { keys: ['company', 'companies'], path: '/admin/dashboard/companies' },
+        { keys: ['student', 'students'], path: '/admin/dashboard/students' },
+        { keys: ['drive', 'drives', 'placement'], path: '/admin/dashboard/drives' },
+        { keys: ['application', 'applications'], path: '/admin/dashboard/applications' },
+        { keys: ['message', 'messages', 'inbox'], path: '/admin/dashboard/messages' },
+        { keys: ['event', 'events'], path: '/admin/dashboard/events' },
+        { keys: ['email', 'authorized'], path: '/admin/dashboard/authorized-emails' },
+        { keys: ['dashboard', 'home'], path: '/admin/dashboard' },
+      ];
+      const match = pages.find(p => p.keys.some(k => q.includes(k)));
+      if (match) navigate(match.path);
+      setSearchQuery('');
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -356,13 +403,18 @@ function AdminDashboardLayout() {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className={`hidden h-9 min-w-[220px] items-center rounded-md border px-3 text-sm xl:flex ${
-                isLightTheme
-                  ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]'
-                  : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'
-              }`}>
-                Search admin workspace
-              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+                placeholder="Search admin workspace"
+                className={`hidden h-9 min-w-[220px] rounded-md border px-3 text-sm xl:flex bg-transparent outline-none ${
+                  isLightTheme
+                    ? 'border-[#d1d5db] bg-[#f9fafb] text-[#374151] placeholder-[#9ca3af]'
+                    : 'border-[#3a3a40] bg-[#202026] text-[#d4d4d8] placeholder-[#6b7280]'
+                }`}
+              />
               <ThemeModeSwitch theme={adminTheme} onChange={setAdminTheme} />
               <div className={`hidden rounded-md border px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#f7b545] md:block ${
                 isLightTheme ? 'border-[#d1d5db] bg-[#fff7ed]' : 'border-[#3a3a40] bg-[#202026]'
@@ -371,15 +423,18 @@ function AdminDashboardLayout() {
               </div>
               <button
                 type="button"
+                onClick={() => navigate('/admin/dashboard/messages')}
                 className={`relative h-9 rounded-md border bg-transparent px-3 text-[11px] font-semibold tracking-[0.18em] transition-colors ${
                   isLightTheme
                     ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
                     : 'border-[#3a3a40] text-[#d1d5db] hover:bg-[#2a2a2e]'
                 }`}
-                title="Notifications"
+                title="View messages"
               >
                 ALERTS
-                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ef4444]" />
+                {unreadAlerts > 0 && (
+                  <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ef4444]" />
+                )}
               </button>
               <div className={`flex items-center gap-2 rounded-md border bg-transparent px-2 py-1.5 ${
                 isLightTheme ? 'border-[#d1d5db]' : 'border-[#3a3a40]'
@@ -389,7 +444,7 @@ function AdminDashboardLayout() {
                 }`}>
                   <span className="text-[10px] text-[#f7b545]">{userInitial}</span>
                 </div>
-                <span className={`hidden max-w-[140px] truncate text-sm sm:inline ${isLightTheme ? 'text-[#374151]' : 'text-[#d4d4d8]'}`}>{userName}</span>
+                <span className={`hidden max-w-[140px] truncate text-[11px] font-semibold tracking-[0.18em] sm:inline ${isLightTheme ? 'text-[#374151]' : 'text-[#d4d4d8]'}`}>SYSTEM ADMIN</span>
               </div>
             </div>
           </div>
