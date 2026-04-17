@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
 import { getAllDrives, createDrive, updateDrive, deleteDrive, previewEligibleStudents, getAllStudents, enrollStudents } from '../../services/driveService';
 import DriveAttendeesModal from '../../Components/admin/DriveAttendeesModal';
 import AttendeeMessageModal from '../../Components/admin/AttendeeMessageModal';
@@ -18,11 +20,24 @@ const EMPTY_FORM = {
   allowed_branches: [],
 };
 
-function Skeleton({ className }) {
-  return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
+function Skeleton({ className, dark }) {
+  return <div className={`animate-pulse ${dark ? 'bg-[#2f2f34]' : 'bg-gray-200'} ${className}`} />;
 }
 
 function PlacementDrivesPage() {
+  const { adminTheme, setIsModalOpen } = useOutletContext() || {};
+  const isLight = adminTheme !== 'dark';
+
+  const card    = isLight ? 'bg-white border border-gray-100 shadow-sm'  : 'bg-[#1e1e22] border border-[#2f2f34]';
+  const txt     = isLight ? 'text-gray-900'   : 'text-[#e8e8ed]';
+  const sub     = isLight ? 'text-gray-500'   : 'text-[#8e8e93]';
+  const inp     = isLight ? 'bg-white border-gray-200 text-gray-900'     : 'bg-[#2a2a2f] border-[#3f3f46] text-[#e8e8ed]';
+  const modalBg = isLight ? 'bg-white'        : 'bg-[#1e1e22]';
+  const divider = isLight ? 'border-gray-100' : 'border-[#2f2f34]';
+  const theadBg = isLight ? 'bg-gray-50/60'   : 'bg-[#252528]';
+  const rowHov  = isLight ? 'hover:bg-gray-50/50' : 'hover:bg-[#28282c]';
+  const panelBg = isLight ? 'bg-gray-50'      : 'bg-[#252528]';
+  const overlay = isLight ? 'bg-gray-900/40'  : 'bg-black/60';
   const [drives, setDrives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,22 +82,7 @@ function PlacementDrivesPage() {
 
   useEffect(() => { fetchDrives(); }, [filterStatus]); // eslint-disable-line
 
-  useEffect(() => {
-    const infoStrip = document.getElementById('info-strip');
-    const header = document.querySelector('header');
-    const sidebar = document.querySelector('aside');
-    if (infoStrip) {
-      if (showModal) {
-        infoStrip.classList.add('hidden-by-modal');
-        header?.classList.add('hidden-by-modal');
-        sidebar?.classList.add('hidden-by-modal');
-      } else {
-        infoStrip.classList.remove('hidden-by-modal');
-        header?.classList.remove('hidden-by-modal');
-        sidebar?.classList.remove('hidden-by-modal');
-      }
-    }
-  }, [showModal]);
+  useEffect(() => { setIsModalOpen?.(showModal); }, [showModal, setIsModalOpen]);
 
   // Debounced preview of eligible students as criteria change
   useEffect(() => {
@@ -234,12 +234,13 @@ function PlacementDrivesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Placement Drives</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Create and manage recruitment drives</p>
+          <h2 className={`text-xl font-bold ${txt}`}>Placement Drives</h2>
+          <p className={`text-sm ${sub} mt-0.5`}>Create and manage recruitment drives</p>
         </div>
         <button
           onClick={openAdd}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
+          style={{ background: '#f7b545' }}
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-[#1a1a1e] text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -251,32 +252,33 @@ function PlacementDrivesPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Drives',      value: total,           color: 'blue' },
-          { label: 'Active',            value: active,          color: 'emerald' },
-          { label: 'Upcoming',          value: upcoming,        color: 'amber' },
-          { label: 'Total Applicants',  value: totalApplicants, color: 'violet' },
+          { label: 'Total Drives',     value: total,           color: 'text-blue-600' },
+          { label: 'Active',           value: active,          color: 'text-emerald-600' },
+          { label: 'Upcoming',         value: upcoming,        color: 'text-amber-600' },
+          { label: 'Total Applicants', value: totalApplicants, color: 'text-violet-600' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
+          <div key={label} className={`${card} p-4`}>
+            <p className={`text-[11px] font-semibold ${sub} uppercase tracking-wider`}>{label}</p>
             {loading
-              ? <Skeleton className="h-7 w-10 mt-2" />
-              : <p className={`text-2xl font-bold mt-1 tabular-nums text-${color}-600`}>{value.toLocaleString()}</p>
+              ? <Skeleton className="h-7 w-10 mt-2" dark={!isLight} />
+              : <p className={`text-2xl font-bold mt-1 tabular-nums ${color}`}>{value.toLocaleString()}</p>
             }
           </div>
         ))}
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
-          <h3 className="text-sm font-semibold text-gray-900">All Drives</h3>
+      <div className={`${card} overflow-hidden`}>
+        <div className={`px-5 py-4 border-b ${divider} flex items-center justify-between gap-3 flex-wrap`}>
+          <h3 className={`text-sm font-semibold ${txt}`}>All Drives</h3>
           <div className="flex items-center gap-1.5 flex-wrap">
             {['', 'Active', 'Upcoming', 'Completed'].map(s => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  filterStatus === s ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                style={filterStatus === s ? { background: '#f7b545', color: '#1a1a1e' } : {}}
+                className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  filterStatus === s ? '' : isLight ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-[#2a2a2f] text-[#8e8e93] hover:bg-[#323236]'
                 }`}
               >
                 {s || 'All'}
@@ -286,41 +288,41 @@ function PlacementDrivesPage() {
         </div>
 
         {loading ? (
-          <div className="divide-y divide-gray-50">
+          <div className={`divide-y ${divider}`}>
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="px-5 py-4 flex items-center gap-4">
                 <div className="space-y-1.5 flex-1">
-                  <Skeleton className="h-4 w-36" />
-                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-4 w-36" dark={!isLight} />
+                  <Skeleton className="h-3 w-24" dark={!isLight} />
                 </div>
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-4 w-8" />
+                <Skeleton className="h-4 w-16" dark={!isLight} />
+                <Skeleton className="h-4 w-24" dark={!isLight} />
+                <Skeleton className="h-5 w-16" dark={!isLight} />
+                <Skeleton className="h-4 w-8" dark={!isLight} />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <svg className="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-12 h-12 ${sub} mb-3`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p className="text-sm font-medium text-gray-500">No drives found</p>
-            <p className="text-xs text-gray-400 mt-0.5">Create a new drive to get started</p>
+            <p className={`text-sm font-medium ${sub}`}>No drives found</p>
+            <p className={`text-xs ${sub} mt-0.5 opacity-60`}>Create a new drive to get started</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/60">
+                <tr className={`border-b ${divider} ${theadBg}`}>
                   {['Company & Role', 'CTC', 'Drive Date', 'Deadline', 'Status', 'Applicants', 'Actions'].map(h => (
-                    <th key={h} className={`px-5 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider ${h === 'Actions' ? 'text-right' : 'text-left'}`}>
+                    <th key={h} className={`px-5 py-3 text-[11px] font-semibold ${sub} uppercase tracking-wider ${h === 'Actions' ? 'text-right' : 'text-left'}`}>
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className={`divide-y ${divider}`}>
                 {filtered.map(drive => {
                   const company = g(drive, 'company_name', 'company');
                   const driveDate = g(drive, 'drive_date', 'date');
@@ -329,38 +331,38 @@ function PlacementDrivesPage() {
                   const style = STATUS_STYLES[drive.status] || STATUS_STYLES.Completed;
 
                   return (
-                    <tr key={drive.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={drive.id} className={`${rowHov} transition-colors`}>
                       <td className="px-5 py-3.5">
-                        <p className="font-semibold text-gray-900">{company}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{drive.role}</p>
+                        <p className={`font-semibold ${txt}`}>{company}</p>
+                        <p className={`text-xs ${sub} mt-0.5`}>{drive.role}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="font-semibold text-emerald-700">{drive.ctc || '—'}</span>
+                        <span className="font-semibold text-emerald-600">{drive.ctc || '—'}</span>
                       </td>
-                      <td className="px-5 py-3.5 text-gray-600 text-xs">
+                      <td className={`px-5 py-3.5 ${sub} text-xs`}>
                         {driveDate
                           ? new Date(driveDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
                           : '—'}
                       </td>
-                      <td className="px-5 py-3.5 text-gray-600 text-xs">
+                      <td className={`px-5 py-3.5 ${sub} text-xs`}>
                         {deadline
                           ? new Date(deadline).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
                           : '—'}
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.badge}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold border ${style.badge}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                           {drive.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 font-medium text-gray-900 tabular-nums">
+                      <td className={`px-5 py-3.5 font-medium ${txt} tabular-nums`}>
                         {applicants.toLocaleString()}
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-0.5">
                           <button
                             onClick={() => { setSelectedDrive(drive); setShowAttendeesModal(true); }}
-                            className="p-1.5 text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                            className="p-1.5 text-violet-500 hover:bg-violet-50/50 transition-colors"
                             title="View Attendees"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -369,7 +371,7 @@ function PlacementDrivesPage() {
                           </button>
                           <button
                             onClick={() => { setSelectedDrive(drive); setShowMessageModal(true); }}
-                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            className="p-1.5 text-emerald-500 hover:bg-emerald-50/50 transition-colors"
                             title="Send Message"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,7 +380,7 @@ function PlacementDrivesPage() {
                           </button>
                           <button
                             onClick={() => openEdit(drive)}
-                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-1.5 text-indigo-500 hover:bg-indigo-50/50 transition-colors"
                             title="Edit"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,7 +389,7 @@ function PlacementDrivesPage() {
                           </button>
                           <button
                             onClick={() => handleDelete(drive.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-red-500 hover:bg-red-50/50 transition-colors"
                             title="Delete"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,23 +408,23 @@ function PlacementDrivesPage() {
       </div>
 
       {/* Create / Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-4">
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4">
           <div
-            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+            className={`absolute inset-0 ${overlay} backdrop-blur-sm`}
             onClick={() => !saving && setShowModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col z-[1000] max-h-[98vh]">
+          <div className={`relative ${modalBg} shadow-2xl w-full max-w-6xl flex flex-col z-10 max-h-[98vh]`}>
             {/* Header */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex-shrink-0">
-              <h3 className="text-lg font-bold text-gray-900">
+            <div className={`flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b ${divider} flex-shrink-0`}>
+              <h3 className={`text-lg font-bold ${txt}`}>
                 {modalMode === 'add' ? 'Create Placement Drive' : 'Edit Drive'}
               </h3>
               <button
                 onClick={() => !saving && setShowModal(false)}
-                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`p-1.5 ${sub} hover:${txt} transition-colors`}
               >
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -434,49 +436,49 @@ function PlacementDrivesPage() {
               <div className="w-3/5 pr-4 overflow-y-auto flex-1">
                 <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-5">
                   {formError && (
-                    <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                    <div className={`px-4 py-3 border ${isLight ? 'bg-red-50 border-red-200 text-red-700' : 'bg-red-950/30 border-red-900/50 text-red-400'} text-sm`}>
                       {formError}
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company Name *</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Company Name *</label>
                       <input
                         type="text" required
                         value={formData.company_name}
                         onChange={e => setFormData(p => ({ ...p, company_name: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                         placeholder="e.g. Google"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Role / Position *</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Role / Position *</label>
                       <input
                         type="text" required
                         value={formData.role}
                         onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                         placeholder="e.g. Software Engineer"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">CTC / Package *</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>CTC / Package *</label>
                       <input
                         type="text" required
                         value={formData.ctc}
                         onChange={e => setFormData(p => ({ ...p, ctc: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                         placeholder="e.g. 25 LPA"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Status</label>
                       <select
                         value={formData.status}
                         onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                       >
                         <option>Upcoming</option>
                         <option>Active</option>
@@ -487,48 +489,48 @@ function PlacementDrivesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Drive Date *</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Drive Date *</label>
                       <input
                         type="date" required
                         value={formData.drive_date}
                         onChange={e => setFormData(p => ({ ...p, drive_date: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Deadline *</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Application Deadline *</label>
                       <input
                         type="date" required
                         value={formData.application_deadline}
                         onChange={e => setFormData(p => ({ ...p, application_deadline: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Min. CGPA</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Min. CGPA</label>
                       <input
                         type="number" step="0.01" min="0" max="10"
                         value={formData.min_cgpa}
                         onChange={e => setFormData(p => ({ ...p, min_cgpa: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                         placeholder="e.g. 7.5"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Max. Backlogs Allowed</label>
+                      <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Max. Backlogs Allowed</label>
                       <input
                         type="number" min="0"
                         value={formData.max_backlogs}
                         onChange={e => setFormData(p => ({ ...p, max_backlogs: e.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                         placeholder="0"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">Allowed Branches</label>
+                    <label className={`block text-xs font-semibold ${txt} mb-2`}>Allowed Branches</label>
                     <div className="grid grid-cols-2 gap-2">
                       {BRANCHES.map(branch => (
                         <button
@@ -542,10 +544,11 @@ function PlacementDrivesPage() {
                                 : [...p.allowed_branches, branch]
                             }));
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          style={formData.allowed_branches.includes(branch) ? { background: '#f7b545', color: '#1a1a1e' } : {}}
+                          className={`px-3 py-1.5 text-sm font-semibold transition-colors ${
                             formData.allowed_branches.includes(branch)
-                              ? 'bg-indigo-600 text-white'
-                              : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                              ? ''
+                              : `border ${divider} ${txt} hover:opacity-70`
                           }`}
                         >
                           {branch}
@@ -554,22 +557,22 @@ function PlacementDrivesPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Job Description</label>
+                    <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Job Description</label>
                     <textarea
                       rows={3}
                       value={formData.description}
                       onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                      className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545] resize-none`}
                       placeholder="Role responsibilities and requirements..."
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Application Link</label>
+                    <label className={`block text-xs font-semibold ${txt} mb-1.5`}>Application Link</label>
                     <input
                       type="url"
                       value={formData.application_link}
                       onChange={e => setFormData(p => ({ ...p, application_link: e.target.value }))}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                      className={`w-full px-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
                       placeholder="https://forms.google.com/... (Eligible students will receive this link)"
                     />
                   </div>
@@ -577,21 +580,21 @@ function PlacementDrivesPage() {
               </div>
 
               {/* Right Column - Tabs: Eligible Preview | Manual Add */}
-              <div className="w-2/5 pl-4 border-l border-gray-200 flex flex-col bg-gray-50">
+              <div className={`w-2/5 pl-4 border-l ${divider} flex flex-col ${panelBg}`}>
                 {/* Tab header */}
-                <div className="flex border-b border-gray-200 flex-shrink-0">
+                <div className={`flex border-b ${divider} flex-shrink-0`}>
                   <button
                     type="button"
                     onClick={() => setRightTab('eligible')}
                     className={`flex-1 px-3 py-2.5 text-xs font-semibold transition-colors ${
                       rightTab === 'eligible'
-                        ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? `${txt} border-b-2 border-[#f7b545] ${modalBg}`
+                        : `${sub} hover:opacity-80`
                     }`}
                   >
                     Eligible Preview
                     {eligiblePreview && (
-                      <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px]">
+                      <span className="ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px]">
                         {eligiblePreview.totalEligible}
                       </span>
                     )}
@@ -601,13 +604,13 @@ function PlacementDrivesPage() {
                     onClick={() => setRightTab('manual')}
                     className={`flex-1 px-3 py-2.5 text-xs font-semibold transition-colors ${
                       rightTab === 'manual'
-                        ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? `${txt} border-b-2 border-[#f7b545] ${modalBg}`
+                        : `${sub} hover:opacity-80`
                     }`}
                   >
                     Manual Add
                     {selectedStudentIds.length > 0 && (
-                      <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px]">
+                      <span className="ml-1.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px]">
                         {selectedStudentIds.length}
                       </span>
                     )}
@@ -619,32 +622,32 @@ function PlacementDrivesPage() {
                   <>
                     {!formData.min_cgpa && formData.max_backlogs === '0' && formData.allowed_branches.length === 0 ? (
                       <div className="flex-1 flex items-center justify-center p-4 text-center">
-                        <p className="text-sm text-gray-500">Set eligibility criteria to preview eligible students</p>
+                        <p className={`text-sm ${sub}`}>Set eligibility criteria to preview eligible students</p>
                       </div>
                     ) : previewLoading ? (
                       <div className="flex-1 overflow-y-auto p-4 space-y-3">
                         {[1, 2, 3].map(i => (
-                          <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+                          <div key={i} className={`h-12 ${isLight ? 'bg-gray-200' : 'bg-[#2f2f34]'} animate-pulse`} />
                         ))}
                       </div>
                     ) : eligiblePreview?.students?.length === 0 ? (
                       <div className="flex-1 flex items-center justify-center p-4 text-center">
-                        <p className="text-sm text-gray-500">No students match these criteria</p>
+                        <p className={`text-sm ${sub}`}>No students match these criteria</p>
                       </div>
                     ) : (
                       <div className="flex-1 overflow-y-auto p-4 space-y-2">
                         {eligiblePreview?.students?.map(student => (
-                          <div key={student.id} className="bg-white p-3 rounded-lg border border-gray-200">
-                            <div className="font-medium text-sm text-gray-900">{student.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{student.email}</div>
+                          <div key={student.id} className={`${modalBg} p-3 border ${divider}`}>
+                            <div className={`font-medium text-sm ${txt}`}>{student.name}</div>
+                            <div className={`text-xs ${sub} mt-0.5`}>{student.email}</div>
                             <div className="flex gap-2 mt-2">
-                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              <span className={`px-2 py-0.5 text-xs font-semibold ${
                                 student.cgpa >= 8.5 ? 'bg-emerald-100 text-emerald-700'
                                   : student.cgpa >= 7.0 ? 'bg-blue-100 text-blue-700'
                                   : 'bg-amber-100 text-amber-700'
                               }`}>{student.cgpa}</span>
-                              <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{student.branch}</span>
-                              {student.year && <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">Yr {student.year}</span>}
+                              <span className={`px-2 py-0.5 text-xs font-medium ${isLight ? 'bg-gray-100 text-gray-700' : 'bg-[#2a2a2f] text-[#8e8e93]'}`}>{student.branch}</span>
+                              {student.year && <span className={`px-2 py-0.5 text-xs font-medium ${isLight ? 'bg-gray-100 text-gray-700' : 'bg-[#2a2a2f] text-[#8e8e93]'}`}>Yr {student.year}</span>}
                             </div>
                           </div>
                         ))}
@@ -656,13 +659,12 @@ function PlacementDrivesPage() {
                 {/* ── Tab: Manual Add ── */}
                 {rightTab === 'manual' && (
                   <div className="flex flex-col flex-1 min-h-0">
-                    {/* Only available in edit mode */}
                     {modalMode === 'add' ? (
                       <div className="flex-1 flex flex-col items-center justify-center p-4 text-center gap-2">
-                        <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-8 h-8 ${sub}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="text-sm text-gray-500">Save the drive first, then manually add students here.</p>
+                        <p className={`text-sm ${sub}`}>Save the drive first, then manually add students here.</p>
                       </div>
                     ) : (
                       <>
@@ -673,14 +675,14 @@ function PlacementDrivesPage() {
                             placeholder="Search by name, email or USN..."
                             value={manualSearch}
                             onChange={e => setManualSearch(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className={`w-full px-3 py-2 border ${inp} text-xs outline-none focus:border-[#f7b545]`}
                           />
                         </div>
 
                         {/* Student list */}
                         {allStudentsLoading ? (
                           <div className="flex-1 p-3 space-y-2">
-                            {[1,2,3,4].map(i => <div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />)}
+                            {[1,2,3,4].map(i => <div key={i} className={`h-10 ${isLight ? 'bg-gray-200' : 'bg-[#2f2f34]'} animate-pulse`} />)}
                           </div>
                         ) : (
                           <div className="flex-1 overflow-y-auto px-3 pb-2 space-y-1.5">
@@ -694,26 +696,27 @@ function PlacementDrivesPage() {
                                 return (
                                   <label
                                     key={student.id}
-                                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors ${
-                                      checked ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:bg-gray-50'
+                                    style={checked ? { borderColor: '#f7b545', background: isLight ? '#fffbeb' : '#2a2500' } : {}}
+                                    className={`flex items-center gap-2.5 p-2.5 border cursor-pointer transition-colors ${
+                                      checked ? '' : `${divider.replace('border-', 'border-')} ${modalBg} ${rowHov}`
                                     }`}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={checked}
                                       onChange={() => toggleStudent(student.id)}
-                                      className="accent-indigo-600 w-3.5 h-3.5 flex-shrink-0"
+                                      className="w-3.5 h-3.5 flex-shrink-0 accent-amber-400"
                                     />
                                     <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-semibold text-gray-900 truncate">{student.name}</p>
-                                      <p className="text-[10px] text-gray-500 truncate">{student.usn} · {student.email}</p>
+                                      <p className={`text-xs font-semibold ${txt} truncate`}>{student.name}</p>
+                                      <p className={`text-[10px] ${sub} truncate`}>{student.usn} · {student.email}</p>
                                     </div>
                                     <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
                                       {student.cgpa && (
-                                        <span className="text-[10px] font-bold text-indigo-600">{parseFloat(student.cgpa).toFixed(2)}</span>
+                                        <span className="text-[10px] font-bold text-amber-600">{parseFloat(student.cgpa).toFixed(2)}</span>
                                       )}
                                       {student.branch && (
-                                        <span className="text-[10px] text-gray-400">{student.branch}</span>
+                                        <span className={`text-[10px] ${sub}`}>{student.branch}</span>
                                       )}
                                     </div>
                                   </label>
@@ -724,13 +727,13 @@ function PlacementDrivesPage() {
                               const q = manualSearch.toLowerCase();
                               return !q || s.name?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q) || s.usn?.toLowerCase().includes(q);
                             }).length === 0 && (
-                              <p className="text-xs text-gray-400 text-center py-6">No students found</p>
+                              <p className={`text-xs ${sub} text-center py-6`}>No students found</p>
                             )}
                           </div>
                         )}
 
                         {/* Enroll footer */}
-                        <div className="p-3 border-t border-gray-200 flex-shrink-0 space-y-2">
+                        <div className={`p-3 border-t ${divider} flex-shrink-0 space-y-2`}>
                           {enrollResult && (
                             <p className={`text-xs text-center font-medium ${enrollResult.error ? 'text-red-600' : 'text-emerald-600'}`}>
                               {enrollResult.error || `✓ ${enrollResult.enrolled} enrolled${enrollResult.skipped > 0 ? `, ${enrollResult.skipped} already added` : ''}`}
@@ -740,9 +743,10 @@ function PlacementDrivesPage() {
                             type="button"
                             onClick={handleEnroll}
                             disabled={selectedStudentIds.length === 0 || enrolling}
-                            className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                            style={{ background: '#f7b545' }}
+                            className="w-full py-2 text-[#1a1a1e] text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
                           >
-                            {enrolling && <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                            {enrolling && <div className="w-3 h-3 border-2 border-[#1a1a1e]/30 border-t-[#1a1a1e] rounded-full animate-spin" />}
                             {enrolling ? 'Enrolling…' : `Enroll ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ''}Student${selectedStudentIds.length !== 1 ? 's' : ''}`}
                           </button>
                         </div>
@@ -754,27 +758,29 @@ function PlacementDrivesPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100 bg-gray-50 flex-shrink-0">
+            <div className={`flex justify-end gap-3 px-4 sm:px-6 py-4 sm:py-5 border-t ${divider} ${panelBg} flex-shrink-0`}>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
                 disabled={saving}
-                className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className={`px-5 py-2.5 border ${divider} ${txt} text-sm font-semibold hover:opacity-70 transition-opacity disabled:opacity-50`}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                style={{ background: '#f7b545' }}
+                className="px-6 py-2.5 text-[#1a1a1e] text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
                 onClick={handleSubmit}
               >
-                {saving && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                {saving && <div className="w-4 h-4 border-2 border-[#1a1a1e]/30 border-t-[#1a1a1e] rounded-full animate-spin" />}
                 {saving ? 'Saving…' : modalMode === 'add' ? 'Create Drive' : 'Save Changes'}
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Attendees Modal */}
