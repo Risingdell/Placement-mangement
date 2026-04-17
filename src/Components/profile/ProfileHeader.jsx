@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useStudent } from '../../context/StudentContext';
 import { resolveFileUrl } from '../../services/api';
 
-function ProfileHeader({ profile, completion = 0 }) {
+function ProfileHeader({ profile, completion = 0, isLight = false }) {
   const { uploadPhoto, updateBasicInfo, fetchProfile } = useStudent();
 
   const name = profile?.full_name || 'Student Name';
@@ -82,25 +82,39 @@ function ProfileHeader({ profile, completion = 0 }) {
 
   return (
     <>
-      <div className="bg-[#1f1f1f] rounded-xl border border-[#2f2f2f] p-6 mb-6 relative overflow-hidden text-[#f5f5f5]">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-[#ffa116] via-[#ffd37a] to-[#ffa116]"></div>
+      <div className={`rounded-xl border p-6 mb-6 relative overflow-hidden ${
+        isLight
+          ? 'bg-gradient-to-br from-[#eef2ff] via-[#f0f4ff] to-[#e8edf8] border-[#c7d2fe] text-[#1e1b4b]'
+          : 'bg-[#1f1f1f] border-[#2f2f2f] text-[#f5f5f5]'
+      }`}>
+        <div className={`absolute top-0 left-0 w-full h-px bg-gradient-to-r ${
+          isLight
+            ? 'from-[#6366f1] via-[#818cf8] to-[#6366f1]'
+            : 'from-[#ffa116] via-[#ffd37a] to-[#ffa116]'
+        }`}></div>
 
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="relative">
-            <div className="w-24 h-24 rounded-xl border border-[#3b3b3b] overflow-hidden bg-[#2a2a2a] flex items-center justify-center">
+            <div className={`w-24 h-24 rounded-xl overflow-hidden flex items-center justify-center border ${
+              isLight ? 'border-[#c7d2fe] bg-[#e0e7ff]' : 'border-[#3b3b3b] bg-[#2a2a2a]'
+            }`}>
               {uploadingPhoto ? (
-                <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Uploading...</span>
+                <span style={{ fontSize: '0.75rem', color: isLight ? '#6366f1' : '#9ca3af' }}>Uploading...</span>
               ) : avatarUrl ? (
                 <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-[10px] text-[#a3a3a3]">NO PHOTO</span>
+                <span className={`text-[10px] ${isLight ? 'text-[#6366f1]' : 'text-[#a3a3a3]'}`}>NO PHOTO</span>
               )}
             </div>
             <button
               onClick={handlePhotoClick}
               disabled={uploadingPhoto}
               title="Change profile photo"
-              className="absolute -bottom-1 -right-1 bg-[#262626] p-1.5 rounded-lg hover:bg-[#333] transition-colors border border-[#404040] cursor-pointer"
+              className={`absolute -bottom-1 -right-1 p-1.5 rounded-lg transition-colors border cursor-pointer ${
+                isLight
+                  ? 'bg-white border-[#c7d2fe] hover:bg-[#e0e7ff] text-[#4f46e5]'
+                  : 'bg-[#262626] border-[#404040] hover:bg-[#333] text-[#a3a3a3]'
+              }`}
             >
               CAM
             </button>
@@ -114,43 +128,49 @@ function ProfileHeader({ profile, completion = 0 }) {
           </div>
 
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl font-semibold text-[#f5f5f5] mb-1">{name}</h1>
-            <p className="text-[#a3a3a3] text-sm mb-3 flex flex-wrap justify-center md:justify-start gap-3 items-center">
-              <span className="bg-[#2a2a2a] px-2 py-1 rounded text-[#d1d5db] font-medium border border-[#3a3a3a]">
+            <h1 className={`text-2xl font-semibold mb-1 ${isLight ? 'text-[#1e1b4b]' : 'text-[#f5f5f5]'}`}>{name}</h1>
+            <p className={`text-sm mb-3 flex flex-wrap justify-center md:justify-start gap-3 items-center ${isLight ? 'text-[#4f46e5]' : 'text-[#a3a3a3]'}`}>
+              <span className={`px-2 py-1 rounded font-medium border ${isLight ? 'bg-white text-[#4f46e5] border-[#c7d2fe]' : 'bg-[#2a2a2a] text-[#d1d5db] border-[#3a3a3a]'}`}>
                 {usn}
               </span>
-              <span className="hidden md:inline text-[#4b5563]">|</span>
+              <span className={`hidden md:inline ${isLight ? 'text-[#a5b4fc]' : 'text-[#4b5563]'}`}>|</span>
               <span>{branch}</span>
               {batch && (
                 <>
-                  <span className="hidden md:inline text-[#4b5563]">|</span>
+                  <span className={`hidden md:inline ${isLight ? 'text-[#a5b4fc]' : 'text-[#4b5563]'}`}>|</span>
                   <span>{batch}</span>
                 </>
               )}
               {phone && (
                 <>
-                  <span className="hidden md:inline text-[#4b5563]">|</span>
+                  <span className={`hidden md:inline ${isLight ? 'text-[#a5b4fc]' : 'text-[#4b5563]'}`}>|</span>
                   <span>{phone}</span>
                 </>
               )}
               {whatsappNumber && (
                 <>
-                  <span className="hidden md:inline text-[#4b5563]">|</span>
+                  <span className={`hidden md:inline ${isLight ? 'text-[#a5b4fc]' : 'text-[#4b5563]'}`}>|</span>
                   <span>WA: {whatsappNumber}</span>
                 </>
               )}
             </p>
 
             <div className="flex flex-col gap-1 w-full max-w-md">
-              <div className="flex justify-between text-xs font-semibold text-[#9ca3af] mb-0.5">
-                <span>Profile Completion</span>
-                <span className={completion === 100 ? 'text-emerald-400' : 'text-[#ffa116]'}>
+              <div className="flex justify-between text-xs font-semibold mb-0.5">
+                <span className={isLight ? 'text-[#6366f1]' : 'text-[#9ca3af]'}>Profile Completion</span>
+                <span className={completion === 100 ? 'text-emerald-500' : isLight ? 'text-[#f59e0b]' : 'text-[#ffa116]'}>
                   {completion}% {completion >= 100 ? '(Complete)' : '(In Progress)'}
                 </span>
               </div>
-              <div className="w-full bg-[#2a2a2a] rounded-full h-2.5 overflow-hidden border border-[#3a3a3a]">
+              <div className={`w-full h-2.5 overflow-hidden border ${isLight ? 'bg-[#e0e7ff] border-[#c7d2fe]' : 'bg-[#2a2a2a] rounded-full border-[#3a3a3a]'}`}>
                 <div
-                  className={`h-full rounded-full transition-all duration-1000 ease-out ${completion === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#ffa116] to-[#ffcc80]'}`}
+                  className={`h-full transition-all duration-1000 ease-out ${
+                    completion === 100
+                      ? 'bg-emerald-500'
+                      : isLight
+                        ? 'bg-gradient-to-r from-[#6366f1] to-[#818cf8]'
+                        : 'bg-gradient-to-r from-[#ffa116] to-[#ffcc80]'
+                  }`}
                   style={{ width: `${completion}%` }}
                 ></div>
               </div>
@@ -160,7 +180,11 @@ function ProfileHeader({ profile, completion = 0 }) {
           <div className="hidden md:block">
             <button
               onClick={openEditModal}
-              className="px-4 py-2 bg-[#ffa116] text-[#1a1a1a] rounded-lg hover:bg-[#ffb84d] font-medium transition-colors cursor-pointer border-none"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer border-none ${
+                isLight
+                  ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
+                  : 'bg-[#ffa116] text-[#1a1a1a] hover:bg-[#ffb84d]'
+              }`}
             >
               Edit Profile
             </button>
@@ -168,7 +192,11 @@ function ProfileHeader({ profile, completion = 0 }) {
           <div className="md:hidden">
             <button
               onClick={openEditModal}
-              className="px-4 py-2 bg-[#ffa116] text-[#1a1a1a] rounded-lg hover:bg-[#ffb84d] font-medium transition-colors cursor-pointer border-none"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer border-none ${
+                isLight
+                  ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
+                  : 'bg-[#ffa116] text-[#1a1a1a] hover:bg-[#ffb84d]'
+              }`}
             >
               Edit Profile
             </button>

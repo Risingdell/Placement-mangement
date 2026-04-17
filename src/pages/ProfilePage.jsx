@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useStudent } from '../context/StudentContext';
 import ProfileHeader from '../Components/profile/ProfileHeader';
 import AcademicInfo from '../Components/profile/AcademicInfo';
@@ -11,6 +12,8 @@ import Achievements from '../Components/profile/Achievements';
 import ProfessionalProfile from '../Components/profile/ProfessionalProfile';
 
 function ProfilePage() {
+  const { theme } = useOutletContext() || {};
+  const isLight = theme === 'light';
   const { profile, eligibility, fetchProfile, fetchEligibility } = useStudent();
   const [activeTab, setActiveTab] = useState('academic');
 
@@ -41,7 +44,7 @@ function ProfilePage() {
 
   return (
     <div className="max-w-7xl mx-auto py-2 animate-in fade-in duration-500 text-[#e4e4e7]">
-      <ProfileHeader profile={profile} completion={completion} />
+      <ProfileHeader profile={profile} completion={completion} isLight={isLight} />
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">
         <div className="xl:col-span-8 space-y-6">
