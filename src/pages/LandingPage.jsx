@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import sitLogo from '../assets/image.webp';
+import sitLogo from '../assets/placement-logo.jpeg';
 import universityLogo from '../assets/Srinivas_University_logo.webp';
 
 function LandingPage() {
