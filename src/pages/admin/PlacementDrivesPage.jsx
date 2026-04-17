@@ -235,6 +235,7 @@ function PlacementDrivesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Placement Drives</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Create and manage recruitment drives</p>
         </div>
         <button
           onClick={openAdd}
