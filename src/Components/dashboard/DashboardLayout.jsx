@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopNavbar from './TopNavbar';
 import CompactKPIBar from './CompactKPIBar';
 
 function DashboardLayout() {
+  const location = useLocation();
+  const isDashboardHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [studentTheme, setStudentTheme] = useState(() => {
@@ -40,7 +42,7 @@ function DashboardLayout() {
           onThemeChange={setStudentTheme}
         />
 
-        <CompactKPIBar theme={studentTheme} />
+        {isDashboardHome && <CompactKPIBar theme={studentTheme} />}
 
         <main
           className={`flex-1 relative z-10 ${

@@ -44,9 +44,9 @@ function StatsCards({ stats }) {
             {cards.map((card, index) => (
                 <div
                     key={index}
-                    className={`bg-white rounded-xl p-4 border ${card.border} shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center text-center`}
+                    className={`bg-white p-4 border ${card.border} shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center text-center`}
                 >
-                    <div className={`w-10 h-10 rounded-full ${card.color} flex items-center justify-center text-xl mb-2`}>
+                    <div className={`w-10 h-10 ${card.color} flex items-center justify-center text-xl mb-2`}>
                         {card.icon}
                     </div>
                     <div className={`font-bold text-gray-800 ${card.isText ? 'text-lg' : 'text-2xl'}`}>

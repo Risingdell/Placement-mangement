@@ -19,7 +19,7 @@ function AcademicGrid({ academic }) {
             {/* Primary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {items.map((item, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                    <div key={idx} className="bg-white p-4 border border-gray-100 shadow-sm flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
                         <span className={`text-2xl mb-2 ${item.color}`}>{item.icon}</span>
                         <span className="text-xl font-bold text-gray-800">{item.value}</span>
                         <span className="text-xs text-gray-500 uppercase tracking-wide">{item.label}</span>
@@ -28,14 +28,14 @@ function AcademicGrid({ academic }) {
             </div>
 
             {/* Education Details */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div className="bg-white border border-gray-100 shadow-sm p-5">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-gray-700">Education History</h3>
                     <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer border-none bg-transparent">Edit</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {education.map((item, idx) => (
-                        <div key={idx} className="bg-gray-50 p-3 rounded-lg flex flex-col">
+                        <div key={idx} className="bg-gray-50 p-3 flex flex-col">
                             <span className="text-xs text-gray-500 mb-1">{item.label}</span>
                             <span className="font-semibold text-gray-800">{item.value}</span>
                         </div>

@@ -48,7 +48,7 @@ function ProfilePage() {
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">
         <div className="xl:col-span-8 space-y-6">
-          <div className="bg-[#1d1d22] rounded-2xl border border-[#2f2f36] shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+          <div className="bg-[#1d1d22] border border-[#2f2f36] shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
             <div className="w-full border-b border-[#2f2f36]">
               <div
                 className="w-full overflow-visible md:overflow-x-scroll md:overflow-y-hidden md:overscroll-x-contain md:whitespace-nowrap md:[-ms-overflow-style:none] md:[scrollbar-width:none] md:[&::-webkit-scrollbar]:hidden"
@@ -61,7 +61,9 @@ function ProfilePage() {
                       className={`px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 outline-none cursor-pointer bg-transparent ${
                         activeTab === tab.id
                           ? 'border-[#f7b545] text-[#f7b545]'
-                          : 'border-transparent text-[#9ca3af] hover:text-[#f4f4f5] hover:border-[#4b5563]'
+                          : isLight
+                            ? 'border-transparent text-[#6b7280] hover:text-[#111827] hover:border-[#111827]'
+                            : 'border-transparent text-[#9ca3af] hover:text-[#f4f4f5] hover:border-[#4b5563]'
                       }`}
                     >
                       {tab.label}

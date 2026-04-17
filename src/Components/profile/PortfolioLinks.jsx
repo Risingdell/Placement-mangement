@@ -124,20 +124,20 @@ function PortfolioLinks() {
         </div>
         <button
           onClick={openAdd}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition"
         >
           + Add Portfolio
         </button>
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        <div className="border border-dashed border-gray-300 p-8 text-center text-gray-500">
           No portfolio entries added yet.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {items.map((entry) => (
-            <div key={entry.id} className="rounded-lg border border-gray-200 bg-white p-4">
+            <div key={entry.id} className="border border-gray-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h4 className="text-base font-semibold text-gray-900">{entry.title}</h4>
@@ -153,13 +153,13 @@ function PortfolioLinks() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEdit(entry)}
-                    className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                    className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => onDelete(entry.id)}
-                    className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    className="px-3 py-1.5 text-sm bg-red-100 text-red-700 hover:bg-red-200"
                   >
                     Delete
                   </button>
@@ -187,7 +187,7 @@ function PortfolioLinks() {
       {showModal &&
         createPortal(
           <div className="fixed inset-0 z-[1000] bg-black/50 p-4 flex items-center justify-center" onClick={closeModal}>
-            <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h4 className="text-lg font-semibold text-gray-900">{editing ? 'Edit Portfolio' : 'Add Portfolio'}</h4>
                 <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">x</button>
@@ -200,7 +200,7 @@ function PortfolioLinks() {
                     type="text"
                     value={form.title}
                     onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="Personal Portfolio Website"
                   />
                   {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title}</p>}
@@ -212,7 +212,7 @@ function PortfolioLinks() {
                     type="url"
                     value={form.portfolio_url}
                     onChange={(e) => setForm((prev) => ({ ...prev, portfolio_url: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="https://your-portfolio.com"
                   />
                   {errors.portfolio_url && <p className="text-xs text-red-600 mt-1">{errors.portfolio_url}</p>}
@@ -224,7 +224,7 @@ function PortfolioLinks() {
                     value={form.description}
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="What this portfolio showcases"
                   />
                   {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description}</p>}
@@ -236,7 +236,7 @@ function PortfolioLinks() {
                     type="text"
                     value={form.built_with}
                     onChange={(e) => setForm((prev) => ({ ...prev, built_with: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="React, Tailwind, Node.js"
                   />
                   {errors.built_with && <p className="text-xs text-red-600 mt-1">{errors.built_with}</p>}
@@ -248,7 +248,7 @@ function PortfolioLinks() {
                     value={form.build_details}
                     onChange={(e) => setForm((prev) => ({ ...prev, build_details: e.target.value }))}
                     rows={4}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="Architecture, deployment, API design, auth, etc."
                   />
                   {errors.build_details && <p className="text-xs text-red-600 mt-1">{errors.build_details}</p>}
@@ -259,7 +259,7 @@ function PortfolioLinks() {
                     type="button"
                     onClick={closeModal}
                     disabled={submitting}
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
                     Cancel
                   </button>
