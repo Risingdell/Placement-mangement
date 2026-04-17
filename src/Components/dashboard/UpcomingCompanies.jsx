@@ -13,17 +13,17 @@ function UpcomingCompanies() {
   }, []);
 
   // Create duplicated array for infinite carousel effect
-  const carouselCompanies = companies.length > 0 ? [...companies, ...companies] : [];
+  const carouselCompanies = companies.length > 0 ? [...companies, ...companies, ...companies, ...companies] : [];
 
   return (
     <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
       <style>{`
-        @keyframes slideRight {
+        @keyframes slideLeft {
           0% {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(calc(100% * ${companies.length || 1}));
+            transform: translateX(-100%);
           }
         }
         
@@ -37,7 +37,7 @@ function UpcomingCompanies() {
         }
         
         .carousel-track {
-          animation: slideRight 30s linear infinite;
+          animation: slideLeft 30s linear infinite;
         }
         
         .shimmer-card {
@@ -76,12 +76,15 @@ function UpcomingCompanies() {
         <p className="text-sm text-zinc-500 text-center py-8">No upcoming companies at this time.</p>
       ) : (
         <div className="overflow-hidden">
-          <div className="carousel-track flex gap-3" style={{ width: `calc(200% + 1.5rem)` }}>
+          <div className="carousel-track flex gap-3" style={{ width: '400%' }}>
             {carouselCompanies.map((company, idx) => (
               <div
                 key={`${company.id}-${idx}`}
                 className="rounded-xl border border-[#2f2f36] bg-[#24242b] p-4 flex flex-col items-center text-center hover:border-[#3d3d47] hover:bg-[#26262e] transition-all flex-shrink-0 shimmer-card"
-                style={{ width: 'calc(25% - 0.75rem)', minWidth: 'calc(25% - 0.75rem)' }}
+                style={{ 
+                  flex: '0 0 calc(6.25% - 0.6rem)',
+                  minWidth: 'calc(6.25% - 0.6rem)'
+                }}
               >
                 {company.logo_url ? (
                   <img
