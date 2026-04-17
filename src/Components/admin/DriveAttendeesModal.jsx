@@ -1,7 +1,26 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
+import {
+  MdClose, MdPeopleAlt, MdPersonAdd, MdPersonRemove,
+  MdSearch, MdAdd, MdCheckBox, MdCheckBoxOutlineBlank,
+} from 'react-icons/md';
 import { getDriveAttendees, addDriveAttendees, removeDriveAttendee, getNonAttendees } from '../../services/attendeeService';
 
 function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
+  const { adminTheme } = useOutletContext() || {};
+  const isLight = adminTheme !== 'dark';
+
+  const modalBg = isLight ? 'bg-white'        : 'bg-[#1e1e22]';
+  const txt     = isLight ? 'text-gray-900'   : 'text-[#e8e8ed]';
+  const sub     = isLight ? 'text-gray-500'   : 'text-[#8e8e93]';
+  const inp     = isLight ? 'bg-white border-gray-300 text-gray-900'    : 'bg-[#2a2a2f] border-[#3f3f46] text-[#e8e8ed]';
+  const divider = isLight ? 'border-gray-200' : 'border-[#2f2f34]';
+  const theadBg = isLight ? 'bg-gray-50'      : 'bg-[#252528]';
+  const rowHov  = isLight ? 'hover:bg-gray-50' : 'hover:bg-[#28282c]';
+  const overlay = isLight ? 'bg-gray-900/50'  : 'bg-black/60';
+  const panelBg = isLight ? 'bg-blue-50 border-blue-200' : 'bg-blue-950/30 border-blue-900/50';
+
   const [attendees, setAttendees] = useState([]);
   const [nonAttendees, setNonAttendees] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -10,394 +29,309 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const [tab, setTab] = useState('attendees'); // 'attendees' or 'add'
+  const [tab, setTab] = useState('attendees');
   const [addingAttendees, setAddingAttendees] = useState(false);
 
-  // Fetch attendees on modal open
   useEffect(() => {
-    if (isOpen && drive) {
-      fetchAttendees();
-    }
+    if (isOpen && drive) fetchAttendees();
   }, [isOpen, drive]);
 
   const fetchAttendees = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await getDriveAttendees(drive.id);
-
-      if (response.success) {
-        setAttendees(response.data);
-      } else {
-        setError('Failed to load attendees');
-      }
-    } catch (err) {
-      console.error('Error fetching attendees:', err);
-      setError('Error loading attendees');
-    } finally {
-      setLoading(false);
-    }
+      setLoading(true); setError(null);
+      const res = await getDriveAttendees(drive.id);
+      if (res.success) setAttendees(res.data);
+      else setError('Failed to load attendees');
+    } catch { setError('Error loading attendees'); }
+    finally { setLoading(false); }
   };
 
   const fetchNonAttendees = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await getNonAttendees(drive.id, {
+      setLoading(true); setError(null);
+      const res = await getNonAttendees(drive.id, {
         search: searchTerm || undefined,
-        filter: filterType === 'all' ? undefined : filterType
+        filter: filterType === 'all' ? undefined : filterType,
       });
-
-      if (response.success) {
-        setNonAttendees(response.data);
-      } else {
-        setError('Failed to load non-attendees');
-      }
-    } catch (err) {
-      console.error('Error fetching non-attendees:', err);
-      setError('Error loading student list');
-    } finally {
-      setLoading(false);
-    }
+      if (res.success) setNonAttendees(res.data);
+      else setError('Failed to load students');
+    } catch { setError('Error loading student list'); }
+    finally { setLoading(false); }
   };
 
   const handleTabChange = (newTab) => {
     setTab(newTab);
-    if (newTab === 'add') {
-      setSelectedStudents([]);
-      setSearchTerm('');
-      fetchNonAttendees();
-    }
+    if (newTab === 'add') { setSelectedStudents([]); setSearchTerm(''); fetchNonAttendees(); }
   };
 
-  const handleStudentSelect = (studentId) => {
-    setSelectedStudents(prev =>
-      prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
-    );
-  };
+  const handleStudentSelect = (id) =>
+    setSelectedStudents(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const handleAddAttendees = async () => {
-    if (selectedStudents.length === 0) {
-      setError('Please select at least one student');
-      return;
-    }
-
+    if (!selectedStudents.length) { setError('Please select at least one student'); return; }
     try {
-      setAddingAttendees(true);
-      setError(null);
-      const response = await addDriveAttendees(drive.id, selectedStudents);
-
-      if (response.success) {
+      setAddingAttendees(true); setError(null);
+      const res = await addDriveAttendees(drive.id, selectedStudents);
+      if (res.success) {
         setSuccessMessage(`Successfully added ${selectedStudents.length} attendee(s)`);
         setSelectedStudents([]);
         setTab('attendees');
         fetchAttendees();
         onAttendeesUpdated?.();
-
-        // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(''), 3000);
-      } else {
-        setError(response.message || 'Failed to add attendees');
-      }
-    } catch (err) {
-      console.error('Error adding attendees:', err);
-      setError('Error adding attendees');
-    } finally {
-      setAddingAttendees(false);
-    }
+      } else setError(res.message || 'Failed to add attendees');
+    } catch { setError('Error adding attendees'); }
+    finally { setAddingAttendees(false); }
   };
 
   const handleRemoveAttendee = async (attendeeId, studentName) => {
-    if (!confirm(`Remove ${studentName} from attendees?`)) {
-      return;
-    }
-
+    if (!confirm(`Remove ${studentName} from attendees?`)) return;
     try {
-      const response = await removeDriveAttendee(drive.id, attendeeId);
-
-      if (response.success) {
+      const res = await removeDriveAttendee(drive.id, attendeeId);
+      if (res.success) {
         setAttendees(attendees.filter(a => a.user_id !== attendeeId));
         setSuccessMessage(`${studentName} removed from attendees`);
         onAttendeesUpdated?.();
         setTimeout(() => setSuccessMessage(''), 3000);
-      } else {
-        setError('Failed to remove attendee');
-      }
-    } catch (err) {
-      console.error('Error removing attendee:', err);
-      setError('Error removing attendee');
-    }
+      } else setError('Failed to remove attendee');
+    } catch { setError('Error removing attendee'); }
   };
 
   if (!isOpen || !drive) return null;
 
-  const stats = {
-    totalAttended: attendees.length,
-    totalApplied: nonAttendees.filter(s => s.applied_count > 0).length,
-    applied: nonAttendees.filter(s => s.applied_count > 0),
-    notApplied: nonAttendees.filter(s => s.applied_count === 0)
-  };
+  const allSelected = nonAttendees.length > 0 && selectedStudents.length === nonAttendees.length;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        ></div>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div className={`absolute inset-0 ${overlay} backdrop-blur-sm`} onClick={onClose} />
 
-        <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                {drive.company_name} - Manage Attendees
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Drive Date: {new Date(drive.drive_date).toLocaleDateString()} | Total Attended: {stats.totalAttended}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+      <div className={`relative w-full max-w-4xl flex flex-col shadow-2xl ${modalBg} z-10 max-h-[90vh]`}>
+        {/* Header */}
+        <div className={`flex items-start justify-between px-6 py-5 border-b ${divider} flex-shrink-0`}>
+          <div>
+            <h3 className={`text-xl font-bold ${txt}`}>{drive.company_name} — Manage Attendees</h3>
+            <p className={`text-sm ${sub} mt-1`}>
+              Drive Date: {new Date(drive.drive_date).toLocaleDateString()} · Total Attended: {attendees.length}
+            </p>
           </div>
+          <button onClick={onClose} className={`${sub} hover:opacity-70 transition-opacity mt-0.5`}>
+            <MdClose size={24} />
+          </button>
+        </div>
 
-          {/* Messages */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-          {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200">
-              <p className="text-sm text-green-800">{successMessage}</p>
-            </div>
-          )}
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 border-b border-gray-200">
-            <button
-              onClick={() => handleTabChange('attendees')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                tab === 'attendees'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Current Attendees ({stats.totalAttended})
-            </button>
-            <button
-              onClick={() => handleTabChange('add')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                tab === 'add'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Add Students
-            </button>
+        {/* Alerts */}
+        {error && (
+          <div className={`mx-6 mt-4 px-4 py-3 border ${isLight ? 'bg-red-50 border-red-200 text-red-700' : 'bg-red-950/30 border-red-900/50 text-red-400'} text-sm`}>
+            {error}
           </div>
+        )}
+        {successMessage && (
+          <div className={`mx-6 mt-4 px-4 py-3 border ${isLight ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400'} text-sm`}>
+            {successMessage}
+          </div>
+        )}
 
-          {/* Content */}
-          <div className="max-h-[600px] overflow-y-auto">
-            {tab === 'attendees' ? (
-              // Attendees List
-              <div>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="mt-2 text-gray-600">Loading attendees...</p>
-                  </div>
-                ) : attendees.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500">No attendees marked yet</p>
-                    <button
-                      onClick={() => handleTabChange('add')}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      Add First Attendees
-                    </button>
-                  </div>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">USN</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Attendance Key</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">CGPA</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {attendees.map(attendee => (
-                        <tr key={attendee.user_id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium text-gray-900">{attendee.full_name}</td>
-                          <td className="px-4 py-3 text-gray-600">{attendee.usn}</td>
-                          <td className="px-4 py-3">
-                            <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-900 font-bold text-sm tracking-wide">
-                              {attendee.attendance_key}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {attendee.cgpa ? attendee.cgpa.toFixed(2) : 'N/A'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <button
-                              onClick={() => handleRemoveAttendee(attendee.user_id, attendee.full_name)}
-                              className="px-3 py-1 text-red-600 hover:bg-red-50 transition"
-                            >
-                              Remove
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            ) : (
-              // Add Attendees
-              <div>
-                {/* Search and Filter */}
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Search Students</label>
-                    <input
-                      type="text"
-                      placeholder="Search by name, USN, or email..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+        {/* Tabs */}
+        <div className={`flex border-b ${divider} flex-shrink-0 mx-0`}>
+          <button
+            onClick={() => handleTabChange('attendees')}
+            className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold transition-colors ${
+              tab === 'attendees'
+                ? `${txt} border-b-2 border-[#f7b545]`
+                : `${sub} hover:opacity-80`
+            }`}
+          >
+            <MdPeopleAlt size={18} />
+            Current Attendees ({attendees.length})
+          </button>
+          <button
+            onClick={() => handleTabChange('add')}
+            className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold transition-colors ${
+              tab === 'add'
+                ? `${txt} border-b-2 border-[#f7b545]`
+                : `${sub} hover:opacity-80`
+            }`}
+          >
+            <MdPersonAdd size={18} />
+            Add Students
+          </button>
+        </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter</label>
-                    <select
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="all">All Students</option>
-                      <option value="applied">Applied for this drive</option>
-                      <option value="not_applied">Haven't applied</option>
-                    </select>
-                  </div>
-
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {tab === 'attendees' ? (
+            <div className="p-6">
+              {loading ? (
+                <div className="text-center py-10">
+                  <div className={`inline-block h-8 w-8 animate-spin border-b-2 border-[#f7b545]`} style={{ borderRadius: '50%' }} />
+                  <p className={`mt-3 text-sm ${sub}`}>Loading attendees…</p>
+                </div>
+              ) : attendees.length === 0 ? (
+                <div className="text-center py-14">
+                  <MdPeopleAlt size={48} className={`mx-auto mb-3 ${sub}`} />
+                  <p className={`text-sm font-semibold ${txt}`}>No attendees marked yet</p>
                   <button
-                    onClick={fetchNonAttendees}
-                    disabled={loading}
-                    className="w-full px-4 py-2 bg-blue-100 text-blue-600 hover:bg-blue-200 disabled:opacity-50"
+                    onClick={() => handleTabChange('add')}
+                    style={{ background: '#f7b545' }}
+                    className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 text-[#1a1a1e] text-sm font-semibold hover:opacity-90 transition-opacity"
                   >
-                    {loading ? 'Searching...' : 'Search'}
+                    <MdPersonAdd size={18} />
+                    Add First Attendees
                   </button>
                 </div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className={`${theadBg} border-b ${divider} sticky top-0`}>
+                    <tr>
+                      {['Name', 'USN', 'Attendance Key', 'CGPA', 'Action'].map((h, i) => (
+                        <th key={h} className={`px-4 py-3 text-left text-xs font-semibold ${sub} uppercase tracking-wider ${i === 4 ? 'text-right' : ''}`}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${divider}`}>
+                    {attendees.map(a => (
+                      <tr key={a.user_id} className={`${rowHov} transition-colors`}>
+                        <td className={`px-4 py-3 font-semibold ${txt}`}>{a.full_name}</td>
+                        <td className={`px-4 py-3 font-mono text-xs ${sub}`}>{a.usn}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-3 py-1 text-xs font-bold tracking-wide ${isLight ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-amber-950/30 text-amber-400 border border-amber-900/40'}`}>
+                            {a.attendance_key}
+                          </span>
+                        </td>
+                        <td className={`px-4 py-3 ${sub}`}>{a.cgpa ? a.cgpa.toFixed(2) : 'N/A'}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleRemoveAttendee(a.user_id, a.full_name)}
+                            className="inline-flex items-center gap-1 text-red-500 hover:opacity-70 text-xs font-semibold transition-opacity"
+                          >
+                            <MdPersonRemove size={16} />
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          ) : (
+            <div className="p-6">
+              {/* Search & Filter */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                <div className="relative sm:col-span-2">
+                  <MdSearch size={18} className={`absolute left-3 top-1/2 -translate-y-1/2 ${sub}`} />
+                  <input
+                    type="text"
+                    placeholder="Search by name, USN or email…"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className={`w-full pl-9 pr-4 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
+                  />
+                </div>
+                <select
+                  value={filterType}
+                  onChange={e => setFilterType(e.target.value)}
+                  className={`w-full px-3 py-2.5 border ${inp} text-sm outline-none focus:border-[#f7b545]`}
+                >
+                  <option value="all">All Students</option>
+                  <option value="applied">Applied for this drive</option>
+                  <option value="not_applied">Haven't applied</option>
+                </select>
+              </div>
+              <button
+                onClick={fetchNonAttendees}
+                disabled={loading}
+                style={{ background: '#f7b545' }}
+                className="mb-5 flex items-center gap-2 px-4 py-2 text-[#1a1a1e] text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                <MdSearch size={18} />
+                {loading ? 'Searching…' : 'Search'}
+              </button>
 
-                {/* Student List */}
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="mt-2 text-gray-600">Loading students...</p>
+              {loading ? (
+                <div className="text-center py-10">
+                  <div className={`inline-block h-8 w-8 animate-spin border-b-2 border-[#f7b545]`} style={{ borderRadius: '50%' }} />
+                  <p className={`mt-3 text-sm ${sub}`}>Loading students…</p>
+                </div>
+              ) : nonAttendees.length === 0 ? (
+                <div className={`text-center py-8 text-sm ${sub}`}>No students found matching criteria</div>
+              ) : (
+                <>
+                  <div className={`mb-4 px-4 py-2.5 border ${panelBg} text-sm ${isLight ? 'text-blue-800' : 'text-blue-300'}`}>
+                    Selected: <strong>{selectedStudents.length}</strong> student(s)
                   </div>
-                ) : nonAttendees.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">No students found matching criteria</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="mb-4 p-3 bg-blue-50">
-                      <p className="text-sm text-blue-800">
-                        Selected: {selectedStudents.length} student(s)
-                      </p>
-                    </div>
-
-                    <table className="w-full text-sm mb-4">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left">
-                            <input
-                              type="checkbox"
-                              checked={selectedStudents.length === nonAttendees.length && nonAttendees.length > 0}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedStudents(nonAttendees.map(s => s.id));
-                                } else {
-                                  setSelectedStudents([]);
-                                }
-                              }}
-                            />
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-700">USN</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-700">CGPA</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-700">Applied</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {nonAttendees.map(student => (
-                          <tr key={student.id} className="hover:bg-gray-50">
+                  <table className="w-full text-sm">
+                    <thead className={`${theadBg} border-b ${divider} sticky top-0`}>
+                      <tr>
+                        <th className="px-4 py-3">
+                          <button onClick={() => setSelectedStudents(allSelected ? [] : nonAttendees.map(s => s.id))}>
+                            {allSelected
+                              ? <MdCheckBox size={18} className="text-[#f7b545]" />
+                              : <MdCheckBoxOutlineBlank size={18} className={sub} />
+                            }
+                          </button>
+                        </th>
+                        {['Name', 'USN', 'CGPA', 'Applied'].map(h => (
+                          <th key={h} className={`px-4 py-3 text-left text-xs font-semibold ${sub} uppercase tracking-wider`}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${divider}`}>
+                      {nonAttendees.map(s => {
+                        const checked = selectedStudents.includes(s.id);
+                        return (
+                          <tr key={s.id} className={`${rowHov} transition-colors cursor-pointer`} onClick={() => handleStudentSelect(s.id)}>
                             <td className="px-4 py-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedStudents.includes(student.id)}
-                                onChange={() => handleStudentSelect(student.id)}
-                              />
+                              {checked
+                                ? <MdCheckBox size={18} className="text-[#f7b545]" />
+                                : <MdCheckBoxOutlineBlank size={18} className={sub} />
+                              }
                             </td>
-                            <td className="px-4 py-3 font-medium text-gray-900">{student.full_name}</td>
-                            <td className="px-4 py-3 text-gray-600">{student.usn}</td>
-                            <td className="px-4 py-3 text-gray-600">
-                              {student.cgpa ? student.cgpa.toFixed(2) : 'N/A'}
-                            </td>
+                            <td className={`px-4 py-3 font-semibold ${txt}`}>{s.full_name}</td>
+                            <td className={`px-4 py-3 font-mono text-xs ${sub}`}>{s.usn}</td>
+                            <td className={`px-4 py-3 ${sub}`}>{s.cgpa ? s.cgpa.toFixed(2) : 'N/A'}</td>
                             <td className="px-4 py-3">
-                              {student.applied_count > 0 ? (
-                                <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-700">
-                                  Yes
-                                </span>
-                              ) : (
-                                <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600">
-                                  No
-                                </span>
-                              )}
+                              {s.applied_count > 0
+                                ? <span className="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700">Yes</span>
+                                : <span className={`px-2 py-0.5 text-xs font-semibold ${isLight ? 'bg-gray-100 text-gray-600' : 'bg-[#2a2a2f] text-[#8e8e93]'}`}>No</span>
+                              }
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
-          {/* Footer */}
-          <div className="mt-6 flex justify-end gap-3 pt-6 border-t border-gray-200">
-            {tab === 'add' && selectedStudents.length > 0 && (
-              <button
-                onClick={handleAddAttendees}
-                disabled={addingAttendees}
-                className="px-6 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition"
-              >
-                {addingAttendees ? 'Adding...' : `Add Selected (${selectedStudents.length})`}
-              </button>
-            )}
+        {/* Footer */}
+        <div className={`flex justify-end gap-3 px-6 py-5 border-t ${divider} ${isLight ? 'bg-gray-50' : 'bg-[#252528]'} flex-shrink-0`}>
+          {tab === 'add' && selectedStudents.length > 0 && (
             <button
-              onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
+              onClick={handleAddAttendees}
+              disabled={addingAttendees}
+              style={{ background: '#f7b545' }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-[#1a1a1e] text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Close
+              <MdAdd size={18} />
+              {addingAttendees ? 'Adding…' : `Add Selected (${selectedStudents.length})`}
             </button>
-          </div>
+          )}
+          <button
+            onClick={onClose}
+            className={`px-5 py-2.5 border ${divider} ${txt} text-sm font-semibold hover:opacity-70 transition-opacity`}
+          >
+            Close
+          </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
