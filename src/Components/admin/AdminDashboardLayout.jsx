@@ -204,10 +204,11 @@ function AdminDashboardLayout() {
   }, []);
 
   useEffect(() => {
+    if (!user || !['admin', 'tpo'].includes(user.role)) return;
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 30000);
     return () => clearInterval(interval);
-  }, [fetchAlerts]);
+  }, [fetchAlerts, user]);
 
   // Re-check when navigating back to messages page
   useEffect(() => {
