@@ -452,14 +452,14 @@ function AdminDashboardLayout() {
           </div>
         </header>
 
-        <section className={`sticky top-14 z-20 border-b backdrop-blur transition-all duration-200 ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'} ${isModalOpen ? 'hidden' : ''}`} id="info-strip">
+        {location.pathname === '/admin/dashboard' && !isModalOpen && <section className={`sticky top-14 z-20 border-b backdrop-blur transition-all duration-200 ${isLightTheme ? 'border-[#d1d5db] bg-[#f8fafc]/95' : 'border-[#2f2f34] bg-[#17171b]/95'}`} id="info-strip">
           <div className="mx-auto grid w-full max-w-[1400px] grid-cols-2 gap-3 px-4 py-3 md:px-6 lg:grid-cols-4">
             <InfoStripCard label="Workspace" value="Admin Portal" tone="text-[#f7b545]" theme={adminTheme} />
             <InfoStripCard label="Role" value={user?.role || 'Admin'} tone={isLightTheme ? 'text-[#111827]' : 'text-zinc-100'} theme={adminTheme} />
             <InfoStripCard label="Today" value={today} tone={isLightTheme ? 'text-[#111827]' : 'text-zinc-100'} theme={adminTheme} />
             <InfoStripCard label="Mode" value="Operations" tone={isLightTheme ? 'text-emerald-600' : 'text-emerald-400'} theme={adminTheme} />
           </div>
-        </section>
+        </section>}
 
         <main className={`relative z-10 flex-1 overflow-auto ${
           isLightTheme
