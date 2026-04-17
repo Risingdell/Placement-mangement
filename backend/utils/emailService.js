@@ -146,7 +146,7 @@ const sendDriveNotificationEmail = async ({ to, studentName, companyName, role, 
 };
 
 // Send inbox notification to eligible students
-const sendEligibleStudentInboxNotification = async ({ eligibleStudentIds, companyName, role, ctc, driveDate, applicationLink, driveId, senderId }) => {
+const sendEligibleStudentInboxNotification = async ({ eligibleStudentIds, companyName, role, ctc, driveDate, applicationLink, driveId, senderId, accessKeys }) => {
   if (!eligibleStudentIds || eligibleStudentIds.length === 0) {
     return null;
   }
@@ -161,20 +161,26 @@ const sendEligibleStudentInboxNotification = async ({ eligibleStudentIds, compan
     });
 
     const subject = `Placement Opportunity: ${companyName} - ${role}`;
-    const message = `You are eligible to apply for ${companyName} position of ${role} (${ctc} LPA). Drive Date: ${formattedDriveDate}. Click the link to apply.`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://placement-mangement.vercel.app';
+    const wallUrl = `${frontendUrl}/drive-wall?drive=${driveId}`;
 
-    // Prepare bulk insert values
-    const values = eligibleStudentIds.map(studentId => [
-      studentId,
-      senderId || 1, // admin user ID (fallback to 1)
-      subject,
-      message,
-      'Notification',
-      driveId,
-      applicationLink || null
-    ]);
+    // Prepare bulk insert values — one message per student with their unique key
+    const values = eligibleStudentIds.map(studentId => {
+      const key = accessKeys && accessKeys[studentId];
+      const message = key
+        ? `You are eligible for ${companyName} - ${role}${ctc ? ` (${ctc} LPA)` : ''}. Drive Date: ${formattedDriveDate}.\n\nYour private access key: ${key}\n\nUse this key at the link below to submit your application:\n${wallUrl}\n\nDo not share this key with anyone.`
+        : `You are eligible to apply for ${companyName} position of ${role}${ctc ? ` (${ctc} LPA)` : ''}. Drive Date: ${formattedDriveDate}. Click the link to apply.`;
+      return [
+        studentId,
+        senderId || 1,
+        subject,
+        message,
+        'Notification',
+        driveId,
+        key ? wallUrl : (applicationLink || null)
+      ];
+    });
 
-    // Insert bulk messages
     const query = `INSERT INTO inbox_messages
                    (recipient_id, sender_id, subject, message, message_type, related_drive_id, action_url)
                    VALUES ?`;

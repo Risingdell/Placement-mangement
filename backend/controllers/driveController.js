@@ -1,5 +1,12 @@
+const crypto = require('crypto');
 const { promisePool } = require('../config/database');
 const { sendDriveNotificationEmail, isEmailConfigured, sendEligibleStudentInboxNotification } = require('../utils/emailService');
+
+// Generates a readable access key e.g. "A3F9-B2D7"
+const generateAccessKey = () => {
+  const part = () => crypto.randomBytes(2).toString('hex').toUpperCase();
+  return `${part()}-${part()}`;
+};
 
 // @desc    Get all placement drives with eligibility check
 // @route   GET /api/drives
@@ -270,9 +277,44 @@ const createDrive = async (req, res) => {
             }
           }
 
-          // Send inbox messages to eligible students
+          // Generate access keys and store them, then send inbox messages
           if (eligibleStudents.length > 0) {
             try {
+              // Ensure table exists
+              await promisePool.query(`
+                CREATE TABLE IF NOT EXISTS drive_access_keys (
+                  id         INT AUTO_INCREMENT PRIMARY KEY,
+                  drive_id   INT NOT NULL,
+                  user_id    INT NOT NULL,
+                  access_key VARCHAR(20) NOT NULL UNIQUE,
+                  used       TINYINT(1) DEFAULT 0,
+                  used_at    DATETIME NULL,
+                  created_at DATETIME DEFAULT NOW(),
+                  FOREIGN KEY (drive_id) REFERENCES placement_drives(id) ON DELETE CASCADE,
+                  FOREIGN KEY (user_id)  REFERENCES users(id)            ON DELETE CASCADE
+                )
+              `);
+
+              // Generate a unique key per student
+              const accessKeys = {}; // userId -> key
+              const keyRows = [];
+              for (const student of eligibleStudents) {
+                let key;
+                let attempts = 0;
+                do {
+                  key = generateAccessKey();
+                  attempts++;
+                } while (keyRows.some(r => r[2] === key) && attempts < 20);
+                accessKeys[student.id] = key;
+                keyRows.push([driveId, student.id, key]);
+              }
+
+              // Bulk insert keys (ignore duplicates — rare collision safety)
+              await promisePool.query(
+                `INSERT IGNORE INTO drive_access_keys (drive_id, user_id, access_key) VALUES ?`,
+                [keyRows]
+              );
+
               const eligibleStudentIds = eligibleStudents.map(s => s.id);
               await sendEligibleStudentInboxNotification({
                 eligibleStudentIds,
@@ -282,11 +324,11 @@ const createDrive = async (req, res) => {
                 driveDate,
                 applicationLink,
                 driveId,
-                senderId: req.user.id
+                senderId: req.user.id,
+                accessKeys
               });
             } catch (inboxError) {
               console.error(`Failed to send inbox notifications for drive ${driveId}:`, inboxError.message);
-              // Don't fail the drive creation if inbox notification fails
             }
           }
 
@@ -699,6 +741,81 @@ const enrollStudents = async (req, res) => {
   }
 };
 
+// @desc    Verify drive access key (public — no auth required)
+// @route   POST /api/drives/verify-access
+// @access  Public
+const verifyDriveAccess = async (req, res) => {
+  try {
+    const { email, accessKey, driveId } = req.body;
+
+    if (!email || !accessKey || !driveId) {
+      return res.status(400).json({ success: false, message: 'Email, access key, and drive ID are required.' });
+    }
+
+    // Look up the key — join to users so we verify email ownership
+    const [rows] = await promisePool.query(
+      `SELECT dak.id, dak.user_id, dak.used,
+              pd.application_link, pd.company_name, pd.role, pd.status, pd.drive_date
+       FROM drive_access_keys dak
+       JOIN users u  ON u.id  = dak.user_id
+       JOIN placement_drives pd ON pd.id = dak.drive_id
+       WHERE LOWER(u.email) = LOWER(?) AND dak.access_key = ? AND dak.drive_id = ?`,
+      [email.trim(), accessKey.trim().toUpperCase(), driveId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid email or access key. Please check your inbox and try again.' });
+    }
+
+    const record = rows[0];
+
+    // Create application record if not already applied
+    const [existing] = await promisePool.query(
+      `SELECT id FROM applications WHERE student_id = ? AND drive_id = ?`,
+      [record.user_id, driveId]
+    );
+
+    if (existing.length === 0) {
+      await promisePool.query(
+        `INSERT INTO applications (student_id, drive_id, status, applied_at) VALUES (?, ?, 'Applied', NOW())`,
+        [record.user_id, driveId]
+      );
+
+      // Add initial status history entry
+      const [appResult] = await promisePool.query(
+        `SELECT id FROM applications WHERE student_id = ? AND drive_id = ?`,
+        [record.user_id, driveId]
+      );
+      if (appResult.length > 0) {
+        await promisePool.query(
+          `INSERT INTO application_status_history (application_id, status, updated_at, remarks)
+           VALUES (?, 'Applied', NOW(), 'Applied via drive access wall')`,
+          [appResult[0].id]
+        );
+      }
+    }
+
+    // Mark key as used (allow re-use but track first use time)
+    if (!record.used) {
+      await promisePool.query(
+        `UPDATE drive_access_keys SET used = 1, used_at = NOW() WHERE id = ?`,
+        [record.id]
+      );
+    }
+
+    return res.json({
+      success: true,
+      redirectUrl: record.application_link || null,
+      company: record.company_name,
+      role: record.role,
+      driveDate: record.drive_date,
+    });
+  } catch (error) {
+    console.error('Verify drive access error:', error);
+    res.status(500).json({ success: false, message: 'Verification failed. Please try again.' });
+  }
+};
+
 module.exports = {
   getAllDrives,
   getDriveById,
@@ -710,4 +827,5 @@ module.exports = {
   previewEligibleStudents,
   getAllStudents,
   enrollStudents,
+  verifyDriveAccess,
 };

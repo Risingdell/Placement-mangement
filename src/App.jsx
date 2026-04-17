@@ -23,6 +23,7 @@ import MessagesPage from "./pages/admin/MessagesPage";
 import AdminEventsPage from "./pages/admin/EventsPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import AuthorizedEmailsPage from "./pages/admin/AuthorizedEmailsPage";
+import DriveWallPage from "./pages/DriveWallPage";
 import { SnackbarProvider } from "./context/SnackbarContext";
 
 
@@ -37,6 +38,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Drive Access Wall — public, no auth */}
+          <Route path="/drive-wall" element={<DriveWallPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

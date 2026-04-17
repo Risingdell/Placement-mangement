@@ -10,12 +10,16 @@ const {
   previewEligibleStudents,
   getAllStudents,
   enrollStudents,
+  verifyDriveAccess,
 } = require('../controllers/driveController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-// All routes require authentication
+// ── Public route (no auth) ──
+router.post('/verify-access', verifyDriveAccess);
+
+// All routes below require authentication
 router.use(protect);
 
 // Student routes
