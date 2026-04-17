@@ -37,10 +37,10 @@ function EventsPage() {
         {mockEvents.map((event) => (
           <article
             key={event.id}
-            className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+            className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
           >
             <div className="flex items-start justify-between gap-3 mb-4">
-              <span className="rounded-lg border border-[#3b3320] bg-[#2b2419] px-2.5 py-1 text-xs text-amber-200">
+              <span className="border border-[#3b3320] bg-[#2b2419] px-2.5 py-1 text-xs text-amber-200">
                 {event.type}
               </span>
               <span className="text-xs text-zinc-400">{event.time}</span>
@@ -51,7 +51,7 @@ function EventsPage() {
 
             <div className="flex items-center justify-between border-t border-[#2a2a31] pt-4">
               <span className="text-sm text-zinc-300">{event.date}</span>
-              <button className="rounded-lg bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]">
+              <button className="bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]">
                 Register
               </button>
             </div>

@@ -44,7 +44,7 @@ function CompactKPIBar({ theme = 'dark' }) {
               key={item.label}
               type="button"
               onClick={item.action}
-              className={`rounded-xl px-4 py-3 text-left ${
+              className={`px-4 py-3 text-left ${
                 theme === 'light'
                   ? 'border border-[#d1d5db] bg-white'
                   : 'border border-[#2f2f34] bg-[#1f1f24]'

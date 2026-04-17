@@ -82,19 +82,19 @@ function InboxPage() {
         <button
           onClick={() => fetchMessages(true)}
           disabled={isRefreshing}
-          className="px-4 py-2 rounded-lg border border-[#34343d] bg-[#1f1f24] text-sm text-zinc-300 hover:bg-[#282830] cursor-pointer"
+          className="px-4 py-2 border border-[#34343d] bg-[#1f1f24] text-sm text-zinc-300 hover:bg-[#282830] cursor-pointer"
         >
           {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
+        <div className="mb-4 border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 rounded-2xl border border-[#2f2f36] bg-[#1d1d22] overflow-hidden min-h-[620px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-[#2f2f36] bg-[#1d1d22] overflow-hidden min-h-[620px]">
         <div className={`lg:col-span-5 border-r border-[#2a2a31] flex flex-col ${selectedMessage ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-4 border-b border-[#2a2a31]">
             <h3 className="font-semibold text-zinc-100">All Messages</h3>
@@ -117,7 +117,7 @@ function InboxPage() {
                   } ${!msg.is_read ? 'font-semibold' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider bg-[#2b2b33] text-zinc-300 border border-[#3a3a43]">
+                    <span className="text-[10px] px-2 py-0.5 uppercase tracking-wider bg-[#2b2b33] text-zinc-300 border border-[#3a3a43]">
                       {msg.message_type}
                     </span>
                     <span className="text-[11px] text-zinc-500">{format(new Date(msg.sent_at), 'MMM d, p')}</span>
@@ -128,13 +128,13 @@ function InboxPage() {
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => toggleReadStatus(e, msg)}
-                      className="px-2 py-1 rounded bg-[#2b2b33] text-zinc-300 text-xs border border-[#3a3a43] cursor-pointer"
+                      className="px-2 py-1 bg-[#2b2b33] text-zinc-300 text-xs border border-[#3a3a43] cursor-pointer"
                     >
                       {msg.is_read ? 'Unread' : 'Read'}
                     </button>
                     <button
                       onClick={(e) => handleDeleteMessage(e, msg.id)}
-                      className="px-2 py-1 rounded bg-red-500/15 text-red-300 text-xs border border-red-500/30 cursor-pointer"
+                      className="px-2 py-1 bg-red-500/15 text-red-300 text-xs border border-red-500/30 cursor-pointer"
                     >
                       Del
                     </button>
@@ -151,20 +151,20 @@ function InboxPage() {
               <div className="p-4 border-b border-[#2a2a31] flex items-center justify-between gap-2">
                 <button
                   onClick={() => setSelectedMessage(null)}
-                  className="lg:hidden px-3 py-1.5 rounded-lg bg-[#25252d] text-zinc-300 text-xs border border-[#35353f] cursor-pointer"
+                  className="lg:hidden px-3 py-1.5 bg-[#25252d] text-zinc-300 text-xs border border-[#35353f] cursor-pointer"
                 >
                   Back
                 </button>
                 <div className="ml-auto flex items-center gap-2">
                   <button
                     onClick={(e) => toggleReadStatus(e, selectedMessage)}
-                    className="px-3 py-1.5 text-xs border border-[#35353f] rounded-lg bg-[#25252d] text-zinc-300 cursor-pointer"
+                    className="px-3 py-1.5 text-xs border border-[#35353f] bg-[#25252d] text-zinc-300 cursor-pointer"
                   >
                     {selectedMessage.is_read ? 'Mark Unread' : 'Mark Read'}
                   </button>
                   <button
                     onClick={(e) => handleDeleteMessage(e, selectedMessage.id)}
-                    className="px-3 py-1.5 text-xs border border-red-500/30 bg-red-500/10 text-red-300 rounded-lg cursor-pointer"
+                    className="px-3 py-1.5 text-xs border border-red-500/30 bg-red-500/10 text-red-300 cursor-pointer"
                   >
                     Delete
                   </button>
@@ -175,7 +175,7 @@ function InboxPage() {
                 <div className="mb-6 pb-6 border-b border-[#2a2a31]">
                   <div className="flex justify-between items-start gap-3">
                     <h2 className="text-2xl font-semibold text-zinc-100 leading-tight">{selectedMessage.subject}</h2>
-                    <span className="text-xs text-zinc-400 bg-[#25252d] px-3 py-1 rounded-full whitespace-nowrap border border-[#35353f]">
+                    <span className="text-xs text-zinc-400 bg-[#25252d] px-3 py-1 whitespace-nowrap border border-[#35353f]">
                       {format(new Date(selectedMessage.sent_at), 'MMMM d, yyyy h:mm a')}
                     </span>
                   </div>
@@ -183,7 +183,7 @@ function InboxPage() {
                 </div>
 
                 {selectedMessage.company_name && (
-                  <div className="rounded-xl border border-[#3b3320] bg-[#2b2419] p-4 mb-5">
+                  <div className="border border-[#3b3320] bg-[#2b2419] p-4 mb-5">
                     <p className="text-sm text-amber-200">
                       Related Drive: <strong>{selectedMessage.company_name}</strong> {selectedMessage.role && `- ${selectedMessage.role}`}
                     </p>
@@ -196,7 +196,7 @@ function InboxPage() {
                   <div className="mt-8">
                     <a
                       href={selectedMessage.action_url}
-                      className="inline-flex items-center px-5 py-2.5 rounded-lg bg-[#f7b545] text-[#1a1a1f] font-semibold text-sm hover:bg-[#f9c46c]"
+                      className="inline-flex items-center px-5 py-2.5 bg-[#f7b545] text-[#1a1a1f] font-semibold text-sm hover:bg-[#f9c46c]"
                     >
                       View Details
                     </a>

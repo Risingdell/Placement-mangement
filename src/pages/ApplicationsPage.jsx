@@ -99,7 +99,7 @@ function ApplicationsPage() {
       {loading && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5">
+            <div key={i} className="border border-[#2f2f36] bg-[#1d1d22] p-5">
               <SkeletonDark className="h-6 w-2/3 mb-2" />
               <SkeletonDark className="h-4 w-1/3 mb-4" />
               <SkeletonDark className="h-4 w-full mb-2" />
@@ -111,18 +111,18 @@ function ApplicationsPage() {
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
+        <div className="border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
           Failed to load applications: {error}
         </div>
       )}
 
       {!loading && !error && applications.length === 0 && (
-        <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-10 text-center">
+        <div className="border border-[#2f2f36] bg-[#1d1d22] p-10 text-center">
           <p className="text-zinc-200 text-lg font-semibold">No applications yet</p>
           <p className="text-zinc-400 text-sm mt-1">Start by exploring active placement drives.</p>
           <button
             onClick={() => navigate('/dashboard/drives')}
-            className="mt-5 w-full sm:w-auto rounded-lg bg-[#f7b545] text-[#1a1a1f] px-5 py-2.5 text-sm font-semibold border-none cursor-pointer hover:bg-[#f9c46c]"
+            className="mt-5 w-full sm:w-auto bg-[#f7b545] text-[#1a1a1f] px-5 py-2.5 text-sm font-semibold border-none cursor-pointer hover:bg-[#f9c46c]"
           >
             Browse Placement Drives
           </button>
@@ -144,7 +144,7 @@ function ApplicationsPage() {
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer ${
+                className={`px-4 py-2 border text-sm font-medium cursor-pointer ${
                   filterStatus === status
                     ? 'bg-[#f7b545] text-[#1b1b1f] border-[#f7b545]'
                     : 'bg-[#1f1f24] text-zinc-300 border-[#33333a] hover:bg-[#26262d]'
@@ -156,7 +156,7 @@ function ApplicationsPage() {
           </div>
 
           {filteredApplications.length === 0 ? (
-            <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-8 text-center text-zinc-400 text-sm">
+            <div className="border border-[#2f2f36] bg-[#1d1d22] px-4 py-8 text-center text-zinc-400 text-sm">
               No {filterStatus.toLowerCase()} applications
             </div>
           ) : (
@@ -202,20 +202,20 @@ function ApplicationsPage() {
 }
 
 const StatCard = ({ label, value, tone = 'text-zinc-100' }) => (
-  <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
+  <div className="border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
     <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
     <p className={`text-2xl font-semibold mt-1 ${tone}`}>{value}</p>
   </div>
 );
 
 const ApplicationCard = ({ application, onViewTimeline, onWithdraw, getStatusTone }) => (
-  <article className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+  <article className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
         <h3 className="text-xl font-semibold text-zinc-100">{application.company_name}</h3>
         <p className="text-sm text-zinc-400">{application.job_role}</p>
       </div>
-      <span className={`px-2.5 py-1 rounded-full text-xs border ${getStatusTone(application.current_status)}`}>
+      <span className={`px-2.5 py-1 text-xs border ${getStatusTone(application.current_status)}`}>
         {application.current_status}
       </span>
     </div>
@@ -229,14 +229,14 @@ const ApplicationCard = ({ application, onViewTimeline, onWithdraw, getStatusTon
     <div className="border-t border-[#2c2c33] pt-4 flex gap-3">
       <button
         onClick={() => onViewTimeline(application)}
-        className="flex-1 rounded-lg border border-[#363640] bg-[#24242b] px-4 py-2 text-sm text-zinc-200 cursor-pointer hover:bg-[#2d2d35]"
+        className="flex-1 border border-[#363640] bg-[#24242b] px-4 py-2 text-sm text-zinc-200 cursor-pointer hover:bg-[#2d2d35]"
       >
         View Timeline
       </button>
       {application.can_withdraw && (
         <button
           onClick={() => onWithdraw(application)}
-          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300 cursor-pointer hover:bg-red-500/20"
+          className="border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300 cursor-pointer hover:bg-red-500/20"
         >
           Withdraw
         </button>
@@ -254,7 +254,7 @@ const Row = ({ label, value }) => (
 
 const TimelineModal = ({ application, onClose, getStatusTone }) => (
   <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-    <div className="w-full max-w-2xl max-h-[85vh] overflow-auto rounded-2xl border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
+    <div className="w-full max-w-2xl max-h-[85vh] overflow-auto border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#2c2c33]">
         <h3 className="text-lg font-semibold text-zinc-100">Application Timeline</h3>
         <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 bg-transparent border-none cursor-pointer text-xl">
@@ -263,9 +263,9 @@ const TimelineModal = ({ application, onClose, getStatusTone }) => (
       </div>
       <div className="p-5 space-y-4">
         {application.status_history?.map((item, index) => (
-          <div key={index} className="rounded-lg border border-[#34343d] bg-[#23232a] p-4">
+          <div key={index} className="border border-[#34343d] bg-[#23232a] p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className={`px-2.5 py-1 rounded-full text-xs border ${getStatusTone(item.status)}`}>{item.status}</span>
+              <span className={`px-2.5 py-1 text-xs border ${getStatusTone(item.status)}`}>{item.status}</span>
               <span className="text-xs text-zinc-500">{new Date(item.updated_at).toLocaleString()}</span>
             </div>
             {item.remarks && <p className="text-sm text-zinc-300 mt-2">{item.remarks}</p>}
@@ -278,12 +278,12 @@ const TimelineModal = ({ application, onClose, getStatusTone }) => (
 
 const WithdrawModal = ({ application, onClose, onConfirm, withdrawing }) => (
   <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-    <div className="w-full max-w-lg rounded-2xl border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
+    <div className="w-full max-w-lg border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
       <div className="px-5 py-4 border-b border-[#2c2c33]">
         <h3 className="text-lg font-semibold text-zinc-100">Withdraw Application</h3>
       </div>
       <div className="p-5">
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-200 text-sm">
+        <div className="border border-red-500/30 bg-red-500/10 p-4 text-red-200 text-sm">
           <p className="font-semibold mb-1">This action cannot be undone.</p>
           <p>{application.company_name} - {application.job_role}</p>
         </div>
@@ -292,14 +292,14 @@ const WithdrawModal = ({ application, onClose, onConfirm, withdrawing }) => (
         <button
           onClick={onClose}
           disabled={withdrawing}
-          className="rounded-lg border border-[#3a3a43] bg-[#24242b] px-4 py-2 text-sm text-zinc-300 cursor-pointer"
+          className="border border-[#3a3a43] bg-[#24242b] px-4 py-2 text-sm text-zinc-300 cursor-pointer"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
           disabled={withdrawing}
-          className="rounded-lg border-none bg-red-500 px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:bg-red-600"
+          className="border-none bg-red-500 px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:bg-red-600"
         >
           {withdrawing ? 'Withdrawing...' : 'Yes, Withdraw'}
         </button>

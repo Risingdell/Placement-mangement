@@ -23,7 +23,7 @@ function EventsBar() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)] flex flex-col">
+    <div className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)] flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
           <svg className="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@ function EventsBar() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-xl border border-[#2f2f36] bg-[#24242b] p-4 space-y-2">
+            <div key={i} className="border border-[#2f2f36] bg-[#24242b] p-4 space-y-2">
               <div className="skeleton-dark h-3 w-16 rounded" />
               <div className="skeleton-dark h-4 w-3/4 rounded" />
               <div className="skeleton-dark h-3 w-1/2 rounded" />
@@ -71,10 +71,10 @@ function EventsBar() {
               <div
                 key={ev.id}
                 onClick={() => navigate('/dashboard/events')}
-                className="rounded-xl border border-[#2f2f36] bg-[#24242b] p-4 cursor-pointer hover:border-[#3d3d47] hover:bg-[#26262e] transition-all group"
+                className="border border-[#2f2f36] bg-[#24242b] p-4 cursor-pointer hover:border-[#3d3d47] hover:bg-[#26262e] transition-all group"
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${cfg.bg} ${cfg.border} ${cfg.text}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${cfg.bg} ${cfg.border} ${cfg.text}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                     {type}
                   </span>

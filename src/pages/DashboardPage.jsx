@@ -150,7 +150,7 @@ function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-6 md:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mb-8">
+      <section className="border border-[#2f2f36] bg-[#1d1d22] p-6 md:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mb-8">
         <h1 className="text-2xl md:text-3xl font-semibold text-zinc-100">
           Welcome back, {profile?.full_name || 'Student'}
         </h1>
@@ -160,10 +160,10 @@ function DashboardPage() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {loading ? (
           <>
-            <SkeletonDark className="h-16 rounded-xl" />
-            <SkeletonDark className="h-16 rounded-xl" />
-            <SkeletonDark className="h-16 rounded-xl" />
-            <SkeletonDark className="h-16 rounded-xl" />
+            <SkeletonDark className="h-16" />
+            <SkeletonDark className="h-16" />
+            <SkeletonDark className="h-16" />
+            <SkeletonDark className="h-16" />
           </>
         ) : (
           <>
@@ -176,13 +176,13 @@ function DashboardPage() {
       </section>
 
       {profileCompletion < 100 && (
-        <section className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <section className="mb-8 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <p>
             Complete your profile to improve drive eligibility. Current completion: <strong>{profileCompletion}%</strong>
           </p>
           <button
             onClick={() => navigate('/dashboard/profile')}
-            className="rounded-lg bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]"
+            className="bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]"
           >
             Complete Profile
           </button>
@@ -192,12 +192,12 @@ function DashboardPage() {
       <section className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
         {loading ? (
           <>
-            <SkeletonDark className="h-44 rounded-2xl" />
-            <SkeletonDark className="h-44 rounded-2xl" />
+            <SkeletonDark className="h-44" />
+            <SkeletonDark className="h-44" />
           </>
         ) : (
           <>
-            <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+            <div className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-zinc-100">Custom Skills</h3>
                 <span className="text-xs text-zinc-500">{customSkills.length} selected</span>
@@ -213,11 +213,11 @@ function DashboardPage() {
                     }
                   }}
                   placeholder="Add a skill (e.g. React, SQL, DSA)"
-                  className="flex-1 min-w-0 rounded-lg border border-[#363640] bg-[#24242b] px-3 py-2 text-sm text-zinc-200 outline-none"
+                  className="flex-1 min-w-0 border border-[#363640] bg-[#24242b] px-3 py-2 text-sm text-zinc-200 outline-none"
                 />
                 <button
                   onClick={addCustomSkill}
-                  className="flex-shrink-0 rounded-lg bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c] whitespace-nowrap"
+                  className="flex-shrink-0 bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c] whitespace-nowrap"
                 >
                   Add
                 </button>
@@ -225,7 +225,7 @@ function DashboardPage() {
               <div className="flex flex-wrap gap-2">
                 {customSkills.length === 0 && <p className="text-sm text-zinc-500">No custom skills added yet.</p>}
                 {customSkills.map((skill) => (
-                  <span key={skill} className="inline-flex items-center gap-2 rounded-full border border-[#3a3a44] bg-[#25252d] px-3 py-1 text-xs text-zinc-200">
+                  <span key={skill} className="inline-flex items-center gap-2 border border-[#3a3a44] bg-[#25252d] px-3 py-1 text-xs text-zinc-200">
                     {skill}
                     <button
                       onClick={() => removeCustomSkill(skill)}
@@ -238,17 +238,17 @@ function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+            <div className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-zinc-500">Placement Rank</p>
                   <h3 className="text-lg font-semibold text-zinc-100 mt-1">Professional Score Badge</h3>
                 </div>
-                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                <span className="border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
                   Ranked
                 </span>
               </div>
-              <div className="mt-4 rounded-xl border border-[#353540] bg-[#24242b] p-4">
+              <div className="mt-4 border border-[#353540] bg-[#24242b] p-4">
                 <p className="text-zinc-400 text-sm">You are currently</p>
                 <p className="text-2xl md:text-3xl font-bold text-[#f7b545] mt-1">
                   #{rankData?.rank || '-'} <span className="text-zinc-300 text-base font-medium">of {rankData?.totalStudents || '-'}</span>
@@ -271,7 +271,7 @@ function DashboardPage() {
         <EventsBar />
       </section>
 
-      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+      <section className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
         <h3 className="text-lg font-semibold text-zinc-100 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <ActionButton label="Update Profile" onClick={() => navigate('/dashboard/profile')} />
@@ -281,7 +281,7 @@ function DashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mt-8">
+      <section className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mt-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-zinc-100">Latest Placement Activity</h3>
           <span className="text-xs text-zinc-500">Drives + Events</span>
@@ -291,18 +291,18 @@ function DashboardPage() {
           <div className="flex gap-3 min-w-max pb-1">
             {loading && (
               <>
-                <SkeletonDark className="w-72 h-24 rounded-xl flex-shrink-0" />
-                <SkeletonDark className="w-72 h-24 rounded-xl flex-shrink-0" />
-                <SkeletonDark className="w-72 h-24 rounded-xl flex-shrink-0" />
+                <SkeletonDark className="w-72 h-24 flex-shrink-0" />
+                <SkeletonDark className="w-72 h-24 flex-shrink-0" />
+                <SkeletonDark className="w-72 h-24 flex-shrink-0" />
               </>
             )}
             {!loading && latestActivity.length === 0 && (
               <p className="text-sm text-zinc-500">No recent placement activity found.</p>
             )}
             {latestActivity.map((item) => (
-              <article key={item.id} className="w-72 rounded-xl border border-[#34343d] bg-[#23232a] p-4">
+              <article key={item.id} className="w-72 border border-[#34343d] bg-[#23232a] p-4">
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border ${
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 border ${
                     item.type === 'Drive'
                       ? 'text-amber-300 border-amber-500/30 bg-amber-500/10'
                       : 'text-sky-300 border-sky-500/30 bg-sky-500/10'
@@ -325,7 +325,7 @@ function DashboardPage() {
 }
 
 const StatCard = ({ label, value, tone = 'text-zinc-100' }) => (
-  <div className="rounded-xl border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
+  <div className="border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
     <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
     <p className={`text-lg md:text-xl font-semibold mt-1 ${tone}`}>{value}</p>
   </div>
@@ -334,7 +334,7 @@ const StatCard = ({ label, value, tone = 'text-zinc-100' }) => (
 const ActionButton = ({ label, onClick }) => (
   <button
     onClick={onClick}
-    className="rounded-lg border border-[#363640] bg-[#24242b] px-4 py-3 text-sm text-zinc-200 cursor-pointer hover:bg-[#2e2e37]"
+    className="border border-[#363640] bg-[#24242b] px-4 py-3 text-sm text-zinc-200 cursor-pointer hover:bg-[#2e2e37]"
   >
     {label}
   </button>

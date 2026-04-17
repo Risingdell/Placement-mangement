@@ -172,7 +172,7 @@ function DrivesPage() {
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer ${
+              className={`px-4 py-2 border text-sm font-medium cursor-pointer ${
                 filterStatus === status
                   ? 'bg-[#f7b545] text-[#1b1b1f] border-[#f7b545]'
                   : 'bg-[#1f1f24] text-zinc-300 border-[#33333a] hover:bg-[#26262d]'
@@ -188,14 +188,14 @@ function DrivesPage() {
           placeholder="Search company or role"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full lg:w-80 rounded-lg border border-[#33333a] bg-[#1f1f24] px-4 py-2.5 text-sm text-zinc-100 outline-none"
+          className="w-full lg:w-80 border border-[#33333a] bg-[#1f1f24] px-4 py-2.5 text-sm text-zinc-100 outline-none"
         />
       </div>
 
       {loading && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5">
+            <div key={i} className="border border-[#2f2f36] bg-[#1d1d22] p-5">
               <SkeletonDark className="h-6 w-2/3 mb-2" />
               <SkeletonDark className="h-4 w-1/3 mb-4" />
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -210,13 +210,13 @@ function DrivesPage() {
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
+        <div className="border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
           Failed to load drives: {error}
         </div>
       )}
 
       {!loading && !error && filteredDrives.length === 0 && (
-        <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-12 text-center">
+        <div className="border border-[#2f2f36] bg-[#1d1d22] p-12 text-center">
           <p className="text-zinc-200 text-lg font-medium">No drives found</p>
           <p className="text-zinc-400 text-sm mt-1">Try changing filters or search query.</p>
         </div>
@@ -256,7 +256,7 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
   const [showEligibility, setShowEligibility] = useState(false);
 
   return (
-    <article className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+    <article className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold text-zinc-100">{drive.company_name}</h3>
@@ -269,7 +269,7 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
       </div>
 
       {drive.attendance_key && (
-        <div className="mb-4 rounded-xl border border-[#6d4cf3]/30 bg-[#6d4cf3]/10 px-4 py-3">
+        <div className="mb-4 border border-[#6d4cf3]/30 bg-[#6d4cf3]/10 px-4 py-3">
           <p className="text-[11px] uppercase tracking-wider text-violet-300">Attendance Key</p>
           <p className="mt-1 text-lg font-semibold text-violet-200">{drive.attendance_key}</p>
         </div>
@@ -288,13 +288,13 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
 
       <button
         onClick={() => setShowEligibility((prev) => !prev)}
-        className="w-full mb-4 rounded-lg border border-[#34343d] bg-[#23232a] px-3 py-2 text-left text-sm text-zinc-300 hover:bg-[#2a2a33] cursor-pointer"
+        className="w-full mb-4 border border-[#34343d] bg-[#23232a] px-3 py-2 text-left text-sm text-zinc-300 hover:bg-[#2a2a33] cursor-pointer"
       >
         {showEligibility ? 'Hide' : 'Show'} Eligibility Criteria
       </button>
 
       {showEligibility && (
-        <div className="mb-4 rounded-lg border border-[#34343d] bg-[#23232a] p-3">
+        <div className="mb-4 border border-[#34343d] bg-[#23232a] p-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             <EligibilityItem label="Minimum CGPA" value={drive.min_cgpa ?? 'N/A'} />
             <EligibilityItem label="Maximum Active Backlogs" value={drive.max_active_backlogs ?? 'N/A'} />
@@ -309,7 +309,7 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
           </div>
 
           {drive.criteriaList.length > 0 && (
-            <div className="mt-3 rounded-md border border-[#3a3a43] bg-[#2b2b33] p-3">
+            <div className="mt-3 border border-[#3a3a43] bg-[#2b2b33] p-3">
               <p className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">Additional Criteria</p>
               <ul className="space-y-1.5 text-sm text-zinc-300">
                 {drive.criteriaList.map((item, idx) => (
@@ -322,7 +322,7 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
           )}
 
           {Array.isArray(drive.eligibilityReasons) && drive.eligibilityReasons.length > 0 && (
-            <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-3">
+            <div className="mt-3 border border-red-500/30 bg-red-500/10 p-3">
               <p className="text-[11px] uppercase tracking-wider text-red-300 mb-2">Why You Are Not Eligible</p>
               <ul className="space-y-1.5 text-sm text-red-200">
                 {drive.eligibilityReasons.map((reason, idx) => (
@@ -338,14 +338,14 @@ const DriveCard = ({ drive, onApply, isDeadlineSoon, formatDeadline }) => {
         <span className="text-xs text-zinc-400">{drive.applications_count || 0} applications</span>
 
         {drive.hasApplied ? (
-          <button className="rounded-lg bg-[#1f3d2d] text-emerald-300 px-4 py-2 text-sm font-medium border border-emerald-500/30 cursor-default">
+          <button className="bg-[#1f3d2d] text-emerald-300 px-4 py-2 text-sm font-medium border border-emerald-500/30 cursor-default">
             Already Applied
           </button>
         ) : (
           <button
             onClick={() => onApply(drive)}
             disabled={!drive.isEligible || drive.status !== 'Active'}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold border-none ${
+            className={`px-4 py-2 text-sm font-semibold border-none ${
               drive.isEligible && drive.status === 'Active'
                 ? 'bg-[#f7b545] text-[#1a1a1f] cursor-pointer hover:bg-[#f9c46c]'
                 : 'bg-[#2a2a31] text-zinc-500 cursor-not-allowed'
@@ -367,7 +367,7 @@ const Detail = ({ label, value, tone = 'text-zinc-200' }) => (
 );
 
 const EligibilityItem = ({ label, value }) => (
-  <div className="rounded-md border border-[#3a3a43] bg-[#2b2b33] px-3 py-2">
+  <div className="border border-[#3a3a43] bg-[#2b2b33] px-3 py-2">
     <p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
     <p className="mt-1 text-sm text-zinc-200">{value}</p>
   </div>
@@ -375,7 +375,7 @@ const EligibilityItem = ({ label, value }) => (
 
 const ApplyModal = ({ drive, onClose, onConfirm, applying, formatDeadline }) => (
   <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-    <div className="w-full max-w-lg rounded-2xl border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
+    <div className="w-full max-w-lg border border-[#33333a] bg-[#1d1d22]" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#2c2c33]">
         <h3 className="text-lg font-semibold text-zinc-100">Apply for {drive.company_name}</h3>
         <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 bg-transparent border-none cursor-pointer text-xl">
@@ -389,7 +389,7 @@ const ApplyModal = ({ drive, onClose, onConfirm, applying, formatDeadline }) => 
         <p><span className="text-zinc-500">Location:</span> {drive.location || 'TBD'}</p>
         <p><span className="text-zinc-500">Deadline:</span> {formatDeadline(drive.registration_deadline)}</p>
 
-        <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-amber-200">
+        <div className="mt-4 border border-amber-500/30 bg-amber-500/10 p-3 text-amber-200">
           <p className="font-semibold mb-1">Before submitting</p>
           <ul className="list-disc ml-4 space-y-1 text-xs">
             <li>Ensure your profile is complete and up-to-date</li>
@@ -403,14 +403,14 @@ const ApplyModal = ({ drive, onClose, onConfirm, applying, formatDeadline }) => 
         <button
           onClick={onClose}
           disabled={applying}
-          className="rounded-lg border border-[#3a3a43] bg-[#24242b] px-4 py-2 text-sm text-zinc-300 cursor-pointer"
+          className="border border-[#3a3a43] bg-[#24242b] px-4 py-2 text-sm text-zinc-300 cursor-pointer"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
           disabled={applying}
-          className="rounded-lg bg-[#f7b545] text-[#1a1a1f] px-4 py-2 text-sm font-semibold border-none cursor-pointer hover:bg-[#f9c46c]"
+          className="bg-[#f7b545] text-[#1a1a1f] px-4 py-2 text-sm font-semibold border-none cursor-pointer hover:bg-[#f9c46c]"
         >
           {applying ? 'Submitting...' : 'Confirm Application'}
         </button>

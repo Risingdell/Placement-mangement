@@ -16,7 +16,7 @@ function UpcomingCompanies() {
   const carouselCompanies = companies.length > 0 ? [...companies, ...companies, ...companies, ...companies] : [];
 
   return (
-    <div className="rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+    <div className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
       <style>{`
         @keyframes slideLeft {
           0% {
@@ -65,10 +65,10 @@ function UpcomingCompanies() {
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-xl border border-[#2f2f36] bg-[#24242b] p-4 space-y-3">
-              <div className="skeleton-dark w-10 h-10 rounded-lg mx-auto" />
-              <div className="skeleton-dark h-3 w-2/3 rounded mx-auto" />
-              <div className="skeleton-dark h-2.5 w-1/2 rounded mx-auto" />
+            <div key={i} className="border border-[#2f2f36] bg-[#24242b] p-4 space-y-3">
+              <div className="skeleton-dark w-10 h-10 mx-auto" />
+              <div className="skeleton-dark h-3 w-2/3 mx-auto" />
+              <div className="skeleton-dark h-2.5 w-1/2 mx-auto" />
             </div>
           ))}
         </div>
@@ -80,7 +80,7 @@ function UpcomingCompanies() {
             {carouselCompanies.map((company, idx) => (
               <div
                 key={`${company.id}-${idx}`}
-                className="rounded-xl border border-[#2f2f36] bg-[#24242b] p-4 flex flex-col items-center text-center hover:border-[#3d3d47] hover:bg-[#26262e] transition-all flex-shrink-0 shimmer-card"
+                className="border border-[#2f2f36] bg-[#24242b] p-4 flex flex-col items-center text-center hover:border-[#3d3d47] hover:bg-[#26262e] transition-all flex-shrink-0 shimmer-card"
                 style={{ 
                   flex: '0 0 calc(6.25% - 0.6rem)',
                   minWidth: 'calc(6.25% - 0.6rem)'
@@ -90,10 +90,10 @@ function UpcomingCompanies() {
                   <img
                     src={company.logo_url}
                     alt={company.name}
-                    className="w-12 h-12 rounded-xl object-contain bg-white p-1.5 border border-zinc-700 mb-3 flex-shrink-0"
+                    className="w-12 h-12 object-contain bg-white p-1.5 border border-zinc-700 mb-3 flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg mb-3 flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg mb-3 flex-shrink-0">
                     {company.name.charAt(0)}
                   </div>
                 )}
@@ -101,7 +101,7 @@ function UpcomingCompanies() {
                 <p className="text-xs text-zinc-500 mt-0.5 truncate w-full">
                   {company.company_type}{company.location ? ` · ${company.location}` : ''}
                 </p>
-                <span className={`mt-2 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                <span className={`mt-2 text-[10px] px-2 py-0.5 font-medium ${
                   company.company_type === 'Product'
                     ? 'bg-blue-900/40 text-blue-300'
                     : company.company_type === 'Startup'
