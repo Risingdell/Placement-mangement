@@ -148,7 +148,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
           onClick={onClose}
         ></div>
 
-        <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+        <div className="relative inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -171,12 +171,12 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
 
           {/* Messages */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-4 p-4 bg-red-50 border border-red-200">
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="mb-4 p-4 bg-green-50 border border-green-200">
               <p className="text-sm text-green-800">{successMessage}</p>
             </div>
           )}
@@ -220,7 +220,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                     <p className="text-gray-500">No attendees marked yet</p>
                     <button
                       onClick={() => handleTabChange('add')}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
                     >
                       Add First Attendees
                     </button>
@@ -242,7 +242,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                           <td className="px-4 py-3 font-medium text-gray-900">{attendee.full_name}</td>
                           <td className="px-4 py-3 text-gray-600">{attendee.usn}</td>
                           <td className="px-4 py-3">
-                            <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-900 rounded-full font-bold text-sm tracking-wide">
+                            <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-900 font-bold text-sm tracking-wide">
                               {attendee.attendance_key}
                             </span>
                           </td>
@@ -252,7 +252,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                           <td className="px-4 py-3">
                             <button
                               onClick={() => handleRemoveAttendee(attendee.user_id, attendee.full_name)}
-                              className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition"
+                              className="px-3 py-1 text-red-600 hover:bg-red-50 transition"
                             >
                               Remove
                             </button>
@@ -275,7 +275,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                       placeholder="Search by name, USN, or email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
 
@@ -284,7 +284,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                     <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">All Students</option>
                       <option value="applied">Applied for this drive</option>
@@ -295,7 +295,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                   <button
                     onClick={fetchNonAttendees}
                     disabled={loading}
-                    className="w-full px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 disabled:opacity-50"
+                    className="w-full px-4 py-2 bg-blue-100 text-blue-600 hover:bg-blue-200 disabled:opacity-50"
                   >
                     {loading ? 'Searching...' : 'Search'}
                   </button>
@@ -313,7 +313,7 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                   </div>
                 ) : (
                   <div>
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                    <div className="mb-4 p-3 bg-blue-50">
                       <p className="text-sm text-blue-800">
                         Selected: {selectedStudents.length} student(s)
                       </p>
@@ -358,11 +358,11 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
                             </td>
                             <td className="px-4 py-3">
                               {student.applied_count > 0 ? (
-                                <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-700">
                                   Yes
                                 </span>
                               ) : (
-                                <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                                <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600">
                                   No
                                 </span>
                               )}
@@ -383,14 +383,14 @@ function DriveAttendeesModal({ drive, isOpen, onClose, onAttendeesUpdated }) {
               <button
                 onClick={handleAddAttendees}
                 disabled={addingAttendees}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition"
+                className="px-6 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition"
               >
                 {addingAttendees ? 'Adding...' : `Add Selected (${selectedStudents.length})`}
               </button>
             )}
             <button
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+              className="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
             >
               Close
             </button>

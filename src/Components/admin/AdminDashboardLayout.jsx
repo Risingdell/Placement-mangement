@@ -279,7 +279,7 @@ function AdminDashboardLayout() {
         } ${isCollapsed ? 'lg:w-[84px]' : 'w-64'}`}
       >
         <div className={`flex h-14 items-center px-4 ${isLightTheme ? 'border-b border-[#d1d5db]' : 'border-b border-[#2e2e33]'}`}>
-          <div className={`flex h-9 w-9 items-center justify-center rounded-lg border text-xs font-bold tracking-[0.2em] text-[#f7b545] ${
+          <div className={`flex h-9 w-9 items-center justify-center border text-xs font-bold tracking-[0.2em] text-[#f7b545] ${
             isLightTheme ? 'border-[#e5e7eb] bg-[#fff7ed]' : 'border-[#3a3a40] bg-[#232328]'
           }`}>
             PM
@@ -309,7 +309,7 @@ function AdminDashboardLayout() {
                     title={isCollapsed ? item.name : ''}
                     onClick={() => setIsMobileSidebarOpen(false)}
                     className={({ isActive }) =>
-                      `group relative flex h-12 items-center rounded-md border-l-[3px] transition-all ${
+                      `group relative flex h-12 items-center border-l-[3px] transition-all ${
                         isActive
                           ? isLightTheme
                             ? 'border-[#f7b545] bg-[rgba(247,181,69,0.14)] text-[#111827]'
@@ -320,7 +320,7 @@ function AdminDashboardLayout() {
                       } ${isCollapsed ? 'justify-center px-2' : 'px-3'}`
                     }
                   >
-                    <span className={`grid h-7 w-7 place-items-center rounded-md border ${
+                    <span className={`grid h-7 w-7 place-items-center border ${
                       isLightTheme
                         ? 'border-[#e5e7eb] bg-[#f9fafb] text-[#374151]'
                         : 'border-[#34343a] bg-[#26262d] text-[#d4d4d8]'
@@ -335,10 +335,10 @@ function AdminDashboardLayout() {
           ))}
 
           <div className={`mt-auto pt-3 ${isLightTheme ? 'border-t border-[#d1d5db]' : 'border-t border-[#2e2e33]'}`}>
-            <div className={`rounded-lg border p-3 ${
+            <div className={`border p-3 ${
               isLightTheme ? 'border-[#d1d5db] bg-[#ffffff]' : 'border-[#2f2f36] bg-[#1f1f24]'
             } ${isCollapsed ? 'text-center' : ''}`}>
-              <div className={`${isCollapsed ? 'mx-auto' : ''} flex h-8 w-8 items-center justify-center rounded-full bg-[#f7b545] text-sm font-bold text-[#1a1a1f]`}>
+              <div className={`${isCollapsed ? 'mx-auto' : ''} flex h-8 w-8 items-center justify-center bg-[#f7b545] text-sm font-bold text-[#1a1a1f]`}>
                 {userInitial}
               </div>
               {!isCollapsed && (
@@ -352,7 +352,7 @@ function AdminDashboardLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className={`mt-2 flex w-full items-center rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
+              className={`mt-2 flex w-full items-center px-3 py-2 text-[13px] font-medium transition-all ${
                 isLightTheme
                   ? 'text-[#6b7280] hover:bg-[#fff7ed] hover:text-[#d97706]'
                   : 'text-[#a1a1aa] hover:bg-[#2a1f17] hover:text-[#f59e0b]'
@@ -376,7 +376,7 @@ function AdminDashboardLayout() {
               <button
                 type="button"
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className={`h-9 w-9 rounded-md border bg-transparent lg:hidden ${
+                className={`h-9 w-9 border bg-transparent lg:hidden ${
                   isLightTheme
                     ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
                     : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'
@@ -388,7 +388,7 @@ function AdminDashboardLayout() {
               <button
                 type="button"
                 onClick={() => setIsCollapsed((prev) => !prev)}
-                className={`hidden h-9 w-9 rounded-md border bg-transparent lg:inline-flex items-center justify-center ${
+                className={`hidden h-9 w-9 border bg-transparent lg:inline-flex items-center justify-center ${
                   isLightTheme
                     ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
                     : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'
@@ -411,14 +411,14 @@ function AdminDashboardLayout() {
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearch}
                 placeholder="Search admin workspace"
-                className={`hidden h-9 min-w-[220px] rounded-md border px-3 text-sm xl:flex bg-transparent outline-none ${
+                className={`hidden h-9 min-w-[220px] border px-3 text-sm xl:flex bg-transparent outline-none ${
                   isLightTheme
                     ? 'border-[#d1d5db] bg-[#f9fafb] text-[#374151] placeholder-[#9ca3af]'
                     : 'border-[#3a3a40] bg-[#202026] text-[#d4d4d8] placeholder-[#6b7280]'
                 }`}
               />
               <ThemeModeSwitch theme={adminTheme} onChange={setAdminTheme} />
-              <div className={`hidden rounded-md border px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#f7b545] md:block ${
+              <div className={`hidden border px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#f7b545] md:block ${
                 isLightTheme ? 'border-[#d1d5db] bg-[#fff7ed]' : 'border-[#3a3a40] bg-[#202026]'
               }`}>
                 ADMIN
@@ -426,7 +426,7 @@ function AdminDashboardLayout() {
               <button
                 type="button"
                 onClick={() => navigate('/admin/dashboard/messages')}
-                className={`relative h-9 rounded-md border bg-transparent px-3 text-[11px] font-semibold tracking-[0.18em] transition-colors ${
+                className={`relative h-9 border bg-transparent px-3 text-[11px] font-semibold tracking-[0.18em] transition-colors ${
                   isLightTheme
                     ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
                     : 'border-[#3a3a40] text-[#d1d5db] hover:bg-[#2a2a2e]'
@@ -438,10 +438,10 @@ function AdminDashboardLayout() {
                   <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ef4444]" />
                 )}
               </button>
-              <div className={`flex items-center gap-2 rounded-md border bg-transparent px-2 py-1.5 ${
+              <div className={`flex items-center gap-2 border bg-transparent px-2 py-1.5 ${
                 isLightTheme ? 'border-[#d1d5db]' : 'border-[#3a3a40]'
               }`}>
-                <div className={`flex h-7 w-7 items-center justify-center rounded-md border text-sm ${
+                <div className={`flex h-7 w-7 items-center justify-center border text-sm ${
                   isLightTheme ? 'border-[#e5e7eb] bg-[#f9fafb]' : 'border-[#444] bg-[#2e2e34]'
                 }`}>
                   <span className="text-[10px] text-[#f7b545]">{userInitial}</span>
@@ -477,7 +477,7 @@ function AdminDashboardLayout() {
 
 function InfoStripCard({ label, value, tone, theme = 'dark' }) {
   return (
-    <div className={`rounded-xl border px-4 py-3 ${
+    <div className={`border px-4 py-3 ${
       theme === 'light' ? 'border-[#d1d5db] bg-white' : 'border-[#2f2f34] bg-[#1f1f24]'
     }`}>
       <p className={`text-[11px] uppercase tracking-[0.08em] ${theme === 'light' ? 'text-[#6b7280]' : 'text-zinc-400'}`}>{label}</p>

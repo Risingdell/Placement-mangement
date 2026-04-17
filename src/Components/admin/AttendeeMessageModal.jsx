@@ -110,7 +110,7 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
           onClick={onClose}
         ></div>
 
-        <div className="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+        <div className="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -133,12 +133,12 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
 
           {/* Messages */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-4 p-4 bg-red-50 border border-red-200">
               <p className="text-sm text-red-800">❌ {error}</p>
             </div>
           )}
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="mb-4 p-4 bg-green-50 border border-green-200">
               <p className="text-sm text-green-800">✅ {successMessage}</p>
             </div>
           )}
@@ -150,7 +150,7 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
               <p className="mt-2 text-gray-600">Loading attendees...</p>
             </div>
           ) : attendees.length === 0 ? (
-            <div className="text-center py-8 bg-blue-50 rounded-lg">
+            <div className="text-center py-8 bg-blue-50">
               <svg className="w-12 h-12 mx-auto text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5-4a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -196,7 +196,7 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
                   value={formData.subject}
                   onChange={handleInputChange}
                   placeholder="e.g., Your Coding Test Link - Google"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -212,7 +212,7 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
                   onChange={handleInputChange}
                   placeholder="Write your message here. Include any important instructions or details."
                   rows="4"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   required
                 />
               </div>
@@ -229,7 +229,7 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
                     value={formData.examLink}
                     onChange={handleInputChange}
                     placeholder="https://example.com/exam-link"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                     required={formData.messageType !== 'general'}
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -239,7 +239,7 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
               )}
 
               {/* Preview */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="bg-gray-50 p-4 border border-gray-200">
                 <p className="text-xs font-semibold text-gray-600 mb-2">📋 PREVIEW</p>
                 <div className="text-sm text-gray-700 space-y-2">
                   <p><strong>To:</strong> {attendees.length} attendee(s)</p>
@@ -260,14 +260,14 @@ function AttendeeMessageModal({ drive, isOpen, onClose, onMessageSent }) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  className="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={sending || attendees.length === 0}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+                  className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
                 >
                   {sending ? (
                     <>
