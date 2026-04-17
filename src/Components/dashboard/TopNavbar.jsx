@@ -44,14 +44,14 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
         <div className="flex items-center gap-2 md:gap-4 min-w-0">
           <button
             onClick={onOpenMobileSidebar}
-            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} lg:hidden h-9 w-9 rounded-md bg-transparent`}
+            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} lg:hidden h-9 w-9 bg-transparent border`}
             aria-label="Open sidebar"
           >
             =
           </button>
           <button
             onClick={onToggleCollapse}
-            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} hidden lg:inline-flex items-center justify-center h-9 w-9 rounded-md border bg-transparent`}
+            className={`${theme === 'light' ? 'border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] text-[#d4d4d8] hover:bg-[#2a2a2e]'} hidden lg:inline-flex items-center justify-center h-9 w-9 border bg-transparent`}
             aria-label="Toggle sidebar width"
           >
             {isCollapsed ? '>' : '<'}
@@ -60,18 +60,18 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
         </div>
 
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`${theme === 'light' ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]' : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'} hidden xl:flex items-center h-9 px-3 rounded-md border text-sm min-w-[220px]`}>
+          <div className={`${theme === 'light' ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]' : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'} hidden xl:flex items-center h-9 px-3 border text-sm min-w-[220px]`}>
             Search
           </div>
           <ThemeModeSwitch theme={theme} onChange={onThemeChange} />
           <button
-            className={`${theme === 'light' ? 'hover:bg-[#f3f4f6] border-[#d1d5db] text-[#374151]' : 'hover:bg-[#2a2a2e] border-[#3a3a40] text-[#d1d5db]'} relative h-9 px-3 rounded-md transition-colors border bg-transparent text-[11px] font-semibold tracking-wider`}
+            className={`${theme === 'light' ? 'hover:bg-[#f3f4f6] border-[#d1d5db] text-[#374151]' : 'hover:bg-[#2a2a2e] border-[#3a3a40] text-[#d1d5db]'} relative h-9 px-3 transition-colors border bg-transparent text-[11px] font-semibold tracking-wider`}
             onClick={() => navigate('/dashboard/inbox')}
             title="Inbox"
           >
             INBOX
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
+              <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[10px] font-bold px-1.5 py-0.5 min-w-[16px] text-center">
                 {unreadCount}
               </span>
             )}
@@ -80,9 +80,9 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className={`${theme === 'light' ? 'border-[#d1d5db] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] hover:bg-[#2a2a2e]'} flex items-center gap-2 px-2 py-1.5 rounded-md border transition-all bg-transparent cursor-pointer`}
+              className={`${theme === 'light' ? 'border-[#d1d5db] hover:bg-[#f3f4f6]' : 'border-[#3a3a40] hover:bg-[#2a2a2e]'} flex items-center gap-2 px-2 py-1.5 border transition-all bg-transparent cursor-pointer`}
             >
-              <div className={`${theme === 'light' ? 'bg-[#f3f4f6] border-[#d1d5db]' : 'bg-[#2e2e34] border-[#444]'} w-7 h-7 rounded-md overflow-hidden border flex items-center justify-center text-sm`}>
+              <div className={`${theme === 'light' ? 'bg-[#f3f4f6] border-[#d1d5db]' : 'bg-[#2e2e34] border-[#444]'} w-7 h-7 overflow-hidden border flex items-center justify-center text-sm`}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
                 ) : (
@@ -92,11 +92,11 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
               <span className={`hidden sm:inline text-sm ${theme === 'light' ? 'text-[#374151]' : 'text-[#d4d4d8]'} max-w-[140px] truncate`}>
                 {userName}
               </span>
-              <span className="text-xs text-[#7c7c7c]">^</span>
+              <span className={`text-xs text-[#7c7c7c] transition-transform duration-200 inline-block ${showUserMenu ? 'rotate-180' : ''}`}>^</span>
             </button>
 
             {showUserMenu && (
-              <div className={`${theme === 'light' ? 'bg-white border-[#d1d5db]' : 'bg-[#232329] border-[#3a3a40]'} absolute top-full right-0 mt-2 w-48 border rounded-lg shadow-xl overflow-hidden z-50`}>
+              <div className={`${theme === 'light' ? 'bg-white border-[#d1d5db]' : 'bg-[#232329] border-[#3a3a40]'} absolute top-full right-0 mt-2 w-48 border shadow-xl overflow-hidden z-50`}>
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
