@@ -59,28 +59,28 @@ function AdminDashboardHome() {
   });
 
   const sectionCardClass = isLightTheme
-    ? 'rounded-2xl border border-[#d1d5db] bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]'
-    : 'rounded-2xl border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]';
+    ? 'border border-[#d1d5db] bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]'
+    : 'border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]';
 
   const nestedCardClass = isLightTheme
-    ? 'rounded-xl border border-[#e5e7eb] bg-[#f8fafc] p-4'
-    : 'rounded-xl border border-[#353540] bg-[#24242b] p-4';
+    ? 'border border-[#e5e7eb] bg-[#f8fafc] p-4'
+    : 'border border-[#353540] bg-[#24242b] p-4';
 
   const listCardClass = isLightTheme
-    ? 'rounded-xl border border-[#e5e7eb] bg-[#f8fafc] px-4 py-3'
-    : 'rounded-xl border border-[#34343d] bg-[#23232a] px-4 py-3';
+    ? 'border border-[#e5e7eb] bg-[#f8fafc] px-4 py-3'
+    : 'border border-[#34343d] bg-[#23232a] px-4 py-3';
 
   const mutedTextClass = isLightTheme ? 'text-[#6b7280]' : 'text-zinc-400';
   const subtleTextClass = isLightTheme ? 'text-[#9ca3af]' : 'text-zinc-500';
   const headingTextClass = isLightTheme ? 'text-[#111827]' : 'text-zinc-100';
   const secondaryButtonClass = isLightTheme
-    ? 'rounded-lg border border-[#d1d5db] bg-white px-3 py-2 text-xs font-semibold text-[#374151] transition-colors hover:bg-[#f9fafb]'
-    : 'rounded-lg border border-[#363640] bg-[#24242b] px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-[#2e2e37]';
+    ? 'border border-[#d1d5db] bg-white px-3 py-2 text-xs font-semibold text-[#374151] transition-colors hover:bg-[#f9fafb]'
+    : 'border border-[#363640] bg-[#24242b] px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-[#2e2e37]';
 
   return (
     <div className="max-w-7xl space-y-8">
       <section
-        className={`rounded-2xl border p-6 md:p-8 ${
+        className={`border p-6 md:p-8 ${
           isLightTheme
             ? 'border-[#d1d5db] bg-[linear-gradient(135deg,#ffffff_0%,#fff7ed_100%)] shadow-[0_18px_40px_rgba(15,23,42,0.08)]'
             : 'border-[#2f2f36] bg-[#1d1d22] shadow-[0_8px_24px_rgba(0,0,0,0.25)]'
@@ -121,12 +121,12 @@ function AdminDashboardHome() {
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-3 2xl:grid-cols-6">
         {loading ? (
           <>
-            <ShellSkeleton className="h-20 rounded-xl" />
-            <ShellSkeleton className="h-20 rounded-xl" />
-            <ShellSkeleton className="h-20 rounded-xl" />
-            <ShellSkeleton className="h-20 rounded-xl" />
-            <ShellSkeleton className="h-20 rounded-xl" />
-            <ShellSkeleton className="h-20 rounded-xl" />
+            <ShellSkeleton className="h-20" />
+            <ShellSkeleton className="h-20" />
+            <ShellSkeleton className="h-20" />
+            <ShellSkeleton className="h-20" />
+            <ShellSkeleton className="h-20" />
+            <ShellSkeleton className="h-20" />
           </>
         ) : (
           STAT_CONFIG.map((item) => (
@@ -148,7 +148,7 @@ function AdminDashboardHome() {
               <p className={`text-xs uppercase tracking-[0.2em] ${subtleTextClass}`}>Placement Summary</p>
               <h3 className={`mt-1 text-lg font-semibold ${headingTextClass}`}>Outcome snapshot</h3>
             </div>
-            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+            <span className="border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
               Live
             </span>
           </div>
@@ -156,9 +156,9 @@ function AdminDashboardHome() {
           <div className={`mt-4 ${nestedCardClass}`}>
             {loading ? (
               <div className="space-y-3">
-                <ShellSkeleton className="h-6 w-36 rounded-lg" />
-                <ShellSkeleton className="h-3 w-full rounded-full" />
-                <ShellSkeleton className="h-4 w-44 rounded-lg" />
+                <ShellSkeleton className="h-6 w-36" />
+                <ShellSkeleton className="h-3 w-full" />
+                <ShellSkeleton className="h-4 w-44" />
               </div>
             ) : (
               <>
@@ -170,9 +170,9 @@ function AdminDashboardHome() {
                 <p className={`mt-2 text-xs ${subtleTextClass}`}>
                   {val('placed_students')} placed out of {val('total_students')} registered students.
                 </p>
-                <div className={`mt-4 h-2 w-full overflow-hidden rounded-full ${isLightTheme ? 'bg-[#e5e7eb]' : 'bg-[#2e2e36]'}`}>
+                <div className={`mt-4 h-2 w-full overflow-hidden ${isLightTheme ? 'bg-[#e5e7eb]' : 'bg-[#2e2e36]'}`}>
                   <div
-                    className="h-full rounded-full bg-[#f7b545] transition-all"
+                    className="h-full bg-[#f7b545] transition-all"
                     style={{ width: `${placementRate === '--' ? 0 : placementRate}%` }}
                   />
                 </div>
@@ -226,9 +226,9 @@ function AdminDashboardHome() {
           <div className="mt-4 space-y-3">
             {loading && (
               <>
-                <ShellSkeleton className="h-16 rounded-xl" />
-                <ShellSkeleton className="h-16 rounded-xl" />
-                <ShellSkeleton className="h-16 rounded-xl" />
+                <ShellSkeleton className="h-16" />
+                <ShellSkeleton className="h-16" />
+                <ShellSkeleton className="h-16" />
               </>
             )}
 
@@ -254,7 +254,7 @@ function AdminDashboardHome() {
                       {placement.company_name} - {placement.role}
                     </p>
                   </div>
-                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
+                  <span className="border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
                     {placement.ctc ? `${placement.ctc} LPA` : 'Placed'}
                   </span>
                 </article>
@@ -282,9 +282,9 @@ function AdminDashboardHome() {
           <div className="flex min-w-max gap-3 pb-1">
             {loading && (
               <>
-                <ShellSkeleton className="h-24 w-72 flex-shrink-0 rounded-xl" />
-                <ShellSkeleton className="h-24 w-72 flex-shrink-0 rounded-xl" />
-                <ShellSkeleton className="h-24 w-72 flex-shrink-0 rounded-xl" />
+                <ShellSkeleton className="h-24 w-72 flex-shrink-0" />
+                <ShellSkeleton className="h-24 w-72 flex-shrink-0" />
+                <ShellSkeleton className="h-24 w-72 flex-shrink-0" />
               </>
             )}
 
@@ -296,13 +296,13 @@ function AdminDashboardHome() {
               recentPlacements.slice(0, 8).map((placement, index) => (
                 <article
                   key={`${placement.student_name}-${placement.role}-${index}`}
-                  className={`w-72 rounded-xl border p-4 ${
+                  className={`w-72 border p-4 ${
                     isLightTheme ? 'border-[#e5e7eb] bg-[#f8fafc]' : 'border-[#34343d] bg-[#23232a]'
                   }`}
                 >
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span
-                      className={`rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[#f7b545] ${
+                      className={`border px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[#f7b545] ${
                         isLightTheme ? 'border-[#f3e8c8] bg-[#fff7ed]' : 'border-[#3a3a44] bg-[#25252d]'
                       }`}
                     >
@@ -324,7 +324,7 @@ function AdminDashboardHome() {
 
 const StatCard = ({ label, value, tone, theme }) => (
   <div
-    className={`rounded-xl border px-4 py-3 ${
+    className={`border px-4 py-3 ${
       theme === 'light' ? 'border-[#d1d5db] bg-white' : 'border-[#2f2f36] bg-[#1d1d22]'
     }`}
   >
@@ -335,7 +335,7 @@ const StatCard = ({ label, value, tone, theme }) => (
 
 const SummaryPill = ({ label, value, tone, theme }) => (
   <div
-    className={`rounded-full border px-4 py-2 ${
+    className={`border px-4 py-2 ${
       theme === 'light' ? 'border-[#e5e7eb] bg-white' : 'border-[#34343d] bg-[#23232a]'
     }`}
   >
@@ -346,7 +346,7 @@ const SummaryPill = ({ label, value, tone, theme }) => (
 
 const SummaryRow = ({ label, value, tone, theme }) => (
   <div
-    className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${
+    className={`flex items-center justify-between border px-4 py-3 text-sm ${
       theme === 'light' ? 'border-[#e5e7eb] bg-[#f8fafc]' : 'border-[#34343d] bg-[#23232a]'
     }`}
   >
@@ -359,7 +359,7 @@ const ActionButton = ({ label, onClick, theme }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-lg border px-4 py-3 text-sm transition-colors ${
+    className={`border px-4 py-3 text-sm transition-colors ${
       theme === 'light'
         ? 'border-[#d1d5db] bg-white text-[#374151] hover:bg-[#f9fafb]'
         : 'border-[#363640] bg-[#24242b] text-zinc-200 hover:bg-[#2e2e37]'
