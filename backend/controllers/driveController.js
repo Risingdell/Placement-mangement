@@ -455,18 +455,30 @@ const getUpcomingDrives = async (req, res) => {
     const userId = req.user.id;
 
     const [drives] = await promisePool.query(
-      `SELECT pd.id, pd.company_name, pd.role, pd.drive_date, pd.registration_deadline, pd.ctc
+      `SELECT pd.id, pd.company_name, pd.role AS job_role,
+              pd.drive_date, pd.registration_deadline AS application_deadline,
+              pd.ctc AS package, pd.status,
+              pd.min_cgpa, pd.max_backlogs,
+              sa.cgpa, sa.active_backlogs
        FROM placement_drives pd
-       WHERE pd.status = 'Upcoming'
+       LEFT JOIN student_academics sa ON sa.user_id = ?
+       WHERE pd.status IN ('Upcoming', 'Active')
          AND pd.registration_deadline > NOW()
        ORDER BY pd.drive_date ASC
        LIMIT 5`,
-      []
+      [userId]
     );
+
+    const result = drives.map(d => ({
+      ...d,
+      eligible: d.cgpa !== null
+        ? (d.cgpa >= (d.min_cgpa || 0) && d.active_backlogs <= (d.max_backlogs ?? 99))
+        : null,
+    }));
 
     res.json({
       success: true,
-      data: drives
+      data: result
     });
   } catch (error) {
     console.error('Get upcoming drives error:', error);
