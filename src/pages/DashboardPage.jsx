@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { useStudent } from '../context/StudentContext';
 import UpcomingDrives from '../Components/dashboard/UpcomingDrives';
 import UpcomingCompanies from '../Components/dashboard/UpcomingCompanies';
@@ -13,6 +14,8 @@ import { SkeletonDark } from '../Components/common/Skeleton';
 const DASHBOARD_SKILLS_KEY = 'dashboard_custom_skills';
 
 function DashboardPage() {
+  const { theme } = useOutletContext() || {};
+  const isLight = theme === 'light';
   const { profile, eligibility, fetchProfile, fetchEligibility } = useStudent();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -263,7 +266,7 @@ function DashboardPage() {
       </section>
 
       <section className="mb-8">
-        <UpcomingCompanies />
+        <UpcomingCompanies isLight={isLight} />
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
