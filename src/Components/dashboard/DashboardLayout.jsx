@@ -33,7 +33,7 @@ function DashboardLayout() {
         theme={studentTheme}
       />
 
-      <div className="flex-1 flex flex-col overflow-y-auto relative min-w-0">
+      <div className="flex-1 flex flex-col overflow-y-auto relative min-w-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <TopNavbar
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}

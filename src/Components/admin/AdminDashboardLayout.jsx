@@ -292,7 +292,7 @@ function AdminDashboardLayout() {
           )}
         </div>
 
-        <nav className="flex h-[calc(100%-56px)] flex-col gap-5 overflow-y-auto px-3 py-4">
+        <nav className="flex h-[calc(100%-56px)] flex-col gap-5 overflow-y-auto px-3 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {navSections.map((section) => (
             <div key={section.label}>
               {!isCollapsed && (
@@ -461,7 +461,7 @@ function AdminDashboardLayout() {
           </div>
         </section>}
 
-        <main className={`relative z-10 flex-1 overflow-auto ${
+        <main className={`relative z-10 flex-1 overflow-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
           isLightTheme
             ? 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.12),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(59,130,246,0.08),_transparent_30%)]'
             : 'bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.05),_transparent_30%)]'
