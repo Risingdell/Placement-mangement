@@ -52,10 +52,42 @@ const STAT_CONFIG = [
 ];
 
 const QUICK_ACTIONS = [
-  { label: 'Add Company',   path: '/admin/dashboard/companies',    icon: '🏢' },
-  { label: 'Create Drive',  path: '/admin/dashboard/drives',       icon: '📋' },
-  { label: 'Send Message',  path: '/admin/dashboard/messages',     icon: '✉️' },
-  { label: 'View Reports',  path: '/admin/dashboard/reports',      icon: '📊' },
+  {
+    label: 'Add Company',
+    path: '/admin/dashboard/companies',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Create Drive',
+    path: '/admin/dashboard/drives',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Send Message',
+    path: '/admin/dashboard/messages',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'View Reports',
+    path: '/admin/dashboard/reports',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+  },
 ];
 
 const STATUS_COLORS = {
@@ -334,13 +366,13 @@ function AdminDashboardHome() {
               key={a.label}
               type="button"
               onClick={() => navigate(a.path)}
-              className={`flex flex-col items-center gap-2 border py-5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md ${
+              className={`flex flex-col items-center gap-3 border py-6 text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md ${
                 isLight
-                  ? 'border-[#d1d5db] bg-white text-[#374151] hover:border-[#f7b545] hover:bg-[#fff7ed]'
-                  : 'border-[#363640] bg-[#24242b] text-zinc-200 hover:border-[#f7b545] hover:bg-[#2a2519]'
+                  ? 'border-[#d1d5db] bg-white text-[#374151] hover:border-[#f7b545] hover:bg-[#fff7ed] hover:text-[#b45309]'
+                  : 'border-[#363640] bg-[#24242b] text-zinc-400 hover:border-[#f7b545] hover:bg-[#2a2519] hover:text-[#f7b545]'
               }`}
             >
-              <span className="text-2xl">{a.icon}</span>
+              {a.icon}
               {a.label}
             </button>
           ))}
