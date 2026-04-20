@@ -36,23 +36,49 @@ exports.getDashboardStats = async (req, res) => {
       LIMIT 5
     `);
 
-    // Pending verifications
-    const [pendingVerifications] = await db.query(`
-      SELECT COUNT(*) as count FROM document_verifications WHERE status = 'Pending'
+    // Application status breakdown
+    const [appStatusRows] = await db.query(`
+      SELECT status, COUNT(*) as count
+      FROM applications
+      GROUP BY status
+    `);
+    const appStatus = {};
+    appStatusRows.forEach(r => { appStatus[r.status] = Number(r.count); });
+
+    // Branch-wise placement for chart
+    const [branchRows] = await db.query(`
+      SELECT sa.branch,
+             COUNT(DISTINCT u.id) as total,
+             SUM(u.is_placed) as placed
+      FROM users u
+      JOIN student_academics sa ON u.id = sa.user_id
+      WHERE u.role = 'student' AND sa.branch IS NOT NULL AND sa.branch != ''
+      GROUP BY sa.branch
+      ORDER BY placed DESC
+      LIMIT 8
     `);
 
-    // Pending profile changes
-    const [pendingChanges] = await db.query(`
-      SELECT COUNT(*) as count FROM profile_change_requests WHERE status = 'Pending'
-    `);
+    // Pending verifications
+    let pendingVerifications = { count: 0 };
+    let pendingChanges = { count: 0 };
+    try {
+      const [pv] = await db.query(`SELECT COUNT(*) as count FROM document_verifications WHERE status = 'Pending'`);
+      pendingVerifications = pv[0];
+    } catch {}
+    try {
+      const [pc] = await db.query(`SELECT COUNT(*) as count FROM profile_change_requests WHERE status = 'Pending'`);
+      pendingChanges = pc[0];
+    } catch {}
 
     res.json({
       success: true,
       data: {
         overall: overallStats[0],
         recentPlacements,
-        pendingVerifications: pendingVerifications[0].count,
-        pendingProfileChanges: pendingChanges[0].count
+        appStatus,
+        branchChart: branchRows,
+        pendingVerifications: pendingVerifications.count,
+        pendingProfileChanges: pendingChanges.count
       }
     });
   } catch (error) {
