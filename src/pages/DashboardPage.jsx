@@ -159,7 +159,7 @@ function DashboardPage() {
     <div className="max-w-7xl mx-auto space-y-6">
 
       {/* ── Hero ─────────────────────────────────────────── */}
-      <section className={`p-6 md:p-8 ${card}`} style={{ borderRadius: 16 }}>
+      <section className={`p-6 md:p-8 ${card}`}>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className={`text-xs font-semibold uppercase tracking-[0.22em] ${isLight ? 'text-indigo-500' : 'text-[#f7b545]'}`}>
@@ -174,7 +174,6 @@ function DashboardPage() {
             <button
               onClick={() => navigate('/dashboard/drives')}
               className="px-5 py-2.5 text-sm font-semibold bg-[#f7b545] text-[#1a1a1f] hover:bg-[#f9c46c] transition-all hover:scale-[1.03]"
-              style={{ borderRadius: 8 }}
             >
               Apply for Drives →
             </button>
@@ -183,7 +182,6 @@ function DashboardPage() {
               className={`px-5 py-2.5 text-sm font-semibold border transition-all hover:scale-[1.03] ${
                 isLight ? 'border-[#e5e7eb] text-[#374151] hover:bg-[#f9fafb]' : 'border-[#363640] text-zinc-200 hover:bg-[#26262e]'
               }`}
-              style={{ borderRadius: 8 }}
             >
               Update Profile
             </button>
@@ -191,19 +189,18 @@ function DashboardPage() {
         </div>
 
         {profileCompletion < 100 && (
-          <div className={`mt-5 flex flex-col sm:flex-row sm:items-center gap-3 p-4 ${isLight ? 'bg-amber-50 border border-amber-200' : 'bg-amber-500/10 border border-amber-500/30'}`} style={{ borderRadius: 10 }}>
+          <div className={`mt-5 flex flex-col sm:flex-row sm:items-center gap-3 p-4 ${isLight ? 'bg-amber-50 border border-amber-200' : 'bg-amber-500/10 border border-amber-500/30'}`}>
             <div className="flex-1">
               <p className={`text-sm font-medium ${isLight ? 'text-amber-800' : 'text-amber-200'}`}>
                 Profile {profileCompletion}% complete — finish it to boost eligibility
               </p>
-              <div className={`mt-2 h-1.5 w-full overflow-hidden ${isLight ? 'bg-amber-200' : 'bg-amber-900/30'}`} style={{ borderRadius: 99 }}>
-                <div className="h-full bg-[#f7b545] transition-all duration-700" style={{ width: `${profileCompletion}%`, borderRadius: 99 }} />
+              <div className={`mt-2 h-1.5 w-full overflow-hidden ${isLight ? 'bg-amber-200' : 'bg-amber-900/30'}`}>
+                <div className="h-full bg-[#f7b545] transition-all duration-700" style={{ width: `${profileCompletion}%` }} />
               </div>
             </div>
             <button
               onClick={() => navigate('/dashboard/profile')}
               className="flex-shrink-0 bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] hover:bg-[#f9c46c] transition-colors"
-              style={{ borderRadius: 8 }}
             >
               Complete Now
             </button>
@@ -214,16 +211,15 @@ function DashboardPage() {
       {/* ── KPI stat cards ───────────────────────────────── */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {loading
-          ? statCards.map((_, i) => <Shell key={i} className="h-28" style={{ borderRadius: 16 }} />)
+          ? statCards.map((_, i) => <Shell key={i} className="h-28" />)
           : statCards.map(({ label, value, Icon, accent, accentBg, tone }) => (
             <div
               key={label}
               className={`${card} p-4 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]`}
-              style={{ borderRadius: 16 }}
             >
               <div className="flex items-center justify-between">
                 <p className={`text-[11px] uppercase tracking-[0.1em] font-medium ${subtle}`}>{label}</p>
-                <span className={`p-1.5 ${accentBg} ${accent}`} style={{ borderRadius: 8 }}>
+                <span className={`p-1.5 ${accentBg} ${accent}`}>
                   <Icon />
                 </span>
               </div>
@@ -236,17 +232,17 @@ function DashboardPage() {
       {/* ── Skills + Rank ────────────────────────────────── */}
       <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {loading ? (
-          <><Shell className="h-44" style={{ borderRadius: 16 }} /><Shell className="h-44" style={{ borderRadius: 16 }} /></>
+          <><Shell className="h-44" /><Shell className="h-44" /></>
         ) : (
           <>
             {/* Skills */}
-            <div className={`${card} p-5`} style={{ borderRadius: 16 }}>
+            <div className={`${card} p-5`}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className={`text-xs uppercase tracking-wider ${subtle}`}>Dashboard Skills</p>
                   <h3 className={`text-base font-semibold mt-0.5 ${heading}`}>Your Skill Set</h3>
                 </div>
-                <span className={`text-xs px-2.5 py-1 font-medium ${isLight ? 'bg-indigo-50 text-indigo-600' : 'bg-indigo-900/30 text-indigo-300'}`} style={{ borderRadius: 999 }}>
+                <span className={`text-xs px-2.5 py-1 font-medium ${isLight ? 'bg-indigo-50 text-indigo-600' : 'bg-indigo-900/30 text-indigo-300'}`}>
                   {customSkills.length} skills
                 </span>
               </div>
@@ -257,12 +253,10 @@ function DashboardPage() {
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomSkill(); } }}
                   placeholder="Add skill (React, SQL, DSA…)"
                   className={`flex-1 min-w-0 px-3 py-2 text-sm outline-none transition-colors ${inputCls}`}
-                  style={{ borderRadius: 8 }}
                 />
                 <button
                   onClick={addCustomSkill}
                   className="flex-shrink-0 bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] hover:bg-[#f9c46c] transition-colors"
-                  style={{ borderRadius: 8 }}
                 >
                   Add
                 </button>
@@ -275,7 +269,6 @@ function DashboardPage() {
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
                       isLight ? 'bg-[#f3f4f6] text-[#374151] border border-[#e5e7eb]' : 'bg-[#25252d] text-zinc-200 border border-[#3a3a44]'
                     }`}
-                    style={{ borderRadius: 999 }}
                   >
                     {skill}
                     <button
@@ -290,18 +283,18 @@ function DashboardPage() {
             </div>
 
             {/* Rank */}
-            <div className={`${card} p-5`} style={{ borderRadius: 16 }}>
+            <div className={`${card} p-5`}>
               <div className="flex items-start justify-between gap-3 mb-4">
                 <div>
                   <p className={`text-xs uppercase tracking-wider ${subtle}`}>Placement Rank</p>
                   <h3 className={`text-base font-semibold mt-0.5 ${heading}`}>Professional Score</h3>
                 </div>
-                <span className={`text-xs px-2.5 py-1 font-medium ${isLight ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'}`} style={{ borderRadius: 999 }}>
+                <span className={`text-xs px-2.5 py-1 font-medium ${isLight ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'}`}>
                   Ranked
                 </span>
               </div>
 
-              <div className={`${nested} p-4`} style={{ borderRadius: 12 }}>
+              <div className={`${nested} p-4`}>
                 <p className={`text-sm ${muted}`}>Your current standing</p>
                 <p className="mt-1 text-4xl font-extrabold text-[#f7b545]">
                   #{rankData?.rank || '—'}
@@ -313,10 +306,10 @@ function DashboardPage() {
                 {percentile !== null && (
                   <>
                     <p className={`mt-3 text-xs ${subtle}`}>Top {100 - percentile}% of students</p>
-                    <div className={`mt-2 h-1.5 w-full overflow-hidden ${isLight ? 'bg-[#e5e7eb]' : 'bg-[#2e2e36]'}`} style={{ borderRadius: 99 }}>
+                    <div className={`mt-2 h-1.5 w-full overflow-hidden ${isLight ? 'bg-[#e5e7eb]' : 'bg-[#2e2e36]'}`}>
                       <div
                         className="h-full bg-[#f7b545] transition-all duration-700"
-                        style={{ width: `${percentile}%`, borderRadius: 99 }}
+                        style={{ width: `${percentile}%` }}
                       />
                     </div>
                   </>
@@ -329,7 +322,7 @@ function DashboardPage() {
                   { label: 'CGPA pts',   value: rankData?.score?.cgpa ?? '—' },
                   { label: 'Skill pts',  value: rankData?.score?.skills ?? '—' },
                 ].map(({ label, value }) => (
-                  <div key={label} className={`${nested} px-3 py-2 text-center`} style={{ borderRadius: 8 }}>
+                  <div key={label} className={`${nested} px-3 py-2 text-center`}>
                     <p className={`text-[10px] uppercase tracking-wider ${subtle}`}>{label}</p>
                     <p className={`text-sm font-bold mt-0.5 ${heading}`}>{value}</p>
                   </div>
@@ -352,7 +345,7 @@ function DashboardPage() {
       </section>
 
       {/* ── Quick actions ────────────────────────────────── */}
-      <section className={`${card} p-5`} style={{ borderRadius: 16 }}>
+      <section className={`${card} p-5`}>
         <h3 className={`text-base font-semibold ${heading} mb-4`}>Quick Actions</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {QUICK_ACTIONS.map(({ label, path, icon }) => (
@@ -364,7 +357,6 @@ function DashboardPage() {
                   ? 'border-[#e5e7eb] bg-white text-[#374151] hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700'
                   : 'border-[#363640] bg-[#24242b] text-zinc-300 hover:border-[#f7b545] hover:bg-[#2a2519] hover:text-[#f7b545]'
               }`}
-              style={{ borderRadius: 12 }}
             >
               {icon}
               {label}
@@ -374,7 +366,7 @@ function DashboardPage() {
       </section>
 
       {/* ── Activity feed ────────────────────────────────── */}
-      <section className={`${card} p-5`} style={{ borderRadius: 16 }}>
+      <section className={`${card} p-5`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className={`text-base font-semibold ${heading}`}>Latest Placement Activity</h3>
           <span className={`text-xs ${subtle}`}>Drives + Events</span>
@@ -396,7 +388,6 @@ function DashboardPage() {
                 className={`w-64 flex-shrink-0 p-4 border transition-all hover:-translate-y-1 ${
                   isLight ? 'bg-[#f8fafc] border-[#e5e7eb] hover:shadow-md' : 'bg-[#23232a] border-[#34343d] hover:border-[#3f3f4a]'
                 }`}
-                style={{ borderRadius: 12 }}
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span
@@ -405,7 +396,6 @@ function DashboardPage() {
                         ? isLight ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
                         : isLight ? 'bg-sky-50 text-sky-600 border border-sky-200' : 'bg-sky-500/10 text-sky-300 border border-sky-500/30'
                     }`}
-                    style={{ borderRadius: 999 }}
                   >
                     {item.type}
                   </span>

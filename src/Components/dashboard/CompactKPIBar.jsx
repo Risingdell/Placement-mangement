@@ -85,9 +85,8 @@ function CompactKPIBar({ theme = 'dark' }) {
               className={`flex items-center gap-3 px-4 py-2.5 transition-all ${
                 isLight ? 'border border-[#e5e7eb] bg-white hover:border-indigo-200 hover:bg-indigo-50/50' : 'border border-[#2f2f34] bg-[#1f1f24] hover:bg-[#26262d]'
               } ${action ? 'cursor-pointer' : 'cursor-default'}`}
-              style={{ borderRadius: 10 }}
             >
-              <span className={`p-1.5 flex-shrink-0 ${iconBg} ${tone}`} style={{ borderRadius: 7 }}>
+              <span className={`p-1.5 flex-shrink-0 ${iconBg} ${tone}`}>
                 <Icon />
               </span>
               <div className="text-left min-w-0">

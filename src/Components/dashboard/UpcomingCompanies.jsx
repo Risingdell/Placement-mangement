@@ -90,7 +90,6 @@ function UpcomingCompanies({ isLight = false }) {
             <button
               onClick={() => scrollBy(-1)}
               className={`w-8 h-8 flex items-center justify-center transition-all ${arrowBg}`}
-              style={{ borderRadius: '50%' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -99,7 +98,6 @@ function UpcomingCompanies({ isLight = false }) {
             <button
               onClick={() => scrollBy(1)}
               className={`w-8 h-8 flex items-center justify-center transition-all ${arrowBg}`}
-              style={{ borderRadius: '50%' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -119,7 +117,6 @@ function UpcomingCompanies({ isLight = false }) {
               style={{
                 width: CARD_W,
                 height: 200,
-                borderRadius: 16,
                 background: isLight ? '#f3f4f6' : '#2a2a32',
               }}
             />
@@ -171,7 +168,6 @@ function CompanyCard({ company, cardBg, cardBorder, nameCls, subtleCls }) {
         width: 170,
         flexShrink: 0,
         padding: '16px 14px',
-        borderRadius: 16,
         background: cardBg,
         border: `1px solid ${cardBorder}`,
         boxShadow: hov
@@ -190,7 +186,6 @@ function CompanyCard({ company, cardBg, cardBorder, nameCls, subtleCls }) {
         top: 0, left: 0, right: 0,
         height: 3,
         background: 'linear-gradient(90deg, #f59e0b, #a78bfa)',
-        borderRadius: '16px 16px 0 0',
         opacity: hov ? 1 : 0.6,
         transition: 'opacity 0.28s ease',
       }} />
@@ -214,14 +209,12 @@ function CompanyCard({ company, cardBg, cardBorder, nameCls, subtleCls }) {
               objectFit: 'contain',
               background: '#fff',
               padding: 4,
-              borderRadius: 8,
             }}
           />
         ) : (
           <div style={{
             width: 48,
             height: 48,
-            borderRadius: 12,
             background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
             display: 'flex',
             alignItems: 'center',
@@ -255,7 +248,6 @@ function CompanyCard({ company, cardBg, cardBorder, nameCls, subtleCls }) {
           fontSize: 11,
           fontWeight: 500,
           padding: '3px 10px',
-          borderRadius: 999,
           background: badge.bg,
           color: badge.color,
           letterSpacing: '0.02em',
