@@ -7,11 +7,15 @@ const login = async (data) => {
     body: JSON.stringify(data),
   });
 
+  const responseData = await res.json();
+
   if (!res.ok) {
-    throw new Error("Login failed");
+    const error = new Error(responseData.message || "Login failed");
+    error.response = { data: responseData };
+    throw error;
   }
 
-  return res.json();
+  return responseData;
 };
 
 const register = async (data) => {
@@ -21,11 +25,15 @@ const register = async (data) => {
     body: JSON.stringify(data),
   });
 
+  const responseData = await res.json();
+
   if (!res.ok) {
-    throw new Error("Registration failed");
+    const error = new Error(responseData.message || "Registration failed");
+    error.response = { data: responseData };
+    throw error;
   }
 
-  return res.json();
+  return responseData;
 };
 
 const forgotPassword = async (email) => {
@@ -35,11 +43,15 @@ const forgotPassword = async (email) => {
     body: JSON.stringify({ email }),
   });
 
+  const responseData = await res.json();
+
   if (!res.ok) {
-    throw new Error("Request failed");
+    const error = new Error(responseData.message || "Request failed");
+    error.response = { data: responseData };
+    throw error;
   }
 
-  return res.json();
+  return responseData;
 };
 
 const resetPassword = async (token, newPassword) => {

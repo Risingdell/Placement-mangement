@@ -43,12 +43,12 @@ const Icons = {
 };
 
 const STAT_CONFIG = [
-  { key: 'total_students',    label: 'Total Students',  Icon: Icons.Students,    lightTone: 'text-[#111827]',    darkTone: 'text-zinc-100',    lightBg: 'bg-slate-50',    darkBg: 'bg-[#222228]',    iconColor: 'text-slate-500' },
-  { key: 'placed_students',   label: 'Placed',          Icon: Icons.Placed,      lightTone: 'text-emerald-600',  darkTone: 'text-emerald-400', lightBg: 'bg-emerald-50',  darkBg: 'bg-emerald-900/20', iconColor: 'text-emerald-500' },
-  { key: 'eligible_students', label: 'Eligible',        Icon: Icons.Eligible,    lightTone: 'text-sky-600',      darkTone: 'text-sky-400',     lightBg: 'bg-sky-50',      darkBg: 'bg-sky-900/20',    iconColor: 'text-sky-500' },
-  { key: 'total_companies',   label: 'Companies',       Icon: Icons.Companies,   lightTone: 'text-amber-600',    darkTone: 'text-amber-400',   lightBg: 'bg-amber-50',    darkBg: 'bg-amber-900/20',  iconColor: 'text-amber-500' },
-  { key: 'total_drives',      label: 'Drives',          Icon: Icons.Drives,      lightTone: 'text-violet-600',   darkTone: 'text-violet-400',  lightBg: 'bg-violet-50',   darkBg: 'bg-violet-900/20', iconColor: 'text-violet-500' },
-  { key: 'total_applications',label: 'Applications',    Icon: Icons.Applications,lightTone: 'text-rose-600',     darkTone: 'text-rose-400',    lightBg: 'bg-rose-50',     darkBg: 'bg-rose-900/20',   iconColor: 'text-rose-500' },
+  { key: 'total_students',    label: 'Total Students',  Icon: Icons.Students,    lightTone: 'text-[#111827]', darkTone: 'text-zinc-100',    lightBg: 'bg-[#f3f4f6]', darkBg: 'bg-[#222228]',      lightIcon: 'text-[#374151]', darkIcon: 'text-slate-400' },
+  { key: 'placed_students',   label: 'Placed',          Icon: Icons.Placed,      lightTone: 'text-[#111827]', darkTone: 'text-emerald-400', lightBg: 'bg-[#f3f4f6]', darkBg: 'bg-emerald-900/20', lightIcon: 'text-[#374151]', darkIcon: 'text-emerald-500' },
+  { key: 'eligible_students', label: 'Eligible',        Icon: Icons.Eligible,    lightTone: 'text-[#111827]', darkTone: 'text-sky-400',     lightBg: 'bg-[#f3f4f6]', darkBg: 'bg-sky-900/20',     lightIcon: 'text-[#374151]', darkIcon: 'text-sky-500' },
+  { key: 'total_companies',   label: 'Companies',       Icon: Icons.Companies,   lightTone: 'text-[#111827]', darkTone: 'text-amber-400',   lightBg: 'bg-[#f3f4f6]', darkBg: 'bg-amber-900/20',   lightIcon: 'text-[#374151]', darkIcon: 'text-amber-500' },
+  { key: 'total_drives',      label: 'Drives',          Icon: Icons.Drives,      lightTone: 'text-[#111827]', darkTone: 'text-violet-400',  lightBg: 'bg-[#f3f4f6]', darkBg: 'bg-violet-900/20',  lightIcon: 'text-[#374151]', darkIcon: 'text-violet-500' },
+  { key: 'total_applications',label: 'Applications',    Icon: Icons.Applications,lightTone: 'text-[#111827]', darkTone: 'text-rose-400',    lightBg: 'bg-[#f3f4f6]', darkBg: 'bg-rose-900/20',    lightIcon: 'text-[#374151]', darkIcon: 'text-rose-500' },
 ];
 
 const QUICK_ACTIONS = [
@@ -200,7 +200,7 @@ function AdminDashboardHome() {
               label={item.label}
               value={val(item.key).toLocaleString()}
               Icon={item.Icon}
-              iconColor={item.iconColor}
+              iconColor={isLight ? item.lightIcon : item.darkIcon}
               tone={isLight ? item.lightTone : item.darkTone}
               bgAccent={isLight ? item.lightBg : item.darkBg}
               theme={adminTheme}
