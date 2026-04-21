@@ -9,9 +9,50 @@ import applicationService from '../services/applicationService';
 import profileService from '../services/profileService';
 import driveService from '../services/driveService';
 import eventService from '../services/eventService';
-import { SkeletonDark } from '../Components/common/Skeleton';
+import { Skeleton, SkeletonDark } from '../Components/common/Skeleton';
 
 const DASHBOARD_SKILLS_KEY = 'dashboard_custom_skills';
+
+// ── Stat card icons ─────────────────────────────────────────────────────────
+const IcoBriefcase = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+const IcoBadge = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+  </svg>
+);
+const IcoCheck = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M5 13l4 4L19 7" />
+  </svg>
+);
+const IcoUser = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+);
+
+const QUICK_ACTIONS = [
+  {
+    label: 'Update Profile', path: '/dashboard/profile',
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+  },
+  {
+    label: 'Browse Drives', path: '/dashboard/drives',
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
+  },
+  {
+    label: 'Applications', path: '/dashboard/applications',
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+  },
+  {
+    label: 'Events', path: '/dashboard/events',
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+  },
+];
 
 function DashboardPage() {
   const { theme } = useOutletContext() || {};
@@ -26,298 +67,354 @@ function DashboardPage() {
   const [newSkill, setNewSkill] = useState('');
   const [latestActivity, setLatestActivity] = useState([]);
   const hasLoadedRef = useRef(false);
+  const Shell = isLight ? Skeleton : SkeletonDark;
 
   useEffect(() => {
     if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
-
-    const loadDashboardData = async () => {
+    const load = async () => {
       try {
         await Promise.all([fetchProfile(), fetchEligibility()]);
-
-        const [applicationsResponse, rankingResponse, upcomingDrivesRes, upcomingEventsRes] = await Promise.all([
+        const [appRes, rankRes, drivesRes, eventsRes] = await Promise.all([
           applicationService.getMyApplications(),
           profileService.getRanking(),
           driveService.getUpcomingDrives(),
           eventService.getUpcomingEvents(),
         ]);
-
-        if (applicationsResponse.success) {
-          setTotalApplications(applicationsResponse.data.length || 0);
-        }
-
-        if (rankingResponse.success) {
-          setRankData(rankingResponse.data);
-        }
-
-        const activities = [];
-        if (upcomingDrivesRes?.success) {
-          (upcomingDrivesRes.data || []).forEach((drive) => {
-            activities.push({
-              id: `drive-${drive.id}`,
-              type: 'Drive',
-              title: `${drive.company_name} - ${drive.role}`,
-              subtitle: drive.ctc ? `${drive.ctc} CTC` : 'CTC not disclosed',
-              date: drive.drive_date || drive.registration_deadline,
-            });
-          });
-        }
-
-        if (upcomingEventsRes?.success) {
-          (upcomingEventsRes.data || []).forEach((event) => {
-            activities.push({
-              id: `event-${event.id}`,
-              type: 'Event',
-              title: event.title,
-              subtitle: event.location || event.event_type || 'Placement activity',
-              date: event.event_date,
-            });
-          });
-        }
-
-        activities.sort((a, b) => new Date(a.date) - new Date(b.date));
-        setLatestActivity(activities.slice(0, 12));
-      } catch (error) {
-        console.error('Failed to load dashboard data:', error);
+        if (appRes.success)  setTotalApplications(appRes.data.length || 0);
+        if (rankRes.success) setRankData(rankRes.data);
+        const acts = [];
+        (drivesRes?.success ? drivesRes.data || [] : []).forEach(d =>
+          acts.push({ id: `drive-${d.id}`, type: 'Drive', title: `${d.company_name} - ${d.role}`, subtitle: d.ctc ? `${d.ctc} CTC` : 'CTC not disclosed', date: d.drive_date || d.registration_deadline })
+        );
+        (eventsRes?.success ? eventsRes.data || [] : []).forEach(e =>
+          acts.push({ id: `event-${e.id}`, type: 'Event', title: e.title, subtitle: e.location || e.event_type || 'Placement activity', date: e.event_date })
+        );
+        acts.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setLatestActivity(acts.slice(0, 12));
+      } catch (err) {
+        console.error('Dashboard load error:', err);
       } finally {
         setLoading(false);
       }
     };
-    loadDashboardData();
+    load();
   }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem(DASHBOARD_SKILLS_KEY);
     if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setCustomSkills(parsed);
-          return;
-        }
-      } catch (error) {
-        console.error('Failed to parse stored custom skills:', error);
-      }
+      try { const p = JSON.parse(stored); if (Array.isArray(p)) { setCustomSkills(p); return; } } catch {}
     }
-
-    const initialFromProfile = (profile?.skills || []).slice(0, 6).map((s) => s.skill_name).filter(Boolean);
-    if (initialFromProfile.length > 0) {
-      setCustomSkills(initialFromProfile);
-      localStorage.setItem(DASHBOARD_SKILLS_KEY, JSON.stringify(initialFromProfile));
-    }
+    const init = (profile?.skills || []).slice(0, 6).map(s => s.skill_name).filter(Boolean);
+    if (init.length > 0) { setCustomSkills(init); localStorage.setItem(DASHBOARD_SKILLS_KEY, JSON.stringify(init)); }
   }, [profile]);
 
   useEffect(() => {
-    if (profile) {
-      const requiredFields = [
-        'cgpa',
-        'sgpa',
-        'current_semester',
-        'tenth_percentage',
-        'twelfth_percentage',
-        'photo_url',
-        'resume_url',
-      ];
-      const completedFields = requiredFields.filter(
-        (field) => profile[field] !== null && profile[field] !== undefined && profile[field] !== ''
-      ).length;
-      setProfileCompletion(Math.round((completedFields / requiredFields.length) * 100));
-    }
+    if (!profile) return;
+    const fields = ['cgpa','sgpa','current_semester','tenth_percentage','twelfth_percentage','photo_url','resume_url'];
+    const done = fields.filter(f => profile[f] !== null && profile[f] !== undefined && profile[f] !== '').length;
+    setProfileCompletion(Math.round((done / fields.length) * 100));
   }, [profile]);
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
   const addCustomSkill = () => {
-    const value = newSkill.trim();
-    if (!value) return;
-    if (customSkills.some((skill) => skill.toLowerCase() === value.toLowerCase())) {
-      setNewSkill('');
-      return;
-    }
-    const updated = [...customSkills, value];
+    const v = newSkill.trim();
+    if (!v || customSkills.some(s => s.toLowerCase() === v.toLowerCase())) { setNewSkill(''); return; }
+    const updated = [...customSkills, v];
     setCustomSkills(updated);
     localStorage.setItem(DASHBOARD_SKILLS_KEY, JSON.stringify(updated));
     setNewSkill('');
   };
 
-  const removeCustomSkill = (skillToRemove) => {
-    const updated = customSkills.filter((skill) => skill !== skillToRemove);
+  const removeCustomSkill = (s) => {
+    const updated = customSkills.filter(x => x !== s);
     setCustomSkills(updated);
     localStorage.setItem(DASHBOARD_SKILLS_KEY, JSON.stringify(updated));
   };
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      <section className="border border-[#2f2f36] bg-[#1d1d22] p-6 md:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold text-zinc-100">
-          Welcome back, {profile?.full_name || 'Student'}
-        </h1>
-        <p className="text-zinc-400 mt-2">{today}</p>
-      </section>
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {loading ? (
-          <>
-            <SkeletonDark className="h-16" />
-            <SkeletonDark className="h-16" />
-            <SkeletonDark className="h-16" />
-            <SkeletonDark className="h-16" />
-          </>
-        ) : (
-          <>
-            <StatCard label="Applications" value={totalApplications} />
-            <StatCard label="Placement" value={profile?.is_placed ? 'Placed' : 'In Progress'} tone={profile?.is_placed ? 'text-emerald-300' : 'text-amber-300'} />
-            <StatCard label="Eligibility" value={eligibility?.eligible ? 'Eligible' : 'Not Eligible'} tone={eligibility?.eligible ? 'text-emerald-300' : 'text-red-300'} />
-            <StatCard label="Profile" value={`${profileCompletion}%`} tone={profileCompletion >= 80 ? 'text-emerald-300' : 'text-amber-300'} />
-          </>
+  // Theme tokens
+  const card    = isLight ? 'bg-white border border-[#e5e7eb] shadow-[0_6px_20px_rgba(0,0,0,0.06)]' : 'bg-[#1d1d22] border border-[#2f2f36] shadow-[0_6px_20px_rgba(0,0,0,0.25)]';
+  const nested  = isLight ? 'bg-[#f8fafc] border border-[#e5e7eb]' : 'bg-[#24242b] border border-[#353540]';
+  const heading = isLight ? 'text-[#111827]' : 'text-zinc-100';
+  const muted   = isLight ? 'text-[#6b7280]' : 'text-zinc-400';
+  const subtle  = isLight ? 'text-[#9ca3af]' : 'text-zinc-500';
+  const inputCls= isLight
+    ? 'border border-[#e5e7eb] bg-white text-[#111827] placeholder-[#9ca3af] focus:border-indigo-400'
+    : 'border border-[#363640] bg-[#24242b] text-zinc-200 placeholder-zinc-600 focus:border-[#f7b545]';
+
+  const statCards = [
+    { label: 'Applications', value: totalApplications, Icon: IcoBriefcase, accent: 'text-blue-500', accentBg: isLight ? 'bg-blue-50' : 'bg-blue-900/20', tone: isLight ? 'text-[#111827]' : 'text-zinc-100' },
+    { label: 'Placement',    value: profile?.is_placed ? 'Placed' : 'In Progress', Icon: IcoBadge, accent: profile?.is_placed ? 'text-emerald-500' : 'text-amber-500', accentBg: profile?.is_placed ? (isLight ? 'bg-emerald-50' : 'bg-emerald-900/20') : (isLight ? 'bg-amber-50' : 'bg-amber-900/20'), tone: profile?.is_placed ? (isLight ? 'text-emerald-600' : 'text-emerald-400') : (isLight ? 'text-amber-600' : 'text-amber-400') },
+    { label: 'Eligibility',  value: eligibility?.eligible ? 'Eligible' : 'Not Eligible', Icon: IcoCheck, accent: eligibility?.eligible ? 'text-emerald-500' : 'text-red-500', accentBg: eligibility?.eligible ? (isLight ? 'bg-emerald-50' : 'bg-emerald-900/20') : (isLight ? 'bg-red-50' : 'bg-red-900/20'), tone: eligibility?.eligible ? (isLight ? 'text-emerald-600' : 'text-emerald-400') : (isLight ? 'text-red-600' : 'text-red-400') },
+    { label: 'Profile',      value: `${profileCompletion}%`, Icon: IcoUser, accent: profileCompletion >= 80 ? 'text-emerald-500' : 'text-amber-500', accentBg: profileCompletion >= 80 ? (isLight ? 'bg-emerald-50' : 'bg-emerald-900/20') : (isLight ? 'bg-amber-50' : 'bg-amber-900/20'), tone: profileCompletion >= 80 ? (isLight ? 'text-emerald-600' : 'text-emerald-400') : (isLight ? 'text-amber-600' : 'text-amber-400') },
+  ];
+
+  const percentile = rankData?.rank && rankData?.totalStudents
+    ? Math.round((1 - rankData.rank / rankData.totalStudents) * 100)
+    : null;
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6">
+
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section className={`p-6 md:p-8 ${card}`} style={{ borderRadius: 16 }}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-[0.22em] ${isLight ? 'text-indigo-500' : 'text-[#f7b545]'}`}>
+              Student Portal
+            </p>
+            <h1 className={`mt-2 text-2xl md:text-3xl font-bold ${heading}`}>
+              Welcome back, {profile?.full_name || 'Student'}
+            </h1>
+            <p className={`mt-1 text-sm ${muted}`}>{today}</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => navigate('/dashboard/drives')}
+              className="px-5 py-2.5 text-sm font-semibold bg-[#f7b545] text-[#1a1a1f] hover:bg-[#f9c46c] transition-all hover:scale-[1.03]"
+              style={{ borderRadius: 8 }}
+            >
+              Apply for Drives →
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/profile')}
+              className={`px-5 py-2.5 text-sm font-semibold border transition-all hover:scale-[1.03] ${
+                isLight ? 'border-[#e5e7eb] text-[#374151] hover:bg-[#f9fafb]' : 'border-[#363640] text-zinc-200 hover:bg-[#26262e]'
+              }`}
+              style={{ borderRadius: 8 }}
+            >
+              Update Profile
+            </button>
+          </div>
+        </div>
+
+        {profileCompletion < 100 && (
+          <div className={`mt-5 flex flex-col sm:flex-row sm:items-center gap-3 p-4 ${isLight ? 'bg-amber-50 border border-amber-200' : 'bg-amber-500/10 border border-amber-500/30'}`} style={{ borderRadius: 10 }}>
+            <div className="flex-1">
+              <p className={`text-sm font-medium ${isLight ? 'text-amber-800' : 'text-amber-200'}`}>
+                Profile {profileCompletion}% complete — finish it to boost eligibility
+              </p>
+              <div className={`mt-2 h-1.5 w-full overflow-hidden ${isLight ? 'bg-amber-200' : 'bg-amber-900/30'}`} style={{ borderRadius: 99 }}>
+                <div className="h-full bg-[#f7b545] transition-all duration-700" style={{ width: `${profileCompletion}%`, borderRadius: 99 }} />
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard/profile')}
+              className="flex-shrink-0 bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] hover:bg-[#f9c46c] transition-colors"
+              style={{ borderRadius: 8 }}
+            >
+              Complete Now
+            </button>
+          </div>
         )}
       </section>
 
-      {profileCompletion < 100 && (
-        <section className="mb-8 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <p>
-            Complete your profile to improve drive eligibility. Current completion: <strong>{profileCompletion}%</strong>
-          </p>
-          <button
-            onClick={() => navigate('/dashboard/profile')}
-            className="bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c]"
-          >
-            Complete Profile
-          </button>
-        </section>
-      )}
+      {/* ── KPI stat cards ───────────────────────────────── */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {loading
+          ? statCards.map((_, i) => <Shell key={i} className="h-28" style={{ borderRadius: 16 }} />)
+          : statCards.map(({ label, value, Icon, accent, accentBg, tone }) => (
+            <div
+              key={label}
+              className={`${card} p-4 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]`}
+              style={{ borderRadius: 16 }}
+            >
+              <div className="flex items-center justify-between">
+                <p className={`text-[11px] uppercase tracking-[0.1em] font-medium ${subtle}`}>{label}</p>
+                <span className={`p-1.5 ${accentBg} ${accent}`} style={{ borderRadius: 8 }}>
+                  <Icon />
+                </span>
+              </div>
+              <p className={`text-xl font-bold ${tone}`}>{value}</p>
+            </div>
+          ))
+        }
+      </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+      {/* ── Skills + Rank ────────────────────────────────── */}
+      <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {loading ? (
-          <>
-            <SkeletonDark className="h-44" />
-            <SkeletonDark className="h-44" />
-          </>
+          <><Shell className="h-44" style={{ borderRadius: 16 }} /><Shell className="h-44" style={{ borderRadius: 16 }} /></>
         ) : (
           <>
-            <div className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+            {/* Skills */}
+            <div className={`${card} p-5`} style={{ borderRadius: 16 }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-zinc-100">Custom Skills</h3>
-                <span className="text-xs text-zinc-500">{customSkills.length} selected</span>
+                <div>
+                  <p className={`text-xs uppercase tracking-wider ${subtle}`}>Dashboard Skills</p>
+                  <h3 className={`text-base font-semibold mt-0.5 ${heading}`}>Your Skill Set</h3>
+                </div>
+                <span className={`text-xs px-2.5 py-1 font-medium ${isLight ? 'bg-indigo-50 text-indigo-600' : 'bg-indigo-900/30 text-indigo-300'}`} style={{ borderRadius: 999 }}>
+                  {customSkills.length} skills
+                </span>
               </div>
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-2 mb-4">
                 <input
                   value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addCustomSkill();
-                    }
-                  }}
-                  placeholder="Add a skill (e.g. React, SQL, DSA)"
-                  className="flex-1 min-w-0 border border-[#363640] bg-[#24242b] px-3 py-2 text-sm text-zinc-200 outline-none"
+                  onChange={e => setNewSkill(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomSkill(); } }}
+                  placeholder="Add skill (React, SQL, DSA…)"
+                  className={`flex-1 min-w-0 px-3 py-2 text-sm outline-none transition-colors ${inputCls}`}
+                  style={{ borderRadius: 8 }}
                 />
                 <button
                   onClick={addCustomSkill}
-                  className="flex-shrink-0 bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] border-none cursor-pointer hover:bg-[#f9c46c] whitespace-nowrap"
+                  className="flex-shrink-0 bg-[#f7b545] px-4 py-2 text-sm font-semibold text-[#1a1a1f] hover:bg-[#f9c46c] transition-colors"
+                  style={{ borderRadius: 8 }}
                 >
                   Add
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {customSkills.length === 0 && <p className="text-sm text-zinc-500">No custom skills added yet.</p>}
-                {customSkills.map((skill) => (
-                  <span key={skill} className="inline-flex items-center gap-2 border border-[#3a3a44] bg-[#25252d] px-3 py-1 text-xs text-zinc-200">
+                {customSkills.length === 0 && <p className={`text-sm ${subtle}`}>No skills added yet.</p>}
+                {customSkills.map(skill => (
+                  <span
+                    key={skill}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
+                      isLight ? 'bg-[#f3f4f6] text-[#374151] border border-[#e5e7eb]' : 'bg-[#25252d] text-zinc-200 border border-[#3a3a44]'
+                    }`}
+                    style={{ borderRadius: 999 }}
+                  >
                     {skill}
                     <button
                       onClick={() => removeCustomSkill(skill)}
-                      className="text-zinc-400 hover:text-red-300 bg-transparent border-none cursor-pointer"
+                      className={`w-4 h-4 flex items-center justify-center bg-transparent border-none cursor-pointer text-xs leading-none ${isLight ? 'text-[#9ca3af] hover:text-red-500' : 'text-zinc-500 hover:text-red-400'}`}
                     >
-                      x
+                      ×
                     </button>
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
-              <div className="flex items-start justify-between gap-3">
+            {/* Rank */}
+            <div className={`${card} p-5`} style={{ borderRadius: 16 }}>
+              <div className="flex items-start justify-between gap-3 mb-4">
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-zinc-500">Placement Rank</p>
-                  <h3 className="text-lg font-semibold text-zinc-100 mt-1">Professional Score Badge</h3>
+                  <p className={`text-xs uppercase tracking-wider ${subtle}`}>Placement Rank</p>
+                  <h3 className={`text-base font-semibold mt-0.5 ${heading}`}>Professional Score</h3>
                 </div>
-                <span className="border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                <span className={`text-xs px-2.5 py-1 font-medium ${isLight ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'}`} style={{ borderRadius: 999 }}>
                   Ranked
                 </span>
               </div>
-              <div className="mt-4 border border-[#353540] bg-[#24242b] p-4">
-                <p className="text-zinc-400 text-sm">You are currently</p>
-                <p className="text-2xl md:text-3xl font-bold text-[#f7b545] mt-1">
-                  #{rankData?.rank || '-'} <span className="text-zinc-300 text-base font-medium">of {rankData?.totalStudents || '-'}</span>
+
+              <div className={`${nested} p-4`} style={{ borderRadius: 12 }}>
+                <p className={`text-sm ${muted}`}>Your current standing</p>
+                <p className="mt-1 text-4xl font-extrabold text-[#f7b545]">
+                  #{rankData?.rank || '—'}
+                  <span className={`ml-2 text-base font-medium ${isLight ? 'text-[#4b5563]' : 'text-zinc-300'}`}>
+                    of {rankData?.totalStudents || '—'}
+                  </span>
                 </p>
-                <p className="text-xs text-zinc-500 mt-2">
-                  Score: {rankData?.score?.total ?? '-'} | CGPA pts: {rankData?.score?.cgpa ?? '-'} | Internship pts: {rankData?.score?.internships ?? '-'} | Skill pts: {rankData?.score?.skills ?? '-'}
-                </p>
+
+                {percentile !== null && (
+                  <>
+                    <p className={`mt-3 text-xs ${subtle}`}>Top {100 - percentile}% of students</p>
+                    <div className={`mt-2 h-1.5 w-full overflow-hidden ${isLight ? 'bg-[#e5e7eb]' : 'bg-[#2e2e36]'}`} style={{ borderRadius: 99 }}>
+                      <div
+                        className="h-full bg-[#f7b545] transition-all duration-700"
+                        style={{ width: `${percentile}%`, borderRadius: 99 }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {[
+                  { label: 'Score',      value: rankData?.score?.total ?? '—' },
+                  { label: 'CGPA pts',   value: rankData?.score?.cgpa ?? '—' },
+                  { label: 'Skill pts',  value: rankData?.score?.skills ?? '—' },
+                ].map(({ label, value }) => (
+                  <div key={label} className={`${nested} px-3 py-2 text-center`} style={{ borderRadius: 8 }}>
+                    <p className={`text-[10px] uppercase tracking-wider ${subtle}`}>{label}</p>
+                    <p className={`text-sm font-bold mt-0.5 ${heading}`}>{value}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </>
         )}
       </section>
 
-      <section className="mb-8">
+      {/* ── Company carousel ─────────────────────────────── */}
+      <section>
         <UpcomingCompanies isLight={isLight} />
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+      {/* ── Drives + Events ──────────────────────────────── */}
+      <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <UpcomingDrives />
         <EventsBar />
       </section>
 
-      <section className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
-        <h3 className="text-lg font-semibold text-zinc-100 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <ActionButton label="Update Profile" onClick={() => navigate('/dashboard/profile')} />
-          <ActionButton label="Browse Drives" onClick={() => navigate('/dashboard/drives')} />
-          <ActionButton label="View Applications" onClick={() => navigate('/dashboard/applications')} />
-          <ActionButton label="Upcoming Events" onClick={() => navigate('/dashboard/events')} />
+      {/* ── Quick actions ────────────────────────────────── */}
+      <section className={`${card} p-5`} style={{ borderRadius: 16 }}>
+        <h3 className={`text-base font-semibold ${heading} mb-4`}>Quick Actions</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {QUICK_ACTIONS.map(({ label, path, icon }) => (
+            <button
+              key={label}
+              onClick={() => navigate(path)}
+              className={`flex flex-col items-center gap-2.5 py-5 text-sm font-medium border transition-all hover:-translate-y-1 hover:shadow-md ${
+                isLight
+                  ? 'border-[#e5e7eb] bg-white text-[#374151] hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700'
+                  : 'border-[#363640] bg-[#24242b] text-zinc-300 hover:border-[#f7b545] hover:bg-[#2a2519] hover:text-[#f7b545]'
+              }`}
+              style={{ borderRadius: 12 }}
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
         </div>
       </section>
 
-      <section className="border border-[#2f2f36] bg-[#1d1d22] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.25)] mt-8">
+      {/* ── Activity feed ────────────────────────────────── */}
+      <section className={`${card} p-5`} style={{ borderRadius: 16 }}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-zinc-100">Latest Placement Activity</h3>
-          <span className="text-xs text-zinc-500">Drives + Events</span>
+          <h3 className={`text-base font-semibold ${heading}`}>Latest Placement Activity</h3>
+          <span className={`text-xs ${subtle}`}>Drives + Events</span>
         </div>
-
         <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-3 min-w-max pb-1">
-            {loading && (
-              <>
-                <SkeletonDark className="w-72 h-24 flex-shrink-0" />
-                <SkeletonDark className="w-72 h-24 flex-shrink-0" />
-                <SkeletonDark className="w-72 h-24 flex-shrink-0" />
-              </>
-            )}
+            {loading && <><Shell className="w-64 h-24 flex-shrink-0" /><Shell className="w-64 h-24 flex-shrink-0" /><Shell className="w-64 h-24 flex-shrink-0" /></>}
             {!loading && latestActivity.length === 0 && (
-              <p className="text-sm text-zinc-500">No recent placement activity found.</p>
+              <div className={`flex flex-col items-center justify-center w-full py-10 ${subtle}`}>
+                <svg className="w-10 h-10 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <p className="text-sm">No recent placement activity</p>
+              </div>
             )}
-            {latestActivity.map((item) => (
-              <article key={item.id} className="w-72 border border-[#34343d] bg-[#23232a] p-4">
+            {!loading && latestActivity.map(item => (
+              <article
+                key={item.id}
+                className={`w-64 flex-shrink-0 p-4 border transition-all hover:-translate-y-1 ${
+                  isLight ? 'bg-[#f8fafc] border-[#e5e7eb] hover:shadow-md' : 'bg-[#23232a] border-[#34343d] hover:border-[#3f3f4a]'
+                }`}
+                style={{ borderRadius: 12 }}
+              >
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 border ${
-                    item.type === 'Drive'
-                      ? 'text-amber-300 border-amber-500/30 bg-amber-500/10'
-                      : 'text-sky-300 border-sky-500/30 bg-sky-500/10'
-                  }`}>
+                  <span
+                    className={`text-[10px] uppercase tracking-wider px-2.5 py-1 font-medium ${
+                      item.type === 'Drive'
+                        ? isLight ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                        : isLight ? 'bg-sky-50 text-sky-600 border border-sky-200' : 'bg-sky-500/10 text-sky-300 border border-sky-500/30'
+                    }`}
+                    style={{ borderRadius: 999 }}
+                  >
                     {item.type}
                   </span>
-                  <span className="text-[11px] text-zinc-500">
+                  <span className={`text-[11px] ${subtle}`}>
                     {item.date ? new Date(item.date).toLocaleDateString() : 'TBD'}
                   </span>
                 </div>
-                <h4 className="text-sm font-semibold text-zinc-100">{item.title}</h4>
-                <p className="text-xs text-zinc-400 mt-1">{item.subtitle}</p>
+                <h4 className={`text-sm font-semibold ${heading} truncate`}>{item.title}</h4>
+                <p className={`text-xs mt-1 ${muted} truncate`}>{item.subtitle}</p>
               </article>
             ))}
           </div>
@@ -326,21 +423,5 @@ function DashboardPage() {
     </div>
   );
 }
-
-const StatCard = ({ label, value, tone = 'text-zinc-100' }) => (
-  <div className="border border-[#2f2f36] bg-[#1d1d22] px-4 py-3">
-    <p className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</p>
-    <p className={`text-lg md:text-xl font-semibold mt-1 ${tone}`}>{value}</p>
-  </div>
-);
-
-const ActionButton = ({ label, onClick }) => (
-  <button
-    onClick={onClick}
-    className="border border-[#363640] bg-[#24242b] px-4 py-3 text-sm text-zinc-200 cursor-pointer hover:bg-[#2e2e37]"
-  >
-    {label}
-  </button>
-);
 
 export default DashboardPage;
