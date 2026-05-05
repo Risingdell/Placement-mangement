@@ -124,7 +124,7 @@ function PortfolioLinks() {
         </div>
         <button
           onClick={openAdd}
-          className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition"
+          className="px-4 py-2 bg-[#111827] text-white hover:bg-[#0f1117] transition"
         >
           + Add Portfolio
         </button>
@@ -266,7 +266,7 @@ function PortfolioLinks() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="px-4 py-2 rounded-none bg-[#111827] text-white hover:bg-[#0f1117]"
                   >
                     {submitting ? 'Saving...' : editing ? 'Update Portfolio' : 'Add Portfolio'}
                   </button>
