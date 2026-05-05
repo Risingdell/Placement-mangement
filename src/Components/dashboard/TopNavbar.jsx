@@ -60,9 +60,6 @@ function TopNavbar({ onToggleCollapse, onOpenMobileSidebar, isCollapsed, theme =
         </div>
 
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`${theme === 'light' ? 'border-[#d1d5db] bg-[#f9fafb] text-[#6b7280]' : 'border-[#3a3a40] bg-[#202026] text-[#9ca3af]'} hidden xl:flex items-center h-9 px-3 border text-sm min-w-[220px]`}>
-            Search
-          </div>
           <ThemeModeSwitch theme={theme} onChange={onThemeChange} />
           <button
             className={`${theme === 'light' ? 'hover:bg-[#f3f4f6] border-[#d1d5db] text-[#374151]' : 'hover:bg-[#2a2a2e] border-[#3a3a40] text-[#d1d5db]'} relative h-9 px-3 transition-colors border bg-transparent text-[11px] font-semibold tracking-wider`}

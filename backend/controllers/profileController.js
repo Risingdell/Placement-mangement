@@ -292,25 +292,29 @@ const uploadResume = async (req, res) => {
 
     const fileName = `${userId}_${Date.now()}_Resume.pdf`;
     const filePath = `resumes/${fileName}`;
+    let resumeUrl = null;
 
-    // Upload buffer to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from('resumes')
-      .upload(filePath, req.file.buffer, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
+    // Upload to Supabase if configured
+    if (supabase) {
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, req.file.buffer, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
 
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      return res.status(500).json({ success: false, message: 'Failed to upload to storage' });
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError);
+        return res.status(500).json({ success: false, message: 'Failed to upload to storage' });
+      }
+
+      const { data } = supabase.storage.from('resumes').getPublicUrl(filePath);
+      resumeUrl = data.publicUrl;
+      console.log('✅ Resume uploaded to Supabase:', resumeUrl);
+    } else {
+      resumeUrl = `${process.env.FRONTEND_URL}/uploads/resumes/${fileName}`;
+      console.log('⚠️  Supabase not configured, using local storage path:', resumeUrl);
     }
-
-    // Get public URL
-    const { data } = supabase.storage.from('resumes').getPublicUrl(filePath);
-    const resumeUrl = data.publicUrl;
-
-    console.log('✅ Resume uploaded to Supabase:', resumeUrl);
 
     await promisePool.query(
       'UPDATE student_academics SET resume_url = ? WHERE user_id = ?',
